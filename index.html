@@ -4,9 +4,45 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="stylesheet" href="/src/style.css" />
+
+		<style>
+			ul {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: wrap;
+				gap: 1rem;
+				padding: 0;
+				justify-content: center;
+			}
+			li {
+				display: contents;
+			}
+			a {
+				display: flex;
+				align-items: center;
+				min-height: 3rem;
+				min-width: 3rem;
+				box-shadow: 0 0 10px hsl(0 0 0 / 15%);
+				border-radius: 10px;
+				padding: 1rem;
+				text-align: center;
+				background-color: light-dark(white, hsl(0 0 0 / 20%));
+				font-size: 1.2rem;
+			}
+		</style>
 	</head>
 	<body>
-		<main></main>
-		<script type="module" src="/src/main.ts"></script>
+		<main>
+			<h1>2016375</h1>
+			<p class="subtitle">Proyectos disponibles</p>
+			<ul>
+				<li><a href="proyectos/1/">Proyecto 1</a></li>
+				<li><a href="proyectos/2/">Proyecto 2</a></li>
+				<li><a href="proyectos/3/">Proyecto 3</a></li>
+			</ul>
+		</main>
+		<footer>
+			<p>Santiago Cuentas Zavala (2026-1)</p>
+		</footer>
 	</body>
 </html>
