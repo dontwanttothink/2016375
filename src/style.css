@@ -36,7 +36,10 @@ body {
 }
 
 #canvas-container {
-	display: block;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+
 	overflow: scroll;
 	width: 100%;
 
