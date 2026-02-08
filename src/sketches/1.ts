@@ -1,4 +1,5 @@
 import p5 from "p5";
+import targetDimensions from "../dimensions";
 
 // Estado
 let dy = 0;
@@ -6,10 +7,12 @@ let dx = 0;
 
 // Configuración del lienzo
 function setup(p: p5) {
-	p.createCanvas(Math.min(800, innerWidth - 64), 600);
+	const [width, height] = targetDimensions();
+	p.createCanvas(width, height);
 }
 function windowResized(p: p5) {
-	p.resizeCanvas(Math.min(800, innerWidth - 64), 600);
+	const [width, height] = targetDimensions();
+	p.resizeCanvas(width, height);
 }
 
 // Dibujo (cada fotograma)
@@ -43,9 +46,9 @@ function handleInput(p: p5) {
 //
 // (se crea el elemento del lienzo en la página, pasamos nuestras
 // funciones, etc.)
-const canvasParent = document.getElementById("p");
+const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
-	throw Error();
+	throw new Error();
 }
 
 new p5((p) => {
