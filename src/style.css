@@ -1,4 +1,6 @@
 :root {
+	--content-padding: 2rem;
+
 	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 	line-height: 1.5;
 	font-weight: 400;
@@ -8,32 +10,39 @@
 	color-scheme: light dark;
 	color: light-dark(#213547, rgba(255, 255, 255, 0.87));
 	background-color: light-dark(#ffffff, #242424);
-
-	font-synthesis: none;
-	text-rendering: optimizeLegibility;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
 }
 
 a {
 	font-weight: 500;
 	color: light-dark(#646cff, #999eff);
 	text-decoration: inherit;
-}
-a:hover {
-	color: light-dark(#535bf2, hsl(from #999eff h s calc(l - 5)));
+
+	&:hover {
+		color: light-dark(#535bf2, hsl(from #999eff h s calc(l - 5)));
+	}
 }
 
 h1 {
 	font-size: 3.2em;
 	line-height: 1.1;
+	margin-block-start: 0.5rem;
 }
 
 body {
 	max-width: 1280px;
 	margin: 0 auto;
-	padding: 2rem;
+	padding: var(--content-padding);
 	text-align: center;
+}
+
+#canvas-container {
+	display: block;
+	overflow: scroll;
+	width: 100%;
+
+	canvas {
+		display: block;
+	}
 }
 
 .card {
@@ -50,19 +59,14 @@ button {
 	background-color: light-dark(#f9f9f9, #1a1a1a);
 	cursor: pointer;
 	transition: border-color 0.25s;
-}
-button:hover {
-	border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-	outline: 4px auto -webkit-focus-ring-color;
-}
 
-.canvas-container {
-	display: block;
-	overflow: scroll;
-	max-width: 100%;
+	&:hover {
+		border-color: #646cff;
+	}
+	&:focus,
+	&:focus-visible {
+		outline: 4px auto -webkit-focus-ring-color;
+	}
 }
 
 p.subtitle {
