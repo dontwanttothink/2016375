@@ -1,15 +1,18 @@
-# The Docker image that will be used to build your app
+# Nuestro proyecto usa Bun para instalar dependencias, así que
+# usamos la imagen de contenedor correcta.
 image: oven/bun:latest
 create-pages:
   pages:
-    # The folder that contains the files to be exposed at the Page URL
+    # La carpeta donde se encuentran los archivos de la página
+    # después de ser compilada:
     publish: dist
   rules:
-    # This ensures that only pushes to the default branch will trigger
-    # a pages deploy
+    # Solo actualizamos la página cuando hay cambios a la rama
+    # principal.
     - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  # Functions that should be executed before the build script is run
+  # Comandos que necesitan ejecutarse antes de la compilación:
   before_script:
     - bun i
+  # Compilación:
   script:
     - bun run build
