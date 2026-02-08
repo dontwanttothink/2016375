@@ -1,28 +1,39 @@
 import p5 from "p5";
+import targetDimensions from "../dimensions";
 
-const canvasParent = document.getElementById("p");
+// Estado
+// (nada)
+
+// Configuración del lienzo
+function setup(p: p5) {
+	const [width, height] = targetDimensions();
+	p.createCanvas(width, height);
+}
+function windowResized(p: p5) {
+	const [width, height] = targetDimensions();
+	p.resizeCanvas(width, height);
+}
+
+// Dibujo (cada fotograma)
+function draw(p: p5) {
+	p.background(100);
+	p.fill(105);
+	p.ellipse(p.width / 2, p.height / 2, 200, 200);
+
+	handleInput(p);
+}
+
+// Responder a las entradas
+function handleInput(_: p5) {}
+
+// Inicializar el bosquejo p5
+const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
-	throw Error();
+	throw new Error();
 }
 
 new p5((p) => {
-	let dy = 0;
-
-	p.setup = () => {
-		p.createCanvas(800, 600);
-		p.background(200);
-	};
-
-	p.draw = () => {
-		p.fill(0);
-		p.ellipse(p.width / 2, p.height / 2 + dy, 100, 100);
-		if (p.keyIsDown(p.UP_ARROW)) {
-			dy -= 20;
-			console.debug(dy);
-		}
-		if (p.keyIsDown(p.DOWN_ARROW)) {
-			dy += 20;
-			console.debug(dy);
-		}
-	};
+	p.setup = () => setup(p);
+	p.draw = () => draw(p);
+	p.windowResized = () => windowResized(p);
 }, canvasParent);
