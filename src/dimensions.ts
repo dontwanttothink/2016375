@@ -20,14 +20,8 @@ export default function targetDimensions() {
 	const availableHeight =
 		window.innerHeight - (body.scrollHeight - canvasContainer.scrollHeight);
 
-	console.debug(availableWidth, availableHeight);
-	console.debug([
+	return [
 		Math.max(Math.min(availableWidth, MAX_WIDTH), MIN_WIDTH),
 		Math.max(Math.min(availableHeight, MAX_HEIGHT), MIN_HEIGHT),
-	]);
-
-	return [
-		Math.max(Math.min(availableWidth, 800), 200),
-		Math.max(availableHeight, 100),
 	];
 }
