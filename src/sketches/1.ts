@@ -8,7 +8,6 @@ const difficulty = 1;
 // Configuración del lienzo
 function setup(p: p5) {
 	const [width, height] = targetDimensions();
-
 	p.createCanvas(width, height);
 }
 function windowResized(p: p5) {
