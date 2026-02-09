@@ -31,6 +31,23 @@ function drawGrid(p: p5, rows: number, columns: number) {
 	const LINE_WIDTH = 2;
 	p.strokeWeight(LINE_WIDTH);
 
+	// Líneas a los bordes
+	p.line(startX, startY, startX + size, startY);
+	p.line(startX, startY + size, startX + size, startY + size);
+	p.line(
+		startX + LINE_WIDTH / 2,
+		startY,
+		startX + LINE_WIDTH / 2,
+		startY + size,
+	);
+	p.line(
+		startX + size - LINE_WIDTH / 2,
+		startY,
+		startX + size - LINE_WIDTH / 2,
+		startY + size,
+	);
+
+	// Separadores
 	for (let i = 1; i < columns; ++i) {
 		const x = startX + deltaColumn * i;
 		p.line(x, startY, x, startY + size);
@@ -39,6 +56,7 @@ function drawGrid(p: p5, rows: number, columns: number) {
 		const y = startY + deltaRow * i;
 		p.line(startX, y, startX + size, y);
 	}
+
 	p.pop();
 }
 
