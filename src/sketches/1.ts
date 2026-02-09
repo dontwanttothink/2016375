@@ -2,7 +2,7 @@ import p5 from "p5";
 import targetDimensions from "../dimensions";
 
 // Estado
-const solution: [number, number][] = [];
+const solution: boolean[][] = [];
 const difficulty = 1;
 
 // Configuración del lienzo
