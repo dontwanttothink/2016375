@@ -40,7 +40,7 @@ function draw(p: p5) {
 	p.ellipse(p.width / 2 + dx, p.height / 2 + dy, 100, 100);
 
 	p.stroke(200);
-	drawGrid(p, 5, 5);
+	drawGrid(p, 3, 3);
 
 	handleInput(p);
 }
@@ -77,3 +77,5 @@ new p5((p) => {
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
 }, canvasParent);
+
+
