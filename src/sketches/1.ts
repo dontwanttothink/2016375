@@ -2,12 +2,13 @@ import p5 from "p5";
 import targetDimensions from "../dimensions";
 
 // Estado
-let dy = 0;
-let dx = 0;
+const solution: [number, number][] = [];
+const difficulty = 1;
 
 // Configuración del lienzo
 function setup(p: p5) {
 	const [width, height] = targetDimensions();
+
 	p.createCanvas(width, height);
 }
 function windowResized(p: p5) {
@@ -18,26 +19,34 @@ function windowResized(p: p5) {
 // Utilidades
 function drawGrid(p: p5, rows: number, columns: number) {
 	p.push();
-	const deltaRow = p.height / rows;
-	const deltaColumn = p.width / rows;
 
-	const LINE_WIDTH = 10;
+	const size = Math.min(p.height, p.width);
+
+	const startX = p.width / 2 - size / 2;
+	const startY = p.height / 2 - size / 2;
+
+	const deltaRow = size / rows;
+	const deltaColumn = size / rows;
+
+	const LINE_WIDTH = 2;
 	p.strokeWeight(LINE_WIDTH);
 
 	for (let i = 1; i < columns; ++i) {
-		p.line(deltaColumn * i, 0, deltaColumn * i, p.height);
+		const x = startX + deltaColumn * i;
+		p.line(x, startY, x, startY + size);
 	}
 	for (let i = 1; i < rows; ++i) {
-		p.line(0, deltaRow * i, p.width, deltaRow * i);
+		const y = startY + deltaRow * i;
+		p.line(startX, y, startX + size, y);
 	}
 	p.pop();
 }
 
 // Dibujo (cada fotograma)
 function draw(p: p5) {
-	p.background(0);
-	p.fill(255);
-	p.ellipse(p.width / 2 + dx, p.height / 2 + dy, 100, 100);
+	p.background(255);
+	p.fill(0);
+	p.ellipse(p.width / 2, p.height / 2, 100, 100);
 
 	p.stroke(200);
 	drawGrid(p, 5, 5);
@@ -46,22 +55,7 @@ function draw(p: p5) {
 }
 
 // Responder a las entradas
-function handleInput(p: p5) {
-	if (p.keyIsDown(p.UP_ARROW)) {
-		dy -= 20;
-		console.debug(dy);
-	}
-	if (p.keyIsDown(p.DOWN_ARROW)) {
-		dy += 20;
-		console.debug(dy);
-	}
-	if (p.keyIsDown(p.LEFT_ARROW)) {
-		dx -= 20;
-	}
-	if (p.keyIsDown(p.RIGHT_ARROW)) {
-		dx += 20;
-	}
-}
+function handleInput(p: p5) {}
 
 // Inicializar el bosquejo p5
 //
