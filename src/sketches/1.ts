@@ -17,42 +17,30 @@ function windowResized(p: p5) {
 }
 
 // Utilidades
-function drawGrid(p: p5, rows: number, columns: number) {
+function drawGrid(p: p5, count: number) {
 	p.push();
+	const LINE_WIDTH = 2;
 
-	const size = Math.min(p.height, p.width);
+	const size = Math.min(p.height, p.width) - LINE_WIDTH;
 
 	const startX = p.width / 2 - size / 2;
 	const startY = p.height / 2 - size / 2;
 
-	const deltaRow = size / rows;
-	const deltaColumn = size / rows;
+	const deltaRow = size / count;
+	const deltaColumn = size / count;
 
-	const LINE_WIDTH = 2;
 	p.strokeWeight(LINE_WIDTH);
+	p.noFill();
 
-	// Líneas a los bordes
-	p.line(startX, startY, startX + size, startY);
-	p.line(startX, startY + size, startX + size, startY + size);
-	p.line(
-		startX + LINE_WIDTH / 2,
-		startY,
-		startX + LINE_WIDTH / 2,
-		startY + size,
-	);
-	p.line(
-		startX + size - LINE_WIDTH / 2,
-		startY,
-		startX + size - LINE_WIDTH / 2,
-		startY + size,
-	);
+	// Bordes
+	p.rect(startX, startY, size, size);
 
 	// Separadores
-	for (let i = 1; i < columns; ++i) {
+	for (let i = 1; i < count; ++i) {
 		const x = startX + deltaColumn * i;
 		p.line(x, startY, x, startY + size);
 	}
-	for (let i = 1; i < rows; ++i) {
+	for (let i = 1; i < count; ++i) {
 		const y = startY + deltaRow * i;
 		p.line(startX, y, startX + size, y);
 	}
@@ -67,7 +55,7 @@ function draw(p: p5) {
 	p.ellipse(p.width / 2, p.height / 2, 100, 100);
 
 	p.stroke(200);
-	drawGrid(p, 3, 3);
+	drawGrid(p, 3);
 
 	handleInput(p);
 }
@@ -89,5 +77,3 @@ new p5((p) => {
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
 }, canvasParent);
-
-
