@@ -15,11 +15,32 @@ function windowResized(p: p5) {
 	p.resizeCanvas(width, height);
 }
 
+// Utilidades
+function drawGrid(p: p5, rows: number, columns: number) {
+	p.push();
+	const deltaRow = p.height / rows;
+	const deltaColumn = p.width / rows;
+
+	const LINE_WIDTH = 10;
+	p.strokeWeight(LINE_WIDTH);
+
+	for (let i = 1; i < columns; ++i) {
+		p.line(deltaColumn * i, 0, deltaColumn * i, p.height);
+	}
+	for (let i = 1; i < rows; ++i) {
+		p.line(0, deltaRow * i, p.width, deltaRow * i);
+	}
+	p.pop();
+}
+
 // Dibujo (cada fotograma)
 function draw(p: p5) {
 	p.background(0);
 	p.fill(255);
 	p.ellipse(p.width / 2 + dx, p.height / 2 + dy, 100, 100);
+
+	p.stroke(200);
+	drawGrid(p, 5, 5);
 
 	handleInput(p);
 }
