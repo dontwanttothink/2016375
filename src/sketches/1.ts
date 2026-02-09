@@ -52,16 +52,18 @@ class Cell {
 	 * tamaño, dibuja la celda.
 	 */
 	draw(p: p5, x: number, y: number, size: number) {
-		size -= Cell.PADDING * 2;
-		p.push();
+		const GROWTH_AMOUNT = 5;
+		const padding = Cell.PADDING + GROWTH_AMOUNT * (1 - this.#progress);
+		size -= padding * 2;
 
 		const fillColor = p.color(this.color);
 		fillColor.setAlpha(this.#progress * 255);
 
+		p.push();
 		p.fill(fillColor);
 		p.noStroke();
 
-		p.rect(x + Cell.PADDING, y + Cell.PADDING, size, size, 10);
+		p.rect(x + padding, y + padding, size, size, 10);
 
 		p.pop();
 	}
