@@ -62,6 +62,8 @@ function draw(p: p5) {
 // Responder a las entradas
 function handleInput(p: p5) {}
 
+function mouseClicked(p: p5) {}
+
 // Inicializar el bosquejo p5
 //
 // (se crea el elemento del lienzo en la página, pasamos nuestras
@@ -75,4 +77,5 @@ new p5((p) => {
 	p.setup = () => setup(p);
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
+	p.mouseClicked = () => mouseClicked(p);
 }, canvasParent);
