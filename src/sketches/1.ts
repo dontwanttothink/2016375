@@ -1,13 +1,16 @@
 import p5 from "p5";
 import targetDimensions from "../dimensions";
 
-// Estructuras de datos
+// Estructuras
 /**
  * Una celda dentro de la matriz.
  */
 class Cell {
+	/**
+	 * La duración de la animación de aparición y desaparición en
+	 * milisegundos.
+	 */
 	static ANIMATION_DURATION = 400;
-	static PADDING = 7;
 
 	/**
 	 * @returns El punto en el tiempo actual, medido en milisegundos,
@@ -52,9 +55,16 @@ class Cell {
 	 * tamaño, dibuja la celda.
 	 */
 	draw(p: p5, x: number, y: number, size: number) {
-		const GROWTH_AMOUNT = 5;
-		const padding = Cell.PADDING + GROWTH_AMOUNT * (1 - this.#progress);
-		size -= padding * 2;
+		// Hacemos que estos valores sean proporcionales al tamaño de la
+		// celda para que su apariencia sea igual sin importar qué tan
+		// grande la dibujamos.
+		const PADDING = size * (3 / 100);
+		const GROWTH_AMOUNT = size * (5 / 100);
+
+		// El espacio negativo disminuye a medida que la animación transcurre.
+		const currentPadding = PADDING + GROWTH_AMOUNT * (1 - this.#progress);
+		// El tamaño aumenta a medida que la animación transcurre.
+		const currentSize = size - currentPadding * 2;
 
 		const fillColor = p.color(this.color);
 		fillColor.setAlpha(this.#progress * 255);
@@ -63,7 +73,13 @@ class Cell {
 		p.fill(fillColor);
 		p.noStroke();
 
-		p.rect(x + padding, y + padding, size, size, 10);
+		p.rect(
+			x + currentPadding,
+			y + currentPadding,
+			currentSize,
+			currentSize,
+			currentSize * (9 / 100),
+		);
 
 		p.pop();
 	}
