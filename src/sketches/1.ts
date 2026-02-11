@@ -20,7 +20,7 @@ class Cell {
 		return Number(document.timeline.currentTime) + Cell.ANIMATION_DURATION;
 	}
 
-	color: p5.Color;
+	color: p5.Color | undefined;
 	enabled = false;
 
 	/**
@@ -66,7 +66,7 @@ class Cell {
 		// El tamaño aumenta a medida que la animación transcurre.
 		const currentSize = size - currentPadding * 2;
 
-		const fillColor = p.color(this.color);
+		const fillColor = this.color ? p.color(this.color) : p.color(100);
 		fillColor.setAlpha(this.#progress * 255);
 
 		p.push();
@@ -84,7 +84,7 @@ class Cell {
 		p.pop();
 	}
 
-	constructor(color: p5.Color) {
+	constructor(color?: p5.Color) {
 		this.color = color;
 	}
 }
@@ -101,32 +101,50 @@ interface GridProperties {
  * Una matriz.
  */
 class Grid {
-	p: p5;
-	count: number;
+	static LINE_WIDTH = 2;
+	static LINE_BRIGHTNESS = 200;
+
+	#count: number;
 	#matrix: Cell[][] = [];
 
-	constructor(count: number, p: p5, defaultColor: p5.Color) {
-		this.p = p;
-		this.count = count;
+	constructor(count: number) {
+		this.#count = count;
 
 		for (let i = 0; i < count; ++i) {
 			const row: Cell[] = [];
 			for (let j = 0; j < count; ++j) {
-				row.push(new Cell(defaultColor));
+				row.push(new Cell());
 			}
 			this.#matrix.push(row);
 		}
 	}
 
-	static LINE_WIDTH = 2;
-	static LINE_BRIGHTNESS = 200;
+	get count() {
+		return this.#count;
+	}
+
+	set count(newCount: number) {
+		while (this.#matrix.length < newCount) {
+			this.#matrix.push([]);
+		}
+		this.#matrix.length = newCount;
+
+		for (const row of this.#matrix) {
+			while (row.length < newCount) {
+				row.push(new Cell());
+			}
+			row.length = newCount;
+		}
+
+		this.#count = newCount;
+	}
 
 	properties(p: p5): GridProperties {
 		const size = Math.min(p.height, p.width) - Grid.LINE_WIDTH;
 		const startX = p.width / 2 - size / 2;
 		const startY = p.height / 2 - size / 2;
-		const deltaRow = size / this.count;
-		const deltaColumn = size / this.count;
+		const deltaRow = size / this.#count;
+		const deltaColumn = size / this.#count;
 
 		return {
 			size,
@@ -151,7 +169,7 @@ class Grid {
 				const y = startY + i * deltaRow;
 				const x = startX + j * deltaColumn;
 
-				cell.draw(p, x, y, size / this.count);
+				cell.draw(p, x, y, size / this.#count);
 			}
 		}
 		this.#drawEdges(p);
@@ -175,11 +193,11 @@ class Grid {
 		p.rect(startX, startY, size, size);
 
 		// Separadores
-		for (let i = 1; i < this.count; ++i) {
+		for (let i = 1; i < this.#count; ++i) {
 			const x = startX + deltaColumn * i;
 			p.line(x, startY, x, startY + size);
 		}
-		for (let i = 1; i < this.count; ++i) {
+		for (let i = 1; i < this.#count; ++i) {
 			const y = startY + deltaRow * i;
 			p.line(startX, y, startX + size, y);
 		}
@@ -194,7 +212,7 @@ let grid: Grid;
 
 // Configuración
 function setup(p: p5) {
-	grid = new Grid(gridSize, p, p.color(100));
+	grid = new Grid(gridSize);
 
 	const [width, height] = targetDimensions();
 	p.createCanvas(width, height);
