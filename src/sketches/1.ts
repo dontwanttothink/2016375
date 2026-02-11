@@ -226,12 +226,11 @@ class Grid {
 }
 
 // Estado
-const gridSize = 3;
 let grid: Grid;
 
 // Configuración
 function setup(p: p5) {
-	grid = new Grid(gridSize);
+	grid = new Grid(3);
 
 	const [width, height] = targetDimensions();
 	p.createCanvas(width, height);
