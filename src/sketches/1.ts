@@ -159,6 +159,25 @@ class Grid {
 		return this.#matrix[row][column];
 	}
 
+	intersection(x: number, y: number, p: p5): Cell | null {
+		const { startX, startY, deltaColumn, deltaRow } = this.properties(p);
+
+		const relativeX = x - startX;
+		const relativeY = y - startY;
+
+		const column = Math.floor(relativeX / deltaColumn);
+		const row = Math.floor(relativeY / deltaRow);
+
+		if (column < 0 || column >= this.count) {
+			return null;
+		}
+		if (row < 0 || row >= this.count) {
+			return null;
+		}
+
+		return this.get(column, row);
+	}
+
 	draw(p: p5) {
 		p.push();
 
