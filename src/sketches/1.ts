@@ -253,6 +253,9 @@ class WelcomePage extends Page {
 	}
 }
 
+/**
+ * La página del juego.
+ */
 class GamePage extends Page {
 	id = "game";
 
