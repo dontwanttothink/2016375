@@ -29,6 +29,10 @@ class Cell {
 	 */
 	#lastToggled: number = 0;
 
+	constructor(color?: p5.Color) {
+		this.color = color;
+	}
+
 	/**
 	 * El progreso de la animación, que usamos al dibujar la celda.
 	 * @returns Un número entre 0 y 1.
@@ -83,10 +87,6 @@ class Cell {
 		);
 
 		p.pop();
-	}
-
-	constructor(color?: p5.Color) {
-		this.color = color;
 	}
 }
 
