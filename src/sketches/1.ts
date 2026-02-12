@@ -1,5 +1,6 @@
 import p5 from "p5";
 import targetDimensions from "../dimensions";
+import { Navigator, Page } from "../pages";
 
 // Estructuras
 /**
@@ -225,13 +226,55 @@ class Grid {
 	}
 }
 
-// Estado
-let grid: Grid;
+// Páginas
+/**
+ * La página inicial.
+ */
+class WelcomePage extends Page {
+	id = "welcome";
+	draw(p: p5) {
+		p.background(255);
+		p.textSize(30);
+		p.textAlign(p.CENTER);
+
+		if (Math.abs(p.mouseY - p.height / 2) <= 15) {
+			p.fill("blue");
+		} else {
+			p.fill("black");
+		}
+
+		p.textFont("system-ui");
+		p.text("haz click para jugar lol", p.width / 2, p.height / 2);
+		p.textSize(16);
+		p.text("la futura interfaz va aquí", p.width / 2, p.height / 2 + 30);
+	}
+	mouseClicked(_: p5) {
+		this.switchPage("game");
+	}
+}
+
+class GamePage extends Page {
+	id = "game";
+
+	grid: Grid = new Grid(3);
+
+	draw(p: p5) {
+		p.background(255);
+
+		this.grid.draw(p);
+		if (Math.random() <= 0.025) {
+			const row = Math.floor(Math.random() * this.grid.count);
+			const column = Math.floor(Math.random() * this.grid.count);
+			this.grid.get(column, row).toggle();
+		}
+	}
+}
+
+// Estado global
+const navigator = new Navigator(WelcomePage, [GamePage]);
 
 // Configuración
 function setup(p: p5) {
-	grid = new Grid(3);
-
 	const [width, height] = targetDimensions();
 	p.createCanvas(width, height);
 }
@@ -242,22 +285,13 @@ function windowResized(p: p5) {
 
 // Dibujo (cada fotograma)
 function draw(p: p5) {
-	p.background(255);
-
-	grid.draw(p);
-	if (Math.random() <= 0.025) {
-		const row = Math.floor(Math.random() * grid.count);
-		const column = Math.floor(Math.random() * grid.count);
-		grid.get(column, row).toggle();
-	}
-
-	handleInput(p);
+	navigator.currentPage.draw(p);
 }
 
 // Responder a las entradas
-function handleInput(p: p5) {}
-
-function mouseClicked(p: p5) {}
+function mouseClicked(p: p5) {
+	navigator.currentPage.mouseClicked(p);
+}
 
 // Inicializar el bosquejo p5
 //
