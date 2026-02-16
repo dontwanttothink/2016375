@@ -26,13 +26,14 @@ export abstract class Page {
 	 * El programa se encarga de mostrar la página con el identificador
 	 * suministrado en el siguiente fotograma.
 	 */
-	switchPage: (id: string) => void;
+	switchPage: (id: string, p: p5) => void;
 
-	constructor(switchPage: (id: string) => void) {
+	constructor(switchPage: (id: string, p: p5) => void) {
 		this.switchPage = switchPage;
 	}
 
 	abstract draw(p: p5): void;
+	setup(_p: p5) {}
 	mouseClicked(_p: p5) {}
 	keyPressed(_p: p5) {}
 }
@@ -40,7 +41,7 @@ export abstract class Page {
 /**
  * El tipo de una función que se puede usar para obtener una página.
  */
-type PageConstructor = new (switchPage: (id: string) => void) => Page;
+type PageConstructor = new (switchPage: (id: string, p: p5) => void) => Page;
 
 /**
  * Un objeto que maneja las distintas páginas y se mantiene al tanto
@@ -54,13 +55,14 @@ export class Navigator {
 		InitialPage: PageConstructor,
 		otherConstructors: PageConstructor[],
 	) {
-		const switchPage = (id: string) => {
+		const switchPage = (id: string, p: p5) => {
 			const page = this.#pages.get(id);
 			if (!page) {
 				throw new Error(`Se especificó un ID de página inválido: ${id}`);
 			}
 
 			this.#currentPage = page;
+			this.#currentPage.setup(p);
 		};
 
 		const initialPage = new InitialPage(switchPage);

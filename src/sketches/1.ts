@@ -248,8 +248,8 @@ class WelcomePage extends Page {
 		p.textSize(16);
 		p.text("la futura interfaz va aquí", p.width / 2, p.height / 2 + 30);
 	}
-	mouseClicked(_: p5) {
-		this.switchPage("game");
+	mouseClicked(p: p5) {
+		this.switchPage("game", p);
 	}
 }
 
@@ -280,6 +280,8 @@ const navigator = new Navigator(WelcomePage, [GamePage]);
 function setup(p: p5) {
 	const [width, height] = targetDimensions();
 	p.createCanvas(width, height);
+
+	navigator.currentPage.setup(p);
 }
 function windowResized(p: p5) {
 	const [width, height] = targetDimensions();
