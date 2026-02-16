@@ -277,9 +277,11 @@ class GamePage extends Page {
 const navigator = new Navigator(WelcomePage, [GamePage]);
 
 // Configuración
-function setup(p: p5) {
+async function setup(p: p5) {
 	const [width, height] = targetDimensions();
 	p.createCanvas(width, height);
+
+	await navigator.setup(p);
 }
 function windowResized(p: p5) {
 	const [width, height] = targetDimensions();
