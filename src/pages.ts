@@ -33,6 +33,7 @@ export abstract class Page {
 	}
 
 	abstract draw(p: p5): void;
+	setup(_p: p5): void | Promise<void> {}
 	mouseClicked(_p: p5) {}
 	keyPressed(_p: p5) {}
 }
@@ -70,6 +71,12 @@ export class Navigator {
 		for (const PageConstructor of otherConstructors) {
 			const page = new PageConstructor(switchPage);
 			this.#pages.set(page.id, page);
+		}
+	}
+
+	async setup(p: p5) {
+		for (const page of this.#pages.values()) {
+			await page.setup(p);
 		}
 	}
 
