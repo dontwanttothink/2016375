@@ -21,6 +21,17 @@ class Cell {
 		return Number(document.timeline.currentTime) + Cell.ANIMATION_DURATION;
 	}
 
+	/**
+	 * @returns Un color con un tono (hue) elegido al azar.
+	 */
+	static randomColor(p: p5) {
+		p.push();
+		p.colorMode(p.LCH);
+		const out = p.color(70, 30, p.random(360));
+		p.pop();
+		return out;
+	}
+
 	color: p5.Color | undefined;
 	enabled = false;
 
@@ -268,7 +279,12 @@ class GamePage extends Page {
 		if (Math.random() <= 0.025) {
 			const row = Math.floor(Math.random() * this.grid.count);
 			const column = Math.floor(Math.random() * this.grid.count);
-			this.grid.get(column, row).toggle();
+
+			const cell = this.grid.get(column, row);
+			if (!cell.enabled) {
+				cell.color = Cell.randomColor(p);
+			}
+			cell.toggle();
 		}
 	}
 }
