@@ -76,3 +76,24 @@ p.subtitle {
 	font-size: 1.3rem;
 	margin-top: -2rem;
 }
+
+.error-notification {
+	background: linear-gradient(
+		to bottom,
+		oklch(87% 25% 18deg),
+		oklch(95% 10% 18deg)
+	);
+	margin: auto auto;
+	border: none;
+	border-radius: 1rem;
+	padding: 2rem;
+	width: min(calc(100% - 2 * 4.5rem), 40rem);
+	box-shadow: 0 0 16px rgb(0 0 0 / 10%);
+
+	h1 {
+		font-size: 2rem;
+	}
+	p {
+		text-align: start;
+	}
+}
