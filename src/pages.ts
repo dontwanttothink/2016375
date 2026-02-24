@@ -33,7 +33,33 @@ export abstract class Page {
 	}
 
 	abstract draw(p: p5): void;
+
+	/**
+	 * Una función que se ejecuta una vez, después de que se
+	 * crea el lienzo. Las funciones `setup` de cada página
+	 * se ejecutan juntas, y no se vuelven a ejecutar cuando
+	 * se cambia la página.
+	 *
+	 * Si una función `setup` es asincrónica (es decir, si
+	 * devuelve una promesa), se empezará a dibujar solo
+	 * cuando haya producido su resultado (es decir,
+	 * cuando la promesa se resuelva).
+	 *
+	 * Por ejemplo, si existen dos páginas, A y B, y A es la
+	 * página por defecto, una línea de tiempo posible es
+	 * la siguiente:
+	 *
+	 * 1. El usuario abre nuestro proyecto en su navegador.
+	 * 2. Se crea el lienzo.
+	 * 3. Se ejecuta `A.setup()`
+	 * 4. Se ejecuta `B.setup()`
+	 * 5. Se empieza a dibujar A.
+	 * 6. Se cambia la página a B.
+	 * 7. No se ejecuta `B.setup()`. En cambio, directamente
+	 *    se empieza a dibujar B.
+	 */
 	setup(_p: p5): void | Promise<void> {}
+
 	mouseClicked(_p: p5) {}
 	keyPressed(_p: p5) {}
 }
