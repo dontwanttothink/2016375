@@ -76,14 +76,3 @@ p.subtitle {
 	font-size: 1.3rem;
 	margin-top: -2rem;
 }
-
-.width-warning {
-	display: none;
-	margin-bottom: 1rem;
-}
-
-@media (width < calc(800px + 64px)) {
-	.width-warning {
-		display: unset;
-	}
-}
