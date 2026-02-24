@@ -356,5 +356,3 @@ new p5((p) => {
 	p.windowResized = () => windowResized(p);
 	p.mouseClicked = () => mouseClicked(p);
 }, canvasParent);
-
-//
