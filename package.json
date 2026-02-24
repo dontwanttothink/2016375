@@ -13,6 +13,6 @@
 		"vite": "npm:rolldown-vite@latest"
 	},
 	"dependencies": {
-		"p5": "^2.2.0"
+		"p5": "^2.2.2"
 	}
 }
