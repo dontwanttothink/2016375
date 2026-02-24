@@ -75,9 +75,7 @@ export class Navigator {
 	}
 
 	async setup(p: p5) {
-		for (const page of this.#pages.values()) {
-			await page.setup(p);
-		}
+		await Promise.all([...this.#pages.values()].map((page) => page.setup(p)));
 	}
 
 	get currentPage() {
