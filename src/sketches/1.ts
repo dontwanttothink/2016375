@@ -350,15 +350,11 @@ if (!canvasParent) {
 	throw new Error();
 }
 
-// Debemos desactivar esta función porque no es compatible
-// actualmente (febrero 9, 2026) con algunas funciones de
-// JavaScript modernas. Para más información: https://github.com/processing/p5.js/issues/8516
-// @ts-expect-error: esta propiedad no está documentada.
-p5.disableSketchChecker = true;
-
 new p5((p) => {
 	p.setup = () => setup(p);
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
 	p.mouseClicked = () => mouseClicked(p);
 }, canvasParent);
+
+//
