@@ -116,6 +116,20 @@ class Grid {
 	static LINE_WIDTH = 2;
 	static LINE_BRIGHTNESS = 200;
 
+	/**
+	 * La cantidad mínima de espacio que debe haber por encima
+	 * de la matriz, como porcentaje de la altura total del
+	 * lienzo.
+	 */
+	minMarginTop = 0;
+
+	/**
+	 * La cantidad mínima de espacio que debe haber por debajo
+	 * de la matriz, como porcentaje de la altura total del
+	 * lienzo.
+	 */
+	minMarginBottom = 0;
+
 	#count: number;
 	#matrix: Cell[][] = [];
 
@@ -152,9 +166,22 @@ class Grid {
 	}
 
 	properties(p: p5): GridProperties {
-		const size = Math.min(p.height, p.width) - Grid.LINE_WIDTH;
+		const containerSize = Math.min(p.height, p.width) - Grid.LINE_WIDTH;
+		const inherentMargin = p.height - containerSize;
+
+		const missingMarginTop = Math.max(
+			(this.minMarginTop / 100) * containerSize - inherentMargin,
+			0,
+		);
+		const missingMarginBottom = Math.max(
+			(this.minMarginBottom / 100) * containerSize - inherentMargin,
+			0,
+		);
+
+		const size = containerSize - missingMarginTop - missingMarginBottom;
+
 		const startX = p.width / 2 - size / 2;
-		const startY = p.height / 2 - size / 2;
+		const startY = p.height / 2 - containerSize / 2 + missingMarginTop;
 		const deltaRow = size / this.#count;
 		const deltaColumn = size / this.#count;
 
