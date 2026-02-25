@@ -366,8 +366,28 @@ function mouseClicked(p: p5) {
 // Durante el desarrollo (y solo durante el desarrollo), este
 // código se encarga de que la página actual no cambie cuando
 // Vite decide recargar el proyecto después de un cambio.
+if (import.meta.hot) {
+	const previousPageID = import.meta.hot.data?.currentPageID;
+	if (previousPageID) {
+		try {
+			navigator.overridePage(previousPageID);
+		} catch {}
+	}
+}
 
-// (todo)
+function registerHMR(p: p5) {
+	if (import.meta.hot) {
+		// Señalar que este módulo acepta HMR
+		import.meta.hot.accept();
+
+		// Guardar el ID de la página actual e invalidar el
+		// bosquejo antiguo
+		import.meta.hot.dispose((data) => {
+			data.currentPageID = navigator.currentPageID;
+			p.remove();
+		});
+	}
+}
 
 // Inicializar el bosquejo p5
 //
@@ -383,4 +403,6 @@ new p5((p) => {
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
 	p.mouseClicked = () => mouseClicked(p);
+
+	registerHMR(p);
 }, canvasParent);
