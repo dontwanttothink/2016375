@@ -173,13 +173,13 @@ class Grid {
 		const marginTop = (this.marginTop / 100) * availableHeight;
 
 		const containerHeight = availableHeight - marginBottom - marginTop;
-		if (containerHeight <= 0) {
+		const size = Math.min(containerHeight, availableWidth) - Grid.LINE_WIDTH;
+
+		if (size <= 0) {
 			throw new Error(
 				"Los márgenes son demasiado grandes; no hay espacio para la matriz.",
 			);
 		}
-
-		const size = Math.min(containerHeight, availableWidth) - Grid.LINE_WIDTH;
 
 		const startX = p.width / 2 - size / 2;
 		const startY = marginTop + containerHeight / 2 - size / 2;
