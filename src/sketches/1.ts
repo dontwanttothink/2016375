@@ -292,9 +292,9 @@ class WelcomePage extends Page {
 }
 
 /**
- * La página del juego.
+ * El juego.
  */
-class GamePage extends Page {
+class Game extends Page {
 	id = "game";
 
 	grid: Grid = new Grid(3);
@@ -317,7 +317,7 @@ class GamePage extends Page {
 }
 
 // Estado global
-const navigator = new Navigator(WelcomePage, [GamePage]);
+const navigator = new Navigator(WelcomePage, [Game]);
 
 // Configuración
 async function setup(p: p5) {
