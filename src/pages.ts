@@ -19,16 +19,24 @@ type PageConstructor = new (switchPage: SwitchPageFunction) => Page;
  * - una función (método), `draw`, que dibuja la página
  *
  * Hay cuatro funciones (métodos) adicionales que una página puede tener:
- * - `preload`, (TODO)
- * - `setup`, (TODO)
+ * - `preload`, que se ejecuta inmediatamente cuando el proyecto empieza.
+ * Esta función debe ser asincrónica y se puede usar, por ejemplo, para
+ * cargar imágenes. Ninguna página empieza a dibujarse hasta que todas
+ * las funciones `preload` hayan terminado.
+ * - `setup`, que se ejecuta cuando la página se convierte en la
+ *  página actual. La página no empieza a dibujarse hasta que su `setup`
+ * se haya ejecutado. Esta función no puede ser asincrónica.
  * - `mouseClicked`, que se ejecuta cuando el usuario oprime el botón
- * del ratón
+ * del ratón.
  * - `keyPressed`, que se ejecuta cuando el usuario oprime una tecla.
  *
  * Las páginas tienen acceso a una función, `this.switchPage(p: p5, id: string)`
  * para cambiar la página actual a otra. Por ejemplo, la página de
  * bienvenida puede usar esta función para activar la página del juego
  * cuando el usuario hace click en el botón de jugar.
+ *
+ * Excepto por `preload`, solo se ejecutan métodos de la página actual.
+ * Las otras páginas se mantienen en espera.
  */
 export abstract class Page {
 	abstract id: string;
