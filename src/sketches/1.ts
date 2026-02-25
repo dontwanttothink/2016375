@@ -121,14 +121,14 @@ class Grid {
 	 * de la matriz, como porcentaje de la altura total del
 	 * lienzo.
 	 */
-	minMarginTop = 0;
+	marginTop = 0;
 
 	/**
 	 * La cantidad mínima de espacio que debe haber por debajo
 	 * de la matriz, como porcentaje de la altura total del
 	 * lienzo.
 	 */
-	minMarginBottom = 0;
+	marginBottom = 0;
 
 	#count: number;
 	#matrix: Cell[][] = [];
@@ -166,22 +166,23 @@ class Grid {
 	}
 
 	properties(p: p5): GridProperties {
-		const containerSize = Math.min(p.height, p.width) - Grid.LINE_WIDTH;
-		const inherentMargin = p.height - containerSize;
+		const availableHeight = p.height;
+		const availableWidth = p.width;
 
-		const missingMarginTop = Math.max(
-			(this.minMarginTop / 100) * containerSize - inherentMargin,
-			0,
-		);
-		const missingMarginBottom = Math.max(
-			(this.minMarginBottom / 100) * containerSize - inherentMargin,
-			0,
-		);
+		const marginBottom = (this.marginBottom / 100) * availableHeight;
+		const marginTop = (this.marginTop / 100) * availableHeight;
 
-		const size = containerSize - missingMarginTop - missingMarginBottom;
+		const containerHeight = availableHeight - marginBottom - marginTop;
+		if (containerHeight < 0) {
+			throw new Error(
+				"Los márgenes son demasiado grandes; no hay espacio para la matriz.",
+			);
+		}
+
+		const size = Math.min(containerHeight, availableWidth) - Grid.LINE_WIDTH;
 
 		const startX = p.width / 2 - size / 2;
-		const startY = p.height / 2 - containerSize / 2 + missingMarginTop;
+		const startY = marginTop + containerHeight / 2 - size / 2;
 		const deltaRow = size / this.#count;
 		const deltaColumn = size / this.#count;
 
@@ -298,6 +299,11 @@ class Game extends Page {
 	id = "game";
 
 	grid: Grid = new Grid(3);
+	level = 1;
+
+	setup() {
+		this.grid.marginBottom = 10;
+	}
 
 	draw(p: p5) {
 		p.background(255);
