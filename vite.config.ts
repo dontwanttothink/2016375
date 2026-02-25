@@ -1,3 +1,4 @@
+/// <reference types="@types/bun" />
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 
