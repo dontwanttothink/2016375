@@ -271,6 +271,9 @@ class Grid {
  */
 class WelcomePage extends Page {
 	id = "welcome";
+	setup(p: p5) {
+		p.textFont("system-ui");
+	}
 	draw(p: p5) {
 		p.background(255);
 		p.textSize(30);
@@ -282,13 +285,12 @@ class WelcomePage extends Page {
 			p.fill("black");
 		}
 
-		p.textFont("system-ui");
 		p.text("haz click para jugar lol", p.width / 2, p.height / 2);
 		p.textSize(16);
 		p.text("la futura interfaz va aquí", p.width / 2, p.height / 2 + 30);
 	}
-	mouseClicked(_: p5) {
-		this.switchPage("game");
+	mouseClicked(p: p5) {
+		this.switchPage(p, "game");
 	}
 }
 
@@ -301,18 +303,19 @@ class Game extends Page {
 	grid: Grid = new Grid(3);
 	level = 1;
 
-	setup() {
+	setup(p: p5) {
 		this.grid.marginBottom = 10;
+		p.fill(0);
+		p.textFont("system-ui");
+		p.textAlign(p.CENTER);
 	}
 
 	draw(p: p5) {
 		p.background(255);
-		p.fill(0);
 
 		this.grid.draw(p);
 		const { startY, size } = this.grid.properties(p);
 
-		p.textAlign(p.CENTER);
 		p.textSize((5 / 100) * p.height);
 		p.text(`Nivel ${this.level}`, p.width / 2, startY + size + 0.1 * p.height);
 
@@ -326,6 +329,10 @@ class Game extends Page {
 			}
 			cell.toggle();
 		}
+	}
+
+	mouseClicked(p: p5) {
+		this.switchPage(p, "welcome");
 	}
 }
 
