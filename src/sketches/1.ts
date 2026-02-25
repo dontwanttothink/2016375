@@ -361,6 +361,14 @@ function mouseClicked(p: p5) {
 	navigator.currentPage.mouseClicked(p);
 }
 
+// Restaurar estado
+//
+// Durante el desarrollo (y solo durante el desarrollo), este
+// código se encarga de que la página actual no cambie cuando
+// Vite decide recargar el proyecto después de un cambio.
+
+// (todo)
+
 // Inicializar el bosquejo p5
 //
 // Se crea el elemento del lienzo en la página, pasamos nuestras
