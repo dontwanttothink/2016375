@@ -1,6 +1,16 @@
 import type p5 from "p5";
 
 /**
+ * El tipo de una función que se puede usar para cambiar la página actual.
+ */
+type SwitchPageFunction = (p: p5, id: string) => void;
+
+/**
+ * El tipo de una función que se puede usar para obtener una página.
+ */
+type PageConstructor = new (switchPage: SwitchPageFunction) => Page;
+
+/**
  * Una página cualquiera, como la página de bienvenida con el botón
  * de jugar, o la página del juego con la matriz.
  *
@@ -8,12 +18,14 @@ import type p5 from "p5";
  * - un identificador, que puede ser una cadena cualquiera, como `"welcome"`
  * - una función (método), `draw`, que dibuja la página
  *
- * Hay dos funciones (métodos) adicionales que una página puede tener:
+ * Hay cuatro funciones (métodos) adicionales que una página puede tener:
+ * - `preload`, (TODO)
+ * - `setup`, (TODO)
  * - `mouseClicked`, que se ejecuta cuando el usuario oprime el botón
  * del ratón
  * - `keyPressed`, que se ejecuta cuando el usuario oprime una tecla.
  *
- * Las páginas tienen acceso a una función, `this.switchPage(id: string)`
+ * Las páginas tienen acceso a una función, `this.switchPage(p: p5, id: string)`
  * para cambiar la página actual a otra. Por ejemplo, la página de
  * bienvenida puede usar esta función para activar la página del juego
  * cuando el usuario hace click en el botón de jugar.
@@ -26,48 +38,20 @@ export abstract class Page {
 	 * El programa se encarga de mostrar la página con el identificador
 	 * suministrado en el siguiente fotograma.
 	 */
-	switchPage: (id: string) => void;
+	switchPage: SwitchPageFunction;
 
-	constructor(switchPage: (id: string) => void) {
+	constructor(switchPage: SwitchPageFunction) {
 		this.switchPage = switchPage;
 	}
 
 	abstract draw(p: p5): void;
 
-	/**
-	 * Una función que se ejecuta una vez, después de que se
-	 * crea el lienzo. Las funciones `setup` de cada página
-	 * se ejecutan juntas, y no se vuelven a ejecutar cuando
-	 * se cambia la página.
-	 *
-	 * Si una función `setup` es asincrónica (es decir, si
-	 * devuelve una promesa), se empezará a dibujar solo
-	 * cuando haya producido su resultado (es decir,
-	 * cuando la promesa se resuelva).
-	 *
-	 * Por ejemplo, si existen dos páginas, A y B, y A es la
-	 * página por defecto, una línea de tiempo posible es
-	 * la siguiente:
-	 *
-	 * 1. El usuario abre nuestro proyecto en su navegador.
-	 * 2. Se crea el lienzo.
-	 * 3. Se ejecuta `A.setup()`
-	 * 4. Se ejecuta `B.setup()`
-	 * 5. Se empieza a dibujar A.
-	 * 6. Se cambia la página a B.
-	 * 7. No se ejecuta `B.setup()`. En cambio, directamente
-	 *    se empieza a dibujar B.
-	 */
-	setup(_p: p5): void | Promise<void> {}
+	async preload(_p: p5) {}
+	setup(_p: p5): void {}
 
 	mouseClicked(_p: p5) {}
 	keyPressed(_p: p5) {}
 }
-
-/**
- * El tipo de una función que se puede usar para obtener una página.
- */
-type PageConstructor = new (switchPage: (id: string) => void) => Page;
 
 /**
  * Un objeto que maneja las distintas páginas y se mantiene al tanto
@@ -77,34 +61,68 @@ export class Navigator {
 	#pages: Map<string, Page> = new Map();
 	#currentPage: Page;
 
+	#preloadCompleted = false;
+
 	constructor(
 		InitialPage: PageConstructor,
 		otherConstructors: PageConstructor[],
 	) {
-		const switchPage = (id: string) => {
-			const page = this.#pages.get(id);
-			if (!page) {
-				throw new Error(`Se especificó un ID de página inválido: ${id}`);
-			}
-
-			this.#currentPage = page;
-		};
-
-		const initialPage = new InitialPage(switchPage);
+		const initialPage = new InitialPage(this.switchPage.bind(this));
 		this.#pages.set(initialPage.id, initialPage);
 		this.#currentPage = initialPage;
 
 		for (const PageConstructor of otherConstructors) {
-			const page = new PageConstructor(switchPage);
+			const page = new PageConstructor(this.switchPage.bind(this));
 			this.#pages.set(page.id, page);
 		}
 	}
 
 	async setup(p: p5) {
-		await Promise.all([...this.#pages.values()].map((page) => page.setup(p)));
+		await Promise.all([...this.#pages.values()].map((page) => page.preload(p)));
+		p.push();
+		this.#currentPage.setup(p);
+		this.#preloadCompleted = true;
+	}
+
+	/**
+	 * Permite cambiar la página actual.
+	 */
+	switchPage(p: p5, id: string) {
+		p.pop();
+		p.push();
+
+		const page = this.#pages.get(id);
+		if (!page) {
+			throw new ReferenceError(`Se especificó un ID de página inválido: ${id}`);
+		}
+
+		page.setup(p);
+		this.#currentPage = page;
+	}
+
+	/**
+	 * Permite cambiar la página actual sin aislar el
+	 * estado de dibujo.
+	 */
+	overridePage(id: string) {
+		const page = this.#pages.get(id);
+		if (!page) {
+			throw new ReferenceError(`Se especificó un ID de página inválido: ${id}`);
+		}
+
+		this.#currentPage = page;
 	}
 
 	get currentPage() {
-		return this.#currentPage;
+		if (this.#preloadCompleted) {
+			return this.#currentPage;
+		}
+		throw new Error(
+			"La página actual no está disponible hasta que `.setup(p)` haya terminado su ejecución por completo.",
+		);
+	}
+
+	get currentPageID() {
+		return this.#currentPage.id;
 	}
 }
