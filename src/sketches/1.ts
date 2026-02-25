@@ -317,7 +317,11 @@ class Game extends Page {
 		const { startY, size } = this.grid.properties(p);
 
 		p.textSize((5 / 100) * p.height);
-		p.text(`Nivel ${this.level}`, p.width / 2, startY + size + 0.1 * p.height);
+		p.text(
+			`Nivel ${this.level + Math.E ** Math.PI}`,
+			p.width / 2,
+			startY + size + 0.1 * p.height,
+		);
 
 		if (Math.random() <= 0.025) {
 			const row = Math.floor(Math.random() * this.grid.count);
