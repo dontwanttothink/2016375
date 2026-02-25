@@ -305,17 +305,17 @@ class Game extends Page {
 
 	setup(p: p5) {
 		this.grid.marginBottom = 10;
+		p.fill(0);
 		p.textFont("system-ui");
+		p.textAlign(p.CENTER);
 	}
 
 	draw(p: p5) {
 		p.background(255);
-		p.fill(0);
 
 		this.grid.draw(p);
 		const { startY, size } = this.grid.properties(p);
 
-		p.textAlign(p.CENTER);
 		p.textSize((5 / 100) * p.height);
 		p.text(`Nivel ${this.level}`, p.width / 2, startY + size + 0.1 * p.height);
 
@@ -329,6 +329,10 @@ class Game extends Page {
 			}
 			cell.toggle();
 		}
+	}
+
+	mouseClicked(p: p5) {
+		this.switchPage(p, "welcome");
 	}
 }
 
