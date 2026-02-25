@@ -11,7 +11,7 @@
 	"devDependencies": {
 		"@types/bun": "^1.3.9",
 		"typescript": "~5.9.3",
-		"vite": "npm:rolldown-vite@latest"
+		"vite": "^8.0.0-beta.15"
 	},
 	"dependencies": {
 		"p5": "^2.2.2"
