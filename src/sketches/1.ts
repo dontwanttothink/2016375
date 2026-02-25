@@ -363,8 +363,8 @@ function mouseClicked(p: p5) {
 
 // Inicializar el bosquejo p5
 //
-// (se crea el elemento del lienzo en la página, pasamos nuestras
-// funciones, etc.)
+// Se crea el elemento del lienzo en la página, pasamos nuestras
+// funciones, etc.
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
 	throw new Error();
