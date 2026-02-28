@@ -26,7 +26,7 @@ class Cell {
 	 */
 	static randomColor(p: p5) {
 		p.push();
-		p.colorMode(p.LCH);
+		p.colorMode(p.OKLCH);
 		const out = p.color(80, 80, p.random(360));
 		p.pop();
 		return out;
