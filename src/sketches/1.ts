@@ -298,6 +298,14 @@ class Button {
 		const x = this.x;
 		const y = this.y;
 
+		// Actualizar estado de la animación
+		if (hovering) {
+			this.#advanceAnimation(p);
+		} else {
+			this.#reverseAnimation(p);
+		}
+
+		// Calcular color intermedio
 		p.colorMode(p.OKLCH);
 		const currentColor = p.lerpColor(
 			this.baseColor,
@@ -305,16 +313,13 @@ class Button {
 			this.#animationProgress,
 		);
 
-		if (hovering) {
-			this.#advanceAnimation(p);
-		} else {
-			this.#reverseAnimation(p);
-		}
-		p.fill(currentColor);
+		// Dibujar el rectángulo
 		p.noStroke();
+		p.fill(currentColor);
 		p.rectMode(p.CENTER);
 		p.rect(x, y, this.width, this.height, 10);
 
+		// Dibujar el texto
 		p.fill(this.textFill);
 		p.textSize(20);
 		p.text(this.label, x, y);
