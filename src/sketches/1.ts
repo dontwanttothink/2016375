@@ -113,8 +113,8 @@ interface GridProperties {
  * Una matriz.
  */
 class Grid {
-	static LINE_WIDTH = 2;
-	static LINE_BRIGHTNESS = 80;
+	static LINE_WIDTH = 1.2;
+	static LINE_BRIGHTNESS = 190;
 
 	/**
 	 * La cantidad mínima de espacio que debe haber por encima
