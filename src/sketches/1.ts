@@ -396,10 +396,7 @@ class WelcomePage extends Page {
 	}
 
 	#drawBackground(p: p5) {
-		p.push();
-		const time = document.timeline.currentTime;
 		p.background(20);
-		p.pop();
 	}
 }
 
