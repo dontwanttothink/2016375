@@ -27,7 +27,7 @@ class Cell {
 	static randomColor(p: p5) {
 		p.push();
 		p.colorMode(p.LCH);
-		const out = p.color(70, 30, p.random(360));
+		const out = p.color(80, 80, p.random(360));
 		p.pop();
 		return out;
 	}
@@ -114,7 +114,7 @@ interface GridProperties {
  */
 class Grid {
 	static LINE_WIDTH = 2;
-	static LINE_BRIGHTNESS = 200;
+	static LINE_BRIGHTNESS = 80;
 
 	/**
 	 * La cantidad mínima de espacio que debe haber por encima
@@ -271,26 +271,53 @@ class Grid {
  */
 class WelcomePage extends Page {
 	id = "welcome";
+
+	selectedLevel=1;
+
 	setup(p: p5) {
 		p.textFont("system-ui");
+		p.textAlign(p.CENTER, p.CENTER);
 	}
 	draw(p: p5) {
-		p.background(255);
-		p.textSize(30);
-		p.textAlign(p.CENTER);
+		p.background(20);
 
-		if (Math.abs(p.mouseY - p.height / 2) <= 15) {
-			p.fill("blue");
-		} else {
-			p.fill("black");
-		}
+		//Titulo
+		p.fill(255);
+		p.textSize(50);
+		p.text("SIMON DICE", p.width/2,100);
 
-		p.text("haz click para jugar lol", p.width / 2, p.height / 2);
-		p.textSize(16);
-		p.text("la futura interfaz va aquí", p.width / 2, p.height / 2 + 30);
+		//Niveles
+		this.drawLevelButton(p, 1, p.width/2, 250);
+		this.drawLevelButton(p, 2, p.width/2, 320);
+		this.drawLevelButton(p, 3, p.width/2, 390);
+
+
 	}
 	mouseClicked(p: p5) {
-		this.switchPage(p, "game");
+			this.switchPage(p, "game");
+		}
+	drawLevelButton(p: p5, level: number, x: number, y: number){
+		const width=200;
+		const height=50;
+
+		const hovering= Math.abs(p.mouseX -x)<width/2 && Math.abs(p.mouseY-y)< height/2;
+
+		p.push();
+
+		if(hovering){
+			p.fill(0,150,255);
+		}
+		else{
+			p.fill(50);
+		}
+		p.rectMode(p.CENTER);
+		p.rect(x,y , width, height,10);
+
+		p.fill(255);
+		p.textSize(20);
+		p.text(`Nivel ${level}`,x ,y);
+
+		p.pop();
 	}
 }
 
