@@ -21,6 +21,17 @@ class Cell {
 		return Number(document.timeline.currentTime) + Cell.ANIMATION_DURATION;
 	}
 
+	/**
+	 * @returns Un color con un tono (hue) elegido al azar.
+	 */
+	static randomColor(p: p5) {
+		p.push();
+		p.colorMode(p.LCH);
+		const out = p.color(70, 30, p.random(360));
+		p.pop();
+		return out;
+	}
+
 	color: p5.Color | undefined;
 	enabled = false;
 
@@ -105,6 +116,20 @@ class Grid {
 	static LINE_WIDTH = 2;
 	static LINE_BRIGHTNESS = 200;
 
+	/**
+	 * La cantidad mínima de espacio que debe haber por encima
+	 * de la matriz, como porcentaje de la altura total del
+	 * lienzo.
+	 */
+	marginTop = 0;
+
+	/**
+	 * La cantidad mínima de espacio que debe haber por debajo
+	 * de la matriz, como porcentaje de la altura total del
+	 * lienzo.
+	 */
+	marginBottom = 0;
+
 	#count: number;
 	#matrix: Cell[][] = [];
 
@@ -141,9 +166,23 @@ class Grid {
 	}
 
 	properties(p: p5): GridProperties {
-		const size = Math.min(p.height, p.width) - Grid.LINE_WIDTH;
+		const availableHeight = p.height;
+		const availableWidth = p.width;
+
+		const marginBottom = (this.marginBottom / 100) * availableHeight;
+		const marginTop = (this.marginTop / 100) * availableHeight;
+
+		const containerHeight = availableHeight - marginBottom - marginTop;
+		const size = Math.min(containerHeight, availableWidth) - Grid.LINE_WIDTH;
+
+		if (size <= 0) {
+			throw new Error(
+				"Los márgenes son demasiado grandes; no hay espacio para la matriz.",
+			);
+		}
+
 		const startX = p.width / 2 - size / 2;
-		const startY = p.height / 2 - size / 2;
+		const startY = marginTop + containerHeight / 2 - size / 2;
 		const deltaRow = size / this.#count;
 		const deltaColumn = size / this.#count;
 
@@ -232,6 +271,9 @@ class Grid {
  */
 class WelcomePage extends Page {
 	id = "welcome";
+	setup(p: p5) {
+		p.textFont("system-ui");
+	}
 	draw(p: p5) {
 		p.background(255);
 		p.textSize(30);
@@ -243,38 +285,63 @@ class WelcomePage extends Page {
 			p.fill("black");
 		}
 
-		p.textFont("system-ui");
 		p.text("haz click para jugar lol", p.width / 2, p.height / 2);
 		p.textSize(16);
 		p.text("la futura interfaz va aquí", p.width / 2, p.height / 2 + 30);
 	}
-	mouseClicked(_: p5) {
-		this.switchPage("game");
+	mouseClicked(p: p5) {
+		this.switchPage(p, "game");
 	}
 }
 
 /**
- * La página del juego.
+ * El juego.
  */
-class GamePage extends Page {
+class Game extends Page {
 	id = "game";
 
 	grid: Grid = new Grid(3);
+	level = 1;
+
+	setup(p: p5) {
+		this.grid.marginBottom = 10;
+		p.fill(0);
+		p.textFont("system-ui");
+		p.textAlign(p.CENTER);
+	}
 
 	draw(p: p5) {
 		p.background(255);
 
 		this.grid.draw(p);
+		const { startY, size } = this.grid.properties(p);
+
+		p.textSize((5 / 100) * p.height);
+		p.text(
+			`Nivel ${this.level + Math.E ** Math.PI}`,
+			p.width / 2,
+			startY + size + 0.1 * p.height,
+		);
+
 		if (Math.random() <= 0.025) {
 			const row = Math.floor(Math.random() * this.grid.count);
 			const column = Math.floor(Math.random() * this.grid.count);
-			this.grid.get(column, row).toggle();
+
+			const cell = this.grid.get(column, row);
+			if (!cell.enabled) {
+				cell.color = Cell.randomColor(p);
+			}
+			cell.toggle();
 		}
+	}
+
+	mouseClicked(p: p5) {
+		this.switchPage(p, "welcome");
 	}
 }
 
 // Estado global
-const navigator = new Navigator(WelcomePage, [GamePage]);
+const navigator = new Navigator(WelcomePage, [Game]);
 
 // Configuración
 async function setup(p: p5) {
@@ -298,24 +365,48 @@ function mouseClicked(p: p5) {
 	navigator.currentPage.mouseClicked(p);
 }
 
+// Restaurar estado
+//
+// Durante el desarrollo (y solo durante el desarrollo), este
+// código se encarga de que la página actual no cambie cuando
+// Vite decide recargar el proyecto después de un cambio.
+if (import.meta.hot) {
+	const previousPageID = import.meta.hot.data?.currentPageID;
+	if (previousPageID) {
+		try {
+			navigator.overridePage(previousPageID);
+		} catch {}
+	}
+}
+
+function registerHMR(p: p5) {
+	if (import.meta.hot) {
+		// Señalar que este módulo acepta HMR
+		import.meta.hot.accept();
+
+		// Guardar el ID de la página actual e invalidar el
+		// bosquejo antiguo
+		import.meta.hot.dispose((data) => {
+			data.currentPageID = navigator.currentPageID;
+			p.remove();
+		});
+	}
+}
+
 // Inicializar el bosquejo p5
 //
-// (se crea el elemento del lienzo en la página, pasamos nuestras
-// funciones, etc.)
+// Se crea el elemento del lienzo en la página, pasamos nuestras
+// funciones, etc.
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
 	throw new Error();
 }
-
-// Debemos desactivar esta función porque no es compatible
-// actualmente (febrero 9, 2026) con algunas funciones de
-// JavaScript modernas. Para más información: https://github.com/processing/p5.js/issues/8516
-// @ts-expect-error: esta propiedad no está documentada.
-p5.disableSketchChecker = true;
 
 new p5((p) => {
 	p.setup = () => setup(p);
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
 	p.mouseClicked = () => mouseClicked(p);
+
+	registerHMR(p);
 }, canvasParent);

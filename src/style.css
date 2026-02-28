@@ -77,13 +77,23 @@ p.subtitle {
 	margin-top: -2rem;
 }
 
-.width-warning {
-	display: none;
-	margin-bottom: 1rem;
-}
+.error-notification {
+	background: linear-gradient(
+		to bottom,
+		oklch(87% 25% 18deg),
+		oklch(95% 10% 18deg)
+	);
+	margin: auto auto;
+	border: none;
+	border-radius: 1rem;
+	padding: 2rem;
+	width: min(calc(100% - 2 * 4.5rem), 40rem);
+	box-shadow: 0 0 16px rgb(0 0 0 / 10%);
 
-@media (width < calc(800px + 64px)) {
-	.width-warning {
-		display: unset;
+	h1 {
+		font-size: 2rem;
+	}
+	p {
+		text-align: start;
 	}
 }
