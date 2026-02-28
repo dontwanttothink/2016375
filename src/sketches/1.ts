@@ -265,59 +265,135 @@ class Grid {
 	}
 }
 
+class Button {
+	static ANIMATION_DURATION = 200;
+
+	#animationProgress = 0;
+
+	baseColor: p5.Color;
+	highlightColor: p5.Color;
+
+	textFill: p5.Color;
+
+	width: number = 200;
+	height: number = 50;
+
+	label: string = "Click me";
+
+	x: number;
+	y: number;
+
+	constructor(p: p5) {
+		this.baseColor = p.color(50);
+		this.highlightColor = p.color(0, 150, 255);
+		this.textFill = p.color(255);
+		this.x = p.width / 2;
+		this.y = p.height / 2;
+	}
+
+	draw(p: p5) {
+		p.push();
+		const hovering = this.intersectsWith(p.mouseX, p.mouseY);
+
+		const x = this.x;
+		const y = this.y;
+
+		p.colorMode(p.OKLCH);
+		const currentColor = p.lerpColor(
+			this.baseColor,
+			this.highlightColor,
+			this.#animationProgress,
+		);
+
+		if (hovering) {
+			this.#advanceAnimation(p);
+		} else {
+			this.#reverseAnimation(p);
+		}
+		p.fill(currentColor);
+		p.noStroke();
+		p.rectMode(p.CENTER);
+		p.rect(x, y, this.width, this.height, 10);
+
+		p.fill(this.textFill);
+		p.textSize(20);
+		p.text(this.label, x, y);
+
+		p.pop();
+	}
+
+	intersectsWith(x: number, y: number) {
+		return (
+			Math.abs(x - this.x) < this.width / 2 &&
+			Math.abs(y - this.y) < this.height / 2
+		);
+	}
+
+	#advanceAnimation(p: p5) {
+		this.#animationProgress = Math.min(
+			this.#animationProgress + p.deltaTime / Button.ANIMATION_DURATION,
+			1,
+		);
+	}
+
+	#reverseAnimation(p: p5) {
+		this.#animationProgress = Math.max(
+			this.#animationProgress - p.deltaTime / Button.ANIMATION_DURATION,
+			0,
+		);
+	}
+}
+
 // Páginas
 /**
  * La página inicial.
  */
 class WelcomePage extends Page {
 	id = "welcome";
+	buttons: Button[] = [];
 
 	selectedLevel = 1;
 
 	setup(p: p5) {
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER, p.CENTER);
+
+		this.buttons = [];
+		for (let i = 1; i <= 3; ++i) {
+			const button = new Button(p);
+			button.label = `Nivel ${i}`;
+			this.buttons.push(button);
+		}
 	}
 
 	draw(p: p5) {
-		p.background(20);
+		this.#drawBackground(p);
 
 		// Título
 		p.fill(255);
 		p.textSize(50);
 		p.text("SIMÓN DICE", p.width / 2, 100);
 
-		// Niveles
-		this.drawLevelButton(p, 1, p.width / 2, 250);
-		this.drawLevelButton(p, 2, p.width / 2, 320);
-		this.drawLevelButton(p, 3, p.width / 2, 390);
+		for (const [i, button] of this.buttons.entries()) {
+			button.x = p.width / 2;
+			button.y = 250 + 70 * i;
+			button.draw(p);
+		}
 	}
 
 	mouseClicked(p: p5) {
-		this.switchPage(p, "game");
+		const clickedButton = this.buttons.find((b) =>
+			b.intersectsWith(p.mouseX, p.mouseY),
+		);
+		if (clickedButton) {
+			this.switchPage(p, "game");
+		}
 	}
 
-	drawLevelButton(p: p5, level: number, x: number, y: number) {
-		const width = 200;
-		const height = 50;
-
-		const hovering =
-			Math.abs(p.mouseX - x) < width / 2 && Math.abs(p.mouseY - y) < height / 2;
-
+	#drawBackground(p: p5) {
 		p.push();
-
-		if (hovering) {
-			p.fill(0, 150, 255);
-		} else {
-			p.fill(50);
-		}
-		p.rectMode(p.CENTER);
-		p.rect(x, y, width, height, 10);
-
-		p.fill(255);
-		p.textSize(20);
-		p.text(`Nivel ${level}`, x, y);
-
+		const time = document.timeline.currentTime;
+		p.background(20);
 		p.pop();
 	}
 }
