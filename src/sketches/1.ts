@@ -391,7 +391,7 @@ class WelcomePage extends Page {
 			b.intersectsWith(p.mouseX, p.mouseY),
 		);
 		if (clickedButton) {
-			this.switchPage(p, Game);
+			this.navigator.switchPage(p, Game);
 		}
 	}
 
@@ -403,12 +403,13 @@ class WelcomePage extends Page {
 /**
  * El juego.
  */
-class Game extends Page {
+class Game extends Page<{ level: number }> {
 	grid: Grid = new Grid(3);
 	level = 1;
 
 	receive({ level }: { level: number }) {
 		this.level = level;
+		this.grid = new Grid(2 + level);
 	}
 
 	setup(p: p5) {
