@@ -358,8 +358,6 @@ class Button {
 class WelcomePage extends Page {
 	buttons: Button[] = [];
 
-	selectedLevel = 1;
-
 	setup(p: p5) {
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER, p.CENTER);
@@ -380,20 +378,24 @@ class WelcomePage extends Page {
 		p.fill(255);
 		p.textSize(50);
 		// p.text("SIMÓN DICE", p.width / 2, 100);
+		this.drawButtons(p);
+	}
 
+	drawButtons(p: p5) {
 		const BUTTON_MARGINS = 20;
+		const marginHeight = (this.buttons.length - 1) * BUTTON_MARGINS;
+		const totalHeight =
+			this.buttons.length * Button.DEFAULT_HEIGHT + marginHeight;
 		const buttonsStartY =
-			(p.height -
-				this.buttons.length * Button.DEFAULT_HEIGHT -
-				(this.buttons.length - 1) * BUTTON_MARGINS) /
-				2 +
-			Button.DEFAULT_HEIGHT / 2;
+			(p.height - totalHeight) / 2 + Button.DEFAULT_HEIGHT / 2;
 
+		p.cursor(p.ARROW);
 		for (const [i, button] of this.buttons.entries()) {
 			button.x = p.width / 2;
 			button.y = buttonsStartY + (BUTTON_MARGINS + Button.DEFAULT_HEIGHT) * i;
 			button.draw(p);
 
+			// Mostrar una manito cuando el cursor está sobre un botón
 			if (button.intersectsWith(p.mouseX, p.mouseY)) {
 				p.cursor(p.HAND);
 			}
@@ -402,9 +404,13 @@ class WelcomePage extends Page {
 
 	mouseClicked(p: p5) {
 		for (const [i, button] of this.buttons.entries()) {
+			// Encontrar si se hizo click en algún botón
 			if (button.intersectsWith(p.mouseX, p.mouseY)) {
 				p.cursor(p.ARROW);
+
+				// Activar el juego, pasando el nivel correcto
 				this.navigator.switchPage(p, Game, { level: i + 1 });
+
 				return;
 			}
 		}
