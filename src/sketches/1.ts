@@ -354,7 +354,6 @@ class Button {
  * La página inicial.
  */
 class WelcomePage extends Page {
-	id = "welcome";
 	buttons: Button[] = [];
 
 	selectedLevel = 1;

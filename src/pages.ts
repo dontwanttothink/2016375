@@ -8,9 +8,10 @@ type PageArgs = Record<string, unknown> | undefined;
 /**
  * El tipo de una función que se puede usar para obtener una página.
  */
-type PageConstructor<T extends PageArgs = PageArgs> = new (
-	navigator: Navigator,
-) => Page<T>;
+type PageConstructor<
+	T extends PageArgs = PageArgs,
+	P extends Page<T> = Page<T>,
+> = new (navigator: Navigator) => P;
 
 /**
  * Una página cualquiera, como la página de bienvenida con el botón
@@ -41,7 +42,7 @@ type PageConstructor<T extends PageArgs = PageArgs> = new (
  * Excepto por `preload`, solo se ejecutan métodos de la página actual.
  * Las otras páginas se mantienen en espera.
  */
-export abstract class Page<TArgs extends PageArgs = PageArgs> {
+export abstract class Page<TArgs extends PageArgs = undefined> {
 	/**
 	 * Cambia la página actual. Esta función recibe un identificador.
 	 * El programa se encarga de mostrar la página con el identificador
@@ -68,8 +69,8 @@ export abstract class Page<TArgs extends PageArgs = PageArgs> {
  * de cuál es la actual.
  */
 export class Navigator {
-	#pages: Map<PageConstructor, Page> = new Map();
-	#currentPage: Page;
+	#pages: Map<PageConstructor, Page<PageArgs>> = new Map();
+	#currentPage: Page<PageArgs>;
 
 	#preloadCompleted = false;
 
@@ -97,22 +98,32 @@ export class Navigator {
 	/**
 	 * Permite cambiar la página actual.
 	 */
-	switchPage<T extends PageArgs>(
+	switchPage<P extends Page<undefined>>(
 		p: p5,
-		PageConstructor: PageConstructor<T>,
+		Constructor: PageConstructor<undefined, P>,
+	): void;
+	switchPage<T extends Record<string, unknown>, P extends Page<T>>(
+		p: p5,
+		Constructor: PageConstructor<T, P>,
+		args: T,
+	): void;
+
+	switchPage<T extends PageArgs, P extends Page<T>>(
+		p: p5,
+		PageConstructor: PageConstructor<T, P>,
 		args?: T,
-	) {
+	): void {
 		p.pop();
 		p.push();
 
-		const page = this.#pages.get(PageConstructor);
+		const page = this.#pages.get(PageConstructor) as P | undefined;
 		if (!page) {
 			throw new ReferenceError(
 				`Se especificó una página sin registrar: ${PageConstructor.name}`,
 			);
 		}
 
-		page.receive(args);
+		page.receive(args as T);
 		page.setup(p);
 		this.#currentPage = page;
 	}
