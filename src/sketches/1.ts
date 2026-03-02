@@ -387,11 +387,11 @@ class WelcomePage extends Page {
 	}
 
 	mouseClicked(p: p5) {
-		const clickedButton = this.buttons.find((b) =>
-			b.intersectsWith(p.mouseX, p.mouseY),
-		);
-		if (clickedButton) {
-			this.navigator.switchPage(p, Game);
+		for (const [i, button] of this.buttons.entries()) {
+			if (button.intersectsWith(p.mouseX, p.mouseY)) {
+				this.navigator.switchPage(p, Game, { level: i + 1 });
+				return;
+			}
 		}
 	}
 
@@ -441,7 +441,7 @@ class Game extends Page<{ level: number }> {
 	}
 
 	mouseClicked(p: p5) {
-		this.navigator.switchPage(p, Game);
+		this.navigator.switchPage(p, WelcomePage);
 	}
 }
 
