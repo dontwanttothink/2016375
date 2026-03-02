@@ -267,6 +267,8 @@ class Grid {
 
 class Button {
 	static ANIMATION_DURATION = 200;
+	static DEFAULT_WIDTH = 200;
+	static DEFAULT_HEIGHT = 50;
 
 	#animationProgress = 0;
 
@@ -275,8 +277,8 @@ class Button {
 
 	textFill: p5.Color;
 
-	width: number = 200;
-	height: number = 50;
+	width: number = Button.DEFAULT_WIDTH;
+	height: number = Button.DEFAULT_HEIGHT;
 
 	label: string = "Click me";
 
@@ -371,17 +373,30 @@ class WelcomePage extends Page {
 	}
 
 	draw(p: p5) {
+		p.cursor(p.ARROW);
 		this.#drawBackground(p);
 
 		// Título
 		p.fill(255);
 		p.textSize(50);
-		p.text("SIMÓN DICE", p.width / 2, 100);
+		// p.text("SIMÓN DICE", p.width / 2, 100);
+
+		const BUTTON_MARGINS = 20;
+		const buttonsStartY =
+			(p.height -
+				this.buttons.length * Button.DEFAULT_HEIGHT -
+				(this.buttons.length - 1) * BUTTON_MARGINS) /
+				2 +
+			Button.DEFAULT_HEIGHT / 2;
 
 		for (const [i, button] of this.buttons.entries()) {
 			button.x = p.width / 2;
-			button.y = 250 + 70 * i;
+			button.y = buttonsStartY + (BUTTON_MARGINS + Button.DEFAULT_HEIGHT) * i;
 			button.draw(p);
+
+			if (button.intersectsWith(p.mouseX, p.mouseY)) {
+				p.cursor(p.HAND);
+			}
 		}
 	}
 
@@ -395,7 +410,7 @@ class WelcomePage extends Page {
 	}
 
 	#drawBackground(p: p5) {
-		p.background(20);
+		p.background(255);
 	}
 }
 
