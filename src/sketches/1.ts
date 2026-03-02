@@ -391,7 +391,7 @@ class WelcomePage extends Page {
 			b.intersectsWith(p.mouseX, p.mouseY),
 		);
 		if (clickedButton) {
-			this.switchPage(p, "game");
+			this.switchPage(p, Game);
 		}
 	}
 
@@ -404,10 +404,12 @@ class WelcomePage extends Page {
  * El juego.
  */
 class Game extends Page {
-	id = "game";
-
 	grid: Grid = new Grid(3);
 	level = 1;
+
+	receive({ level }: { level: number }) {
+		this.level = level;
+	}
 
 	setup(p: p5) {
 		this.grid.marginBottom = 10;
@@ -438,7 +440,7 @@ class Game extends Page {
 	}
 
 	mouseClicked(p: p5) {
-		this.switchPage(p, "welcome");
+		this.navigator.switchPage(p, Game);
 	}
 }
 
@@ -489,7 +491,7 @@ function registerHMR(p: p5) {
 		// Guardar el ID de la página actual e invalidar el
 		// bosquejo antiguo
 		import.meta.hot.dispose((data) => {
-			data.currentPageID = navigator.currentPageID;
+			data.currentPageID = navigator.currentPageConstructor;
 			p.remove();
 		});
 	}

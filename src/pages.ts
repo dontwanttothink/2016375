@@ -1,14 +1,16 @@
 import type p5 from "p5";
 
 /**
- * El tipo de una función que se puede usar para cambiar la página actual.
+ * Un objeto de argumentos posible para pasar a una página.
  */
-type SwitchPageFunction = (p: p5, id: string) => void;
+type PageArgs = Record<string, unknown> | undefined;
 
 /**
  * El tipo de una función que se puede usar para obtener una página.
  */
-type PageConstructor = new (switchPage: SwitchPageFunction) => Page;
+type PageConstructor<T extends PageArgs = PageArgs> = new (
+	navigator: Navigator,
+) => Page<T>;
 
 /**
  * Una página cualquiera, como la página de bienvenida con el botón
@@ -30,7 +32,8 @@ type PageConstructor = new (switchPage: SwitchPageFunction) => Page;
  * del ratón.
  * - `keyPressed`, que se ejecuta cuando el usuario oprime una tecla.
  *
- * Las páginas tienen acceso a una función, `this.switchPage(p: p5, id: string)`
+ * Las páginas tienen acceso al objeto de navegación. Pueden usar
+ * `this.navigator.switchPage(p: p5, id: string)`
  * para cambiar la página actual a otra. Por ejemplo, la página de
  * bienvenida puede usar esta función para activar la página del juego
  * cuando el usuario hace click en el botón de jugar.
@@ -38,23 +41,22 @@ type PageConstructor = new (switchPage: SwitchPageFunction) => Page;
  * Excepto por `preload`, solo se ejecutan métodos de la página actual.
  * Las otras páginas se mantienen en espera.
  */
-export abstract class Page {
-	abstract id: string;
-
+export abstract class Page<TArgs extends PageArgs = PageArgs> {
 	/**
 	 * Cambia la página actual. Esta función recibe un identificador.
 	 * El programa se encarga de mostrar la página con el identificador
 	 * suministrado en el siguiente fotograma.
 	 */
-	switchPage: SwitchPageFunction;
+	navigator: Navigator;
 
-	constructor(switchPage: SwitchPageFunction) {
-		this.switchPage = switchPage;
+	constructor(navigator: Navigator) {
+		this.navigator = navigator;
 	}
 
 	abstract draw(p: p5): void;
 
 	async preload(_p: p5) {}
+	receive(_args: TArgs) {}
 	setup(_p: p5): void {}
 
 	mouseClicked(_p: p5) {}
@@ -66,7 +68,7 @@ export abstract class Page {
  * de cuál es la actual.
  */
 export class Navigator {
-	#pages: Map<string, Page> = new Map();
+	#pages: Map<PageConstructor, Page> = new Map();
 	#currentPage: Page;
 
 	#preloadCompleted = false;
@@ -75,13 +77,13 @@ export class Navigator {
 		InitialPage: PageConstructor,
 		otherConstructors: PageConstructor[],
 	) {
-		const initialPage = new InitialPage(this.switchPage.bind(this));
-		this.#pages.set(initialPage.id, initialPage);
+		const initialPage = new InitialPage(this);
+		this.#pages.set(InitialPage, initialPage);
 		this.#currentPage = initialPage;
 
 		for (const PageConstructor of otherConstructors) {
-			const page = new PageConstructor(this.switchPage.bind(this));
-			this.#pages.set(page.id, page);
+			const page = new PageConstructor(this);
+			this.#pages.set(PageConstructor, page);
 		}
 	}
 
@@ -95,15 +97,22 @@ export class Navigator {
 	/**
 	 * Permite cambiar la página actual.
 	 */
-	switchPage(p: p5, id: string) {
+	switchPage<T extends PageArgs>(
+		p: p5,
+		PageConstructor: PageConstructor<T>,
+		args?: T,
+	) {
 		p.pop();
 		p.push();
 
-		const page = this.#pages.get(id);
+		const page = this.#pages.get(PageConstructor);
 		if (!page) {
-			throw new ReferenceError(`Se especificó un ID de página inválido: ${id}`);
+			throw new ReferenceError(
+				`Se especificó una página sin registrar: ${PageConstructor.name}`,
+			);
 		}
 
+		page.receive(args);
 		page.setup(p);
 		this.#currentPage = page;
 	}
@@ -112,10 +121,12 @@ export class Navigator {
 	 * Permite cambiar la página actual sin aislar el
 	 * estado de dibujo.
 	 */
-	overridePage(id: string) {
-		const page = this.#pages.get(id);
+	overridePage(PageConstructor: PageConstructor) {
+		const page = this.#pages.get(PageConstructor);
 		if (!page) {
-			throw new ReferenceError(`Se especificó un ID de página inválido: ${id}`);
+			throw new ReferenceError(
+				`Se especificó una página sin registrar: ${PageConstructor.name}`,
+			);
 		}
 
 		this.#currentPage = page;
@@ -130,7 +141,7 @@ export class Navigator {
 		);
 	}
 
-	get currentPageID() {
-		return this.#currentPage.id;
+	get currentPageConstructor(): PageConstructor {
+		return this.#currentPage.constructor as PageConstructor;
 	}
 }
