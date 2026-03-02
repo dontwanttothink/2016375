@@ -403,6 +403,7 @@ class WelcomePage extends Page {
 	mouseClicked(p: p5) {
 		for (const [i, button] of this.buttons.entries()) {
 			if (button.intersectsWith(p.mouseX, p.mouseY)) {
+				p.cursor(p.ARROW);
 				this.navigator.switchPage(p, Game, { level: i + 1 });
 				return;
 			}
