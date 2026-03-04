@@ -349,12 +349,63 @@ class Button {
 	}
 }
 
+class Ball {
+	static RADIUS = 20;
+	static MASS = 1;
+
+	color: p5.Color;
+	position: [number, number];
+	velocity: [number, number];
+	acceleration = [0, -0.5];
+
+	constructor(x: number, y: number, color: p5.Color) {
+		this.position = [x - Ball.RADIUS * 2, y - Ball.RADIUS * 2];
+		this.velocity = [Math.random() * 5 - 2.5, 0];
+		this.color = color;
+		console.debug(x, y);
+	}
+
+	tick(width: number, height: number) {
+		width -= 2 * Ball.RADIUS;
+		height -= 2 * Ball.RADIUS;
+
+		this.position[0] += this.velocity[0];
+		this.position[1] += this.velocity[1];
+
+		this.position[0] = Math.max(0, Math.min(width, this.position[0]));
+		this.position[1] = Math.max(0, Math.min(height, this.position[1]));
+
+		this.velocity[0] += this.acceleration[0];
+		this.velocity[1] += this.acceleration[1];
+
+		// Esto es un intento de aliviar los efectos de tener
+		// errores de precisión
+		const correctionFactor = 0.95;
+		if (this.position[0] === width || this.position[0] === 0) {
+			this.velocity[0] *= -1 * correctionFactor;
+		}
+		if (this.position[1] === height || this.position[1] === 0) {
+			this.velocity[1] *= -1 * correctionFactor;
+		}
+	}
+
+	draw(p: p5) {
+		const x = this.position[0];
+		const y = p.height - this.position[1];
+
+		p.noStroke();
+		p.fill(this.color);
+		p.circle(x + Ball.RADIUS, y - Ball.RADIUS, 20);
+	}
+}
+
 // Páginas
 /**
  * La página inicial.
  */
 class WelcomePage extends Page {
 	buttons: Button[] = [];
+	balls: Ball[] = [];
 
 	setup(p: p5) {
 		p.textFont("system-ui");
@@ -365,6 +416,16 @@ class WelcomePage extends Page {
 			const button = new Button(p);
 			button.label = `Nivel ${i}`;
 			this.buttons.push(button);
+		}
+
+		this.balls = [];
+		for (let i = 0; i < 10; ++i) {
+			const ball = new Ball(
+				p.random(p.width),
+				p.random(p.height),
+				Cell.randomColor(p),
+			);
+			this.balls.push(ball);
 		}
 	}
 
@@ -416,6 +477,14 @@ class WelcomePage extends Page {
 
 	#drawBackground(p: p5) {
 		p.background(255);
+		for (const ball of this.balls) {
+			ball.tick(p.width, p.height);
+			ball.acceleration = [
+				(p.mouseX - p.width / 2) / (50 * p.width),
+				-p.mouseY / p.height,
+			];
+			ball.draw(p);
+		}
 	}
 }
 
