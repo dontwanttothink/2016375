@@ -128,6 +128,19 @@ export class Navigator {
 		this.#currentPage = page;
 	}
 
+	get currentPage() {
+		if (this.#preloadCompleted) {
+			return this.#currentPage;
+		}
+		throw new Error(
+			"La página actual no está disponible hasta que `.setup(p)` haya terminado su ejecución por completo.",
+		);
+	}
+
+	get currentPageConstructor(): PageConstructor {
+		return this.#currentPage.constructor as PageConstructor;
+	}
+
 	/**
 	 * Permite cambiar la página actual sin aislar el
 	 * estado de dibujo.
@@ -141,18 +154,5 @@ export class Navigator {
 		}
 
 		this.#currentPage = page;
-	}
-
-	get currentPage() {
-		if (this.#preloadCompleted) {
-			return this.#currentPage;
-		}
-		throw new Error(
-			"La página actual no está disponible hasta que `.setup(p)` haya terminado su ejecución por completo.",
-		);
-	}
-
-	get currentPageConstructor(): PageConstructor {
-		return this.#currentPage.constructor as PageConstructor;
 	}
 }
