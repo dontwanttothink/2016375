@@ -395,7 +395,7 @@ class Ball {
 
 		p.noStroke();
 		p.fill(this.color);
-		p.circle(x + Ball.RADIUS, y - Ball.RADIUS, 20);
+		p.circle(x + Ball.RADIUS, y - Ball.RADIUS, Ball.RADIUS);
 	}
 }
 
