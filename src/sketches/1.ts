@@ -518,7 +518,7 @@ function registerHMR(p: p5) {
 		// Guardar el ID de la página actual e invalidar el
 		// bosquejo antiguo
 		import.meta.hot.dispose((data) => {
-			data.currentPageID = navigator.currentPageConstructor;
+			data.currentPageID = navigator.currentPageName;
 			p.remove();
 		});
 	}

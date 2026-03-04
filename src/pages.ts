@@ -137,22 +137,26 @@ export class Navigator {
 		);
 	}
 
-	get currentPageConstructor(): PageConstructor {
-		return this.#currentPage.constructor as PageConstructor;
+	// Las siguientes funciones son utilizadas para la restauración de estado de
+	// Vite.
+
+	/**
+	 * Intenta obtener un nombre para la clase que corresponde a
+	 * la página actual. Solo debe ser usado para el desarrollo.
+	 */
+	get currentPageName(): string {
+		return this.#currentPage.constructor.name;
 	}
 
 	/**
 	 * Permite cambiar la página actual sin aislar el
-	 * estado de dibujo.
+	 * estado de dibujo. Solo debe ser usado para el desarrollo.
 	 */
-	overridePage(PageConstructor: PageConstructor) {
-		const page = this.#pages.get(PageConstructor);
-		if (!page) {
-			throw new ReferenceError(
-				`Se especificó una página sin registrar: ${PageConstructor.name}`,
-			);
+	overridePage(name: string) {
+		const result = this.#pages.entries().find(([c]) => c.name === name);
+		if (result) {
+			const page = result[1];
+			this.#currentPage = page;
 		}
-
-		this.#currentPage = page;
 	}
 }
