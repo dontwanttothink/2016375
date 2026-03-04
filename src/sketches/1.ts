@@ -564,6 +564,9 @@ function draw(p: p5) {
 function mouseClicked(p: p5) {
 	navigator.currentPage.mouseClicked(p);
 }
+function keyPressed(p: p5) {
+	navigator.currentPage.keyPressed(p);
+}
 
 // Restaurar estado
 //
@@ -607,6 +610,7 @@ new p5((p) => {
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
 	p.mouseClicked = () => mouseClicked(p);
+	p.keyPressed = () => keyPressed(p);
 
 	registerHMR(p);
 }, canvasParent);
