@@ -247,7 +247,7 @@ class Grid {
 		const { size, startX, startY, deltaColumn, deltaRow } = this.properties(p);
 
 		// Bordes
-		p.rect(startX, startY, size, size);
+		p.rect(startX, startY, size, size, 3);
 
 		// Separadores
 		for (let i = 1; i < this.#count; ++i) {
