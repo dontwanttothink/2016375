@@ -118,15 +118,13 @@ class Grid {
 
 	/**
 	 * La cantidad mínima de espacio que debe haber por encima
-	 * de la matriz, como porcentaje de la altura total del
-	 * lienzo.
+	 * de la matriz, en pixeles.
 	 */
 	marginTop = 0;
 
 	/**
 	 * La cantidad mínima de espacio que debe haber por debajo
-	 * de la matriz, como porcentaje de la altura total del
-	 * lienzo.
+	 * de la matriz, en pixeles.
 	 */
 	marginBottom = 0;
 
@@ -169,8 +167,8 @@ class Grid {
 		const availableHeight = p.height;
 		const availableWidth = p.width;
 
-		const marginBottom = (this.marginBottom / 100) * availableHeight;
-		const marginTop = (this.marginTop / 100) * availableHeight;
+		const marginBottom = this.marginBottom;
+		const marginTop = this.marginTop;
 
 		const containerHeight = availableHeight - marginBottom - marginTop;
 		const size = Math.min(containerHeight, availableWidth) - Grid.LINE_WIDTH;
@@ -425,6 +423,9 @@ class WelcomePage extends Page {
  * El juego.
  */
 class Game extends Page<{ level: number }> {
+	static FONT_SIZE = 24;
+	static MARGIN_SIZE = 10;
+
 	grid: Grid = new Grid(3);
 	level = 1;
 
@@ -434,7 +435,7 @@ class Game extends Page<{ level: number }> {
 	}
 
 	setup(p: p5) {
-		this.grid.marginBottom = 10;
+		this.grid.marginBottom = Game.FONT_SIZE + Game.MARGIN_SIZE;
 		p.fill(0);
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER);
@@ -446,8 +447,12 @@ class Game extends Page<{ level: number }> {
 		this.grid.draw(p);
 		const { startY, size } = this.grid.properties(p);
 
-		p.textSize((5 / 100) * p.height);
-		p.text(`Nivel ${this.level}`, p.width / 2, startY + size + 0.1 * p.height);
+		p.textSize(Game.FONT_SIZE);
+		p.text(
+			`Nivel ${this.level}`,
+			p.width / 2,
+			startY + size + Game.MARGIN_SIZE + Game.FONT_SIZE,
+		);
 
 		if (Math.random() <= 0.025) {
 			const row = Math.floor(Math.random() * this.grid.count);
