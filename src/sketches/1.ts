@@ -128,6 +128,12 @@ class Grid {
 	 */
 	marginBottom = 0;
 
+	/**
+	 * La cantidad mínima de espacio que debe haber a la izquierda de la matriz,
+	 * en pixeles.
+	 */
+	marginLeft = 0;
+
 	#count: number;
 	#matrix: Cell[][] = [];
 
@@ -169,9 +175,11 @@ class Grid {
 
 		const marginBottom = this.marginBottom;
 		const marginTop = this.marginTop;
+		const marginLeft = this.marginLeft;
 
 		const containerHeight = availableHeight - marginBottom - marginTop;
-		const size = Math.min(containerHeight, availableWidth) - Grid.LINE_WIDTH;
+		const containerWidth = availableWidth - marginLeft;
+		const size = Math.min(containerHeight, containerWidth) - Grid.LINE_WIDTH;
 
 		if (size <= 0) {
 			throw new Error(
@@ -179,7 +187,7 @@ class Grid {
 			);
 		}
 
-		const startX = p.width / 2 - size / 2;
+		const startX = marginLeft + containerWidth / 2 - size / 2;
 		const startY = marginTop + containerHeight / 2 - size / 2;
 		const deltaRow = size / this.#count;
 		const deltaColumn = size / this.#count;
