@@ -412,9 +412,9 @@ class WelcomePage extends Page {
 		p.textAlign(p.CENTER, p.CENTER);
 
 		this.buttons = [];
-		for (let i = 1; i <= 3; ++i) {
+		for (const label of ["Fácil", "Medio", "Difícil"]) {
 			const button = new Button(p);
-			button.label = `Nivel ${i}`;
+			button.label = label;
 			this.buttons.push(button);
 		}
 
@@ -468,7 +468,7 @@ class WelcomePage extends Page {
 				p.cursor(p.ARROW);
 
 				// Activar el juego, pasando el nivel correcto
-				this.navigator.switchPage(p, Game, { level: i + 1 });
+				this.navigator.switchPage(p, Game, { difficulty: i + 1 });
 
 				return;
 			}
@@ -491,16 +491,17 @@ class WelcomePage extends Page {
 /**
  * El juego.
  */
-class Game extends Page<{ level: number }> {
-	static FONT_SIZE = 24;
+class Game extends Page<{ difficulty: number }> {
+	static FONT_SIZE = 21;
 	static MARGIN_SIZE = 10;
 
 	grid: Grid = new Grid(3);
+	difficulty = 1;
 	level = 1;
 
-	receive({ level }: { level: number }) {
-		this.level = level;
-		this.grid = new Grid(2 + level);
+	receive({ difficulty }: { difficulty: number }) {
+		this.difficulty = difficulty;
+		this.grid = new Grid(2 + difficulty);
 	}
 
 	setup(p: p5) {
