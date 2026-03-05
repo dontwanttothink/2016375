@@ -287,14 +287,13 @@ class Button {
 		return this.#width;
 	}
 
-	#labelChanged: boolean = false;
 	#label: string = "Oprímeme";
 	get label() {
 		return this.#label;
 	}
-	set label(l: string) {
+	setLabel(p: p5, l: string) {
 		this.#label = l;
-		this.#labelChanged = true;
+		this.#refreshDimensions(p);
 	}
 
 	x: number;
@@ -348,11 +347,6 @@ class Button {
 		p.textSize(Button.TEXT_SIZE);
 
 		// Dibujar el rectángulo
-		if (this.#labelChanged) {
-			this.#refreshDimensions(p);
-			this.#labelChanged = false;
-		}
-
 		p.noStroke();
 		p.fill(currentColor);
 		p.rectMode(p.CENTER);
@@ -457,7 +451,7 @@ class WelcomePage extends Page {
 			const button = new Button(p);
 			button.minWidth = WelcomePage.BUTTON_WIDTH;
 			button.minHeight = WelcomePage.BUTTON_HEIGHT;
-			button.label = label;
+			button.setLabel(p, label);
 			this.buttons.push(button);
 		}
 
