@@ -170,16 +170,33 @@ class Grid {
 	}
 
 	properties(p: p5): GridProperties {
-		const availableHeight = p.height;
-		const availableWidth = p.width;
+		const naturalSize = Math.min(p.width, p.height) - Grid.LINE_WIDTH;
+		const naturalHorizontalMargin = (p.width - naturalSize) / 2;
+		const naturalVerticalMargin = (p.height - naturalSize) / 2;
 
-		const marginBottom = this.marginBottom;
-		const marginTop = this.marginTop;
-		const marginLeft = this.marginLeft;
+		const missingTopMargin = Math.max(
+			0,
+			this.marginTop - naturalVerticalMargin,
+		);
+		const missingBottomMargin = Math.max(
+			0,
+			this.marginBottom - naturalVerticalMargin,
+		);
+		const missingLeftMargin = Math.max(
+			0,
+			this.marginLeft - naturalHorizontalMargin,
+		);
 
-		const containerHeight = availableHeight - marginBottom - marginTop;
-		const containerWidth = availableWidth - marginLeft;
-		const size = Math.min(containerHeight, containerWidth) - Grid.LINE_WIDTH;
+		const containerTop = naturalVerticalMargin + missingTopMargin;
+		const containerBottom =
+			p.height - (naturalVerticalMargin + missingBottomMargin);
+		const containerLeft = naturalHorizontalMargin + missingLeftMargin;
+		const containerRight = p.width - naturalHorizontalMargin;
+
+		const containerHeight = containerBottom - containerTop;
+		const containerWidth = containerRight - containerLeft;
+
+		const size = Math.min(containerHeight, containerWidth);
 
 		if (size <= 0) {
 			throw new Error(
@@ -187,8 +204,8 @@ class Grid {
 			);
 		}
 
-		const startX = marginLeft + containerWidth / 2 - size / 2;
-		const startY = marginTop + containerHeight / 2 - size / 2;
+		const startX = containerLeft + containerWidth / 2 - size / 2;
+		const startY = containerTop + containerHeight / 2 - size / 2;
 		const deltaRow = size / this.#count;
 		const deltaColumn = size / this.#count;
 
