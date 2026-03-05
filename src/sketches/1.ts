@@ -278,7 +278,7 @@ class Button {
 	width: number = Button.DEFAULT_WIDTH;
 	height: number = Button.DEFAULT_HEIGHT;
 
-	label: string = "Click me";
+	label: string = "Oprímeme";
 
 	x: number;
 	y: number;
