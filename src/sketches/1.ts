@@ -264,9 +264,9 @@ class Grid {
 }
 
 class Button {
+	static PADDING = 12;
+	static TEXT_SIZE = 20;
 	static ANIMATION_DURATION = 200;
-	static DEFAULT_WIDTH = 200;
-	static DEFAULT_HEIGHT = 50;
 
 	#animationProgress = 0;
 
@@ -275,20 +275,52 @@ class Button {
 
 	textFill: p5.Color;
 
-	width: number = Button.DEFAULT_WIDTH;
-	height: number = Button.DEFAULT_HEIGHT;
+	minWidth: number = 70;
+	minHeight: number = 30;
 
-	label: string = "Oprímeme";
+	#height: number = 0;
+	get height() {
+		return this.#height;
+	}
+	#width: number = 0;
+	get width() {
+		return this.#width;
+	}
+
+	#labelChanged: boolean = false;
+	#label: string = "Oprímeme";
+	get label() {
+		return this.#label;
+	}
+	set label(l: string) {
+		this.#label = l;
+		this.#labelChanged = true;
+	}
 
 	x: number;
 	y: number;
 
 	constructor(p: p5) {
+		this.#refreshDimensions(p);
 		this.baseColor = p.color(50);
 		this.highlightColor = p.color(0, 150, 255);
 		this.textFill = p.color(255);
 		this.x = p.width / 2;
 		this.y = p.height / 2;
+	}
+
+	#refreshDimensions(p: p5) {
+		const contentHeight =
+			p.textAscent(this.#label) + p.textDescent(this.#label);
+		const targetHeight = contentHeight + Button.PADDING * 2;
+		const height = Math.max(targetHeight, this.minHeight);
+
+		const contentWidth = p.textWidth(this.#label);
+		const targetWidth = contentWidth + Button.PADDING * 2;
+		const width = Math.max(targetWidth, this.minWidth);
+
+		this.#height = height;
+		this.#width = width;
 	}
 
 	draw(p: p5) {
@@ -313,7 +345,14 @@ class Button {
 			this.#animationProgress,
 		);
 
+		p.textSize(Button.TEXT_SIZE);
+
 		// Dibujar el rectángulo
+		if (this.#labelChanged) {
+			this.#refreshDimensions(p);
+			this.#labelChanged = false;
+		}
+
 		p.noStroke();
 		p.fill(currentColor);
 		p.rectMode(p.CENTER);
@@ -321,7 +360,6 @@ class Button {
 
 		// Dibujar el texto
 		p.fill(this.textFill);
-		p.textSize(20);
 		p.text(this.label, x, y);
 
 		p.pop();
@@ -404,6 +442,9 @@ class Ball {
  * La página inicial.
  */
 class WelcomePage extends Page {
+	static BUTTON_WIDTH = 200;
+	static BUTTON_HEIGHT = 50;
+
 	buttons: Button[] = [];
 	balls: Ball[] = [];
 
@@ -414,6 +455,8 @@ class WelcomePage extends Page {
 		this.buttons = [];
 		for (const label of ["Fácil", "Medio", "Difícil"]) {
 			const button = new Button(p);
+			button.minWidth = WelcomePage.BUTTON_WIDTH;
+			button.minHeight = WelcomePage.BUTTON_HEIGHT;
 			button.label = label;
 			this.buttons.push(button);
 		}
@@ -444,14 +487,15 @@ class WelcomePage extends Page {
 		const BUTTON_MARGINS = 20;
 		const marginHeight = (this.buttons.length - 1) * BUTTON_MARGINS;
 		const totalHeight =
-			this.buttons.length * Button.DEFAULT_HEIGHT + marginHeight;
+			this.buttons.length * WelcomePage.BUTTON_HEIGHT + marginHeight;
 		const buttonsStartY =
-			(p.height - totalHeight) / 2 + Button.DEFAULT_HEIGHT / 2;
+			(p.height - totalHeight) / 2 + WelcomePage.BUTTON_HEIGHT / 2;
 
 		p.cursor(p.ARROW);
 		for (const [i, button] of this.buttons.entries()) {
 			button.x = p.width / 2;
-			button.y = buttonsStartY + (BUTTON_MARGINS + Button.DEFAULT_HEIGHT) * i;
+			button.y =
+				buttonsStartY + (BUTTON_MARGINS + WelcomePage.BUTTON_HEIGHT) * i;
 			button.draw(p);
 
 			// Mostrar una manito cuando el cursor está sobre un botón
@@ -506,6 +550,7 @@ class Game extends Page<{ difficulty: number }> {
 
 	setup(p: p5) {
 		this.grid.marginBottom = Game.FONT_SIZE + Game.MARGIN_SIZE;
+
 		p.fill(0);
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER);
