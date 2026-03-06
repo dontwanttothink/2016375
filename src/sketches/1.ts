@@ -2,6 +2,14 @@ import p5 from "p5";
 import targetDimensions from "../dimensions";
 import { Navigator, Page } from "../pages";
 
+// Utilidades
+/**
+ * @returns El punto en el tiempo actual, medido en milisegundos.
+ */
+function currentTime() {
+	return Number(document.timeline.currentTime);
+}
+
 // Estructuras
 /**
  * Una celda dentro de la matriz.
@@ -12,14 +20,6 @@ class Cell {
 	 * milisegundos.
 	 */
 	static ANIMATION_DURATION = 400;
-
-	/**
-	 * @returns El punto en el tiempo actual, medido en milisegundos,
-	 * según el marco de referencia usado por las celdas.
-	 */
-	static currentTime() {
-		return Number(document.timeline.currentTime) + Cell.ANIMATION_DURATION;
-	}
 
 	/**
 	 * @returns Un color con un tono (hue) elegido al azar.
@@ -38,7 +38,7 @@ class Cell {
 	/**
 	 * Un punto en el tiempo, medido en milisegundos.
 	 */
-	#lastToggled: number = 0;
+	#lastToggled: number | null = null;
 
 	constructor(color?: p5.Color) {
 		this.color = color;
@@ -49,8 +49,13 @@ class Cell {
 	 * @returns Un número entre 0 y 1.
 	 */
 	get #progress() {
-		const rawProgress =
-			(Cell.currentTime() - this.#lastToggled) / Cell.ANIMATION_DURATION;
+		// Por defecto, la animación está completa.
+		let rawProgress = 1;
+
+		if (this.#lastToggled) {
+			rawProgress =
+				(currentTime() - this.#lastToggled) / Cell.ANIMATION_DURATION;
+		}
 
 		if (this.enabled) {
 			return Math.min(rawProgress, 1);
@@ -63,7 +68,7 @@ class Cell {
 	 */
 	toggle() {
 		this.enabled = !this.enabled;
-		this.#lastToggled = Cell.currentTime();
+		this.#lastToggled = currentTime();
 	}
 
 	/**
@@ -222,7 +227,11 @@ class Grid {
 		return this.#matrix[row][column];
 	}
 
-	intersection(x: number, y: number, p: p5): Cell | null {
+	/**
+	 * @returns El índice de la columna y el índice de la fila de la celda que
+	 * tiene una intersección con el punto dado, o `null` si no hay ninguna.
+	 */
+	intersection(p: p5, x: number, y: number): [number, number] | null {
 		const { startX, startY, deltaColumn, deltaRow } = this.properties(p);
 
 		const relativeX = x - startX;
@@ -238,7 +247,15 @@ class Grid {
 			return null;
 		}
 
-		return this.get(column, row);
+		return [column, row];
+	}
+
+	randomizeColors(p: p5) {
+		for (const row of this.#matrix) {
+			for (const cell of row) {
+				cell.color = Cell.randomColor(p);
+			}
+		}
 	}
 
 	draw(p: p5) {
@@ -336,7 +353,7 @@ class Button {
 	#refreshDimensions(p: p5) {
 		const contentHeight =
 			p.textAscent(this.#label) + p.textDescent(this.#label);
-		const targetHeight = contentHeight + Button.PADDING * 2;
+		const targetHeight = contentHeight + Button.PADDING * 1.7;
 		const height = Math.max(targetHeight, this.minHeight);
 
 		const contentWidth = p.textWidth(this.#label);
@@ -379,6 +396,7 @@ class Button {
 
 		// Dibujar el texto
 		p.fill(this.textFill);
+		p.textAlign(p.CENTER, p.CENTER);
 		p.text(this.label, x, y);
 
 		p.pop();
@@ -469,7 +487,6 @@ class WelcomePage extends Page {
 
 	setup(p: p5) {
 		p.textFont("system-ui");
-		p.textAlign(p.CENTER, p.CENTER);
 
 		this.buttons = [];
 		for (const label of ["Fácil", "Medio", "Difícil"]) {
@@ -558,29 +575,66 @@ class Game extends Page<{ difficulty: number }> {
 	static FONT_SIZE = 21;
 	static MARGIN_SIZE = 10;
 
+	static getRandomPattern(length: number, gridCount: number) {
+		if (gridCount < 2) {
+			throw new Error("El número de columnas/filas debe ser al menos 2.");
+		}
+
+		const pattern: [number, number][] = [];
+		for (let i = 0; i < length; ++i) {
+			let column = Math.floor(Math.random() * gridCount);
+			let row = Math.floor(Math.random() * gridCount);
+
+			if (i > 0) {
+				const [prevColumn, prevRow] = pattern[i - 1];
+				while (column === prevColumn && row === prevRow) {
+					column = Math.floor(Math.random() * gridCount);
+					row = Math.floor(Math.random() * gridCount);
+				}
+			}
+
+			pattern.push([column, row]);
+		}
+		return pattern;
+	}
+
 	grid: Grid = new Grid(3);
 	difficulty = 1;
 	level = 1;
 
+	#isPlayingBackSince: null | number = null;
+	#currentPattern: [number, number][] = [];
+	#userPattern: [number, number][] = [];
+
+	get #isInteractive() {
+		return !this.#isPlayingBackSince;
+	}
+
 	receive({ difficulty }: { difficulty: number }) {
 		this.difficulty = difficulty;
-		this.grid = new Grid(2 + difficulty);
+		this.grid.count = 2 + difficulty;
 	}
 
 	setup(p: p5) {
 		this.grid.marginBottom = Game.FONT_SIZE + Game.MARGIN_SIZE;
+		this.grid.randomizeColors(p);
+		this.#playBack(Game.getRandomPattern(3, this.grid.count));
 
 		p.fill(0);
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER);
 	}
 
+	#playBack(pattern: [number, number][]) {
+		this.#isPlayingBackSince = Number(document.timeline.currentTime);
+		this.#currentPattern = pattern;
+	}
+
 	draw(p: p5) {
 		p.background(255);
-
 		this.grid.draw(p);
-		const { startY, size } = this.grid.properties(p);
 
+		const { startY, size } = this.grid.properties(p);
 		p.textSize(Game.FONT_SIZE);
 		p.text(
 			`Nivel ${this.level}`,
@@ -588,20 +642,72 @@ class Game extends Page<{ difficulty: number }> {
 			startY + size + Game.MARGIN_SIZE + Game.FONT_SIZE,
 		);
 
-		if (Math.random() <= 0.025) {
-			const row = Math.floor(Math.random() * this.grid.count);
-			const column = Math.floor(Math.random() * this.grid.count);
+		// Reproducir el patrón, si es apropiado.
+		this.#togglePatternCells();
 
-			const cell = this.grid.get(column, row);
-			if (!cell.enabled) {
-				cell.color = Cell.randomColor(p);
-			}
-			cell.toggle();
+		if (this.#isInteractive && this.grid.intersection(p, p.mouseX, p.mouseY)) {
+			p.cursor(p.HAND);
+		} else {
+			p.cursor(p.ARROW);
 		}
 	}
 
+	#togglePatternCells() {
+		if (!this.#isPlayingBackSince) {
+			return;
+		}
+
+		const currentIndex = Math.floor(
+			(currentTime() - this.#isPlayingBackSince) / 500,
+		);
+
+		if (currentIndex > this.#currentPattern.length) {
+			// Ya no tenemos más que hacer.
+			this.#isPlayingBackSince = null;
+			return;
+		}
+
+		// Desactivar la celda anterior
+		if (currentIndex - 1 >= 0) {
+			const [column, row] = this.#currentPattern[currentIndex - 1];
+			const cell = this.grid.get(column, row);
+			if (cell.enabled) {
+				cell.toggle();
+			}
+		}
+
+		// Activar la celda actual
+		if (currentIndex < this.#currentPattern.length) {
+			const [column, row] = this.#currentPattern[currentIndex];
+			const cell = this.grid.get(column, row);
+			if (!cell.enabled) {
+				cell.toggle();
+			}
+		}
+	}
+
+	#handleUserInput([column, row]: [number, number]) {
+		if (!this.#isInteractive) {
+			return;
+		}
+
+		const previousCoords = this.#userPattern.at(-1);
+		if (previousCoords) {
+			const previousCell = this.grid.get(...previousCoords);
+			previousCell.toggle();
+		}
+
+		this.#userPattern.push([column, row]);
+
+		const cell = this.grid.get(column, row);
+		cell.toggle();
+	}
+
 	mouseClicked(p: p5) {
-		this.navigator.switchPage(p, WelcomePage);
+		const intersected = this.grid.intersection(p, p.mouseX, p.mouseY);
+		if (intersected) {
+			this.#handleUserInput(intersected);
+		}
 	}
 }
 
