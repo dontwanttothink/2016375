@@ -155,7 +155,7 @@ export class Navigator {
 	overridePage(name: string) {
 		const result = this.#pages.entries().find(([c]) => c.name === name);
 		if (result) {
-			const page = result[1];
+			const [_Page, page] = result;
 			this.#currentPage = page;
 		}
 	}
