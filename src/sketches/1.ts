@@ -10,6 +10,13 @@ function currentTime() {
 	return Number(document.timeline.currentTime);
 }
 
+/**
+ * @returns Un número entero al azar en el intervalo [0, n).
+ */
+function randomInt(n: number) {
+	return Math.floor(Math.random() * n);
+}
+
 // Estructuras
 /**
  * Una celda dentro de la matriz.
@@ -580,21 +587,29 @@ class Game extends Page<{ difficulty: number }> {
 			throw new Error("El número de columnas/filas debe ser al menos 2.");
 		}
 
+		const cellCount = gridCount * gridCount;
+
 		const pattern: [number, number][] = [];
 		for (let i = 0; i < length; ++i) {
-			let column = Math.floor(Math.random() * gridCount);
-			let row = Math.floor(Math.random() * gridCount);
-
+			let cellIndex: number;
 			if (i > 0) {
-				const [prevColumn, prevRow] = pattern[i - 1];
-				while (column === prevColumn && row === prevRow) {
-					column = Math.floor(Math.random() * gridCount);
-					row = Math.floor(Math.random() * gridCount);
+				// Obtener una celda distinta a la última en el patrón
+				const [lastColumn, lastRow] = pattern[i - 1];
+				const lastCellIndex = lastRow * gridCount + lastColumn;
+
+				cellIndex = randomInt(cellCount - 1);
+				if (cellIndex >= lastCellIndex) {
+					++cellIndex;
 				}
+			} else {
+				cellIndex = randomInt(cellCount);
 			}
 
+			const column = cellIndex % gridCount;
+			const row = Math.floor(cellIndex / gridCount);
 			pattern.push([column, row]);
 		}
+
 		return pattern;
 	}
 
