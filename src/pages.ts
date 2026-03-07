@@ -17,8 +17,7 @@ type PageConstructor<
  * Una página cualquiera, como la página de bienvenida con el botón
  * de jugar, o la página del juego con la matriz.
  *
- * Una página está compuesta de dos cosas fundamentales:
- * - un identificador, que puede ser una cadena cualquiera, como `"welcome"`
+ * Una página está compuesta de una cosa fundamental:
  * - una función (método), `draw`, que dibuja la página
  *
  * Hay cuatro funciones (métodos) adicionales que una página puede tener:
