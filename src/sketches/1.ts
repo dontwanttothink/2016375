@@ -729,7 +729,10 @@ class Game extends Page<{ difficulty: number }> {
 		const [phase, start] = this.#phase.get();
 
 		// Establecer figura del puntero
-		if (phase === GamePhase.WatchingAttempt) {
+		if (
+			phase === GamePhase.WatchingAttempt &&
+			this.grid.intersection(p, p.mouseX, p.mouseY)
+		) {
 			p.cursor(p.HAND);
 		} else {
 			p.cursor(p.ARROW);
