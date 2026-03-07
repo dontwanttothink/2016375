@@ -26,7 +26,7 @@ class Cell {
 	 * La duración de la animación de aparición y desaparición en
 	 * milisegundos.
 	 */
-	static ANIMATION_DURATION = 400;
+	static ANIMATION_DURATION = 900;
 
 	/**
 	 * @returns Un color con un tono (hue) elegido al azar.
@@ -40,42 +40,46 @@ class Cell {
 	}
 
 	color: p5.Color | undefined;
-	enabled = false;
 
 	/**
 	 * Un punto en el tiempo, medido en milisegundos.
 	 */
-	#lastToggled: number | null = null;
+	#highlightBegin: number | null = null;
 
 	constructor(color?: p5.Color) {
 		this.color = color;
 	}
 
 	/**
-	 * El progreso de la animación, que usamos al dibujar la celda.
+	 * El progreso de la animación que se usa para resaltar una celda.
 	 * @returns Un número entre 0 y 1.
 	 */
 	get #progress() {
-		// Por defecto, la animación está completa.
-		let rawProgress = 1;
-
-		if (this.#lastToggled) {
-			rawProgress =
-				(currentTime() - this.#lastToggled) / Cell.ANIMATION_DURATION;
+		if (!this.#highlightBegin) {
+			return 0;
 		}
 
-		if (this.enabled) {
-			return Math.min(rawProgress, 1);
+		const rawProgress =
+			(currentTime() - this.#highlightBegin) / Cell.ANIMATION_DURATION;
+		return Math.min(1, Math.max(0, rawProgress));
+	}
+
+	get isBeingHighlighted() {
+		if (!this.#highlightBegin) {
+			return false;
 		}
-		return Math.max(1 - rawProgress, 0);
+
+		const timeSince = currentTime() - this.#highlightBegin;
+		return timeSince >= 0 && timeSince <= Cell.ANIMATION_DURATION;
 	}
 
 	/**
-	 * Prende la celda si está apagada. Apaga la celda si está prendida.
+	 * Resalta la celda. Si se llama este método mientras que la animación de
+	 * resalto está en curso, la animación inmediatamente empieza de nuevo desde
+	 * el principio.
 	 */
-	toggle() {
-		this.enabled = !this.enabled;
-		this.#lastToggled = currentTime();
+	highlight() {
+		this.#highlightBegin = currentTime();
 	}
 
 	/**
@@ -83,32 +87,50 @@ class Cell {
 	 * tamaño, dibuja la celda.
 	 */
 	draw(p: p5, x: number, y: number, size: number) {
-		// Hacemos que estos valores sean proporcionales al tamaño de la
-		// celda para que su apariencia sea igual sin importar qué tan
-		// grande la dibujamos.
-		const PADDING = size * (3 / 100);
-		const GROWTH_AMOUNT = size * (5 / 100);
+		// Esta función define una animación para la aparición y desaparición
+		// de la celda. Cuando la visibilidad es 0, la celda es invisible.
+		// Cuando la visibilidad es 1, la celda se muestra del todo.
+		const drawCell = (visibility: number) => {
+			// Hacemos que estos valores sean proporcionales al tamaño de la
+			// celda para que su apariencia sea igual sin importar qué tan
+			// grande la dibujamos.
+			const PADDING = size * (3 / 100);
+			const GROWTH_AMOUNT = size * (5 / 100);
 
-		// El espacio negativo disminuye a medida que la animación transcurre.
-		const currentPadding = PADDING + GROWTH_AMOUNT * (1 - this.#progress);
-		// El tamaño aumenta a medida que la animación transcurre.
-		const currentSize = size - currentPadding * 2;
+			// El espacio negativo disminuye a medida que la animación transcurre.
+			const currentPadding = PADDING + GROWTH_AMOUNT * (1 - visibility);
+			// El tamaño aumenta a medida que la animación transcurre.
+			const currentSize = size - currentPadding * 2;
 
-		const fillColor = this.color ? p.color(this.color) : p.color(100);
-		fillColor.setAlpha(this.#progress * 255);
+			const fillColor = this.color ? p.color(this.color) : p.color(100);
+			fillColor.setAlpha(visibility * 255);
+
+			p.fill(fillColor);
+			p.noStroke();
+
+			p.rect(
+				x + currentPadding,
+				y + currentPadding,
+				currentSize,
+				currentSize,
+				currentSize * (9 / 100),
+			);
+		};
+
+		const APPEAR_UNTIL = 0.35;
+		const HOLD_UNTIL = 0.75;
+
+		const DISAPPEAR_FOR = 1 - HOLD_UNTIL;
 
 		p.push();
-		p.fill(fillColor);
-		p.noStroke();
-
-		p.rect(
-			x + currentPadding,
-			y + currentPadding,
-			currentSize,
-			currentSize,
-			currentSize * (9 / 100),
-		);
-
+		if (this.#progress <= APPEAR_UNTIL) {
+			drawCell(this.#progress * (1 / APPEAR_UNTIL));
+		} else if (this.#progress <= HOLD_UNTIL) {
+			drawCell(1);
+		} else {
+			const v = 1 - (this.#progress - HOLD_UNTIL) / DISAPPEAR_FOR;
+			drawCell(v);
+		}
 		p.pop();
 	}
 }
@@ -576,20 +598,64 @@ class WelcomePage extends Page {
 }
 
 /**
+ * Tres partes posibles de una interacción con el juego.
+ */
+enum GamePhase {
+	PlayingPattern,
+	WatchingAttempt,
+	AttemptCompleted,
+}
+
+class GamePhaseManager {
+	#since: number | null = null;
+	#phase: GamePhase | null = null;
+
+	set(phase: GamePhase) {
+		this.#phase = phase;
+		this.#since = currentTime();
+	}
+
+	/**
+	 * @returns La fase actual y el punto en el tiempo en que empezó.
+	 * @throws Si no hay una fase actual.
+	 */
+	get(): [GamePhase, number] {
+		if (this.#phase === null || this.#since === null) {
+			throw new ReferenceError("No se ha establecido una fase.");
+		}
+
+		return [this.#phase, this.#since];
+	}
+}
+
+/**
  * El juego.
  */
 class Game extends Page<{ difficulty: number }> {
 	static FONT_SIZE = 21;
 	static MARGIN_SIZE = 10;
+	static PATTERN_HIGHLIGHT_INTERVAL = 500;
 
-	static getRandomPattern(length: number, gridCount: number) {
-		if (gridCount < 2) {
-			throw new Error("El número de columnas/filas debe ser al menos 2.");
-		}
+	grid: Grid = new Grid(3);
+	difficulty = 1;
+	level = 1;
 
+	#phase = new GamePhaseManager();
+
+	#currentPattern: [number, number][] = [];
+	#userPattern: [number, number][] = [];
+
+	receive({ difficulty }: { difficulty: number }) {
+		this.difficulty = difficulty;
+		this.grid.count = 2 + difficulty;
+	}
+
+	#getNewPattern() {
+		const gridCount = this.grid.count;
 		const cellCount = gridCount * gridCount;
-
 		const pattern: [number, number][] = [];
+		const length = 3 + this.difficulty;
+
 		for (let i = 0; i < length; ++i) {
 			let cellIndex: number;
 			if (i > 0) {
@@ -613,42 +679,83 @@ class Game extends Page<{ difficulty: number }> {
 		return pattern;
 	}
 
-	grid: Grid = new Grid(3);
-	difficulty = 1;
-	level = 1;
-
-	#isPlayingBackSince: null | number = null;
-	#currentPattern: [number, number][] = [];
-	#userPattern: [number, number][] = [];
-
-	get #isInteractive() {
-		return !this.#isPlayingBackSince;
-	}
-
-	receive({ difficulty }: { difficulty: number }) {
-		this.difficulty = difficulty;
-		this.grid.count = 2 + difficulty;
-	}
-
 	setup(p: p5) {
 		this.grid.marginBottom = Game.FONT_SIZE + Game.MARGIN_SIZE;
 		this.grid.randomizeColors(p);
-		this.#playBack(Game.getRandomPattern(3, this.grid.count));
+
+		this.#currentPattern = this.#getNewPattern();
+		this.#phase.set(GamePhase.PlayingPattern);
 
 		p.fill(0);
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER);
 	}
 
-	#playBack(pattern: [number, number][]) {
-		this.#isPlayingBackSince = Number(document.timeline.currentTime);
-		this.#currentPattern = pattern;
+	/**
+	 * Si se está reproduciendo el patrón y si es apropiado resaltar una celda
+	 * en este fotograma, resalta esa celda.
+	 */
+	#highlightPatternCell() {
+		const phaseData = this.#phase.get();
+		if (!phaseData) {
+			return;
+		}
+
+		const [phase, start] = phaseData;
+		if (phase !== GamePhase.PlayingPattern) {
+			return;
+		}
+
+		const index = Math.floor(
+			(currentTime() - start) / Game.PATTERN_HIGHLIGHT_INTERVAL,
+		);
+
+		if (index >= this.#currentPattern.length) {
+			// Terminamos.
+			this.#phase.set(GamePhase.WatchingAttempt);
+			return;
+		}
+
+		if (index >= 0) {
+			const [column, row] = this.#currentPattern[index];
+			const cell = this.grid.get(column, row);
+			if (!cell.isBeingHighlighted) {
+				cell.highlight();
+			}
+		}
 	}
 
 	draw(p: p5) {
+		const [phase, start] = this.#phase.get();
+
+		// Establecer figura del puntero
+		if (phase === GamePhase.WatchingAttempt) {
+			p.cursor(p.HAND);
+		} else {
+			p.cursor(p.ARROW);
+		}
+
+		// Limpiar el lienzo
 		p.background(255);
+
+		// Dibujar la matriz y sus celdas
 		this.grid.draw(p);
 
+		// Si es apropiado, resaltar la salta que corresponde para mostrar el
+		// patrón a memorizar
+		this.#highlightPatternCell();
+
+		// Si es apropiado, iniciar un nuevo patrón y mostrarlo.
+		if (
+			phase === GamePhase.AttemptCompleted &&
+			currentTime() - start > Cell.ANIMATION_DURATION
+		) {
+			this.#currentPattern = this.#getNewPattern();
+			this.#userPattern = [];
+			this.#phase.set(GamePhase.PlayingPattern);
+		}
+
+		// Texto del nivel
 		const { startY, size } = this.grid.properties(p);
 		p.textSize(Game.FONT_SIZE);
 		p.text(
@@ -656,72 +763,28 @@ class Game extends Page<{ difficulty: number }> {
 			p.width / 2,
 			startY + size + Game.MARGIN_SIZE + Game.FONT_SIZE,
 		);
-
-		// Reproducir el patrón, si es apropiado.
-		this.#togglePatternCells();
-
-		if (this.#isInteractive && this.grid.intersection(p, p.mouseX, p.mouseY)) {
-			p.cursor(p.HAND);
-		} else {
-			p.cursor(p.ARROW);
-		}
-	}
-
-	#togglePatternCells() {
-		if (!this.#isPlayingBackSince) {
-			return;
-		}
-
-		const currentIndex = Math.floor(
-			(currentTime() - this.#isPlayingBackSince) / 500,
-		);
-
-		if (currentIndex > this.#currentPattern.length) {
-			// Ya no tenemos más que hacer.
-			this.#isPlayingBackSince = null;
-			return;
-		}
-
-		// Desactivar la celda anterior
-		if (currentIndex - 1 >= 0) {
-			const [column, row] = this.#currentPattern[currentIndex - 1];
-			const cell = this.grid.get(column, row);
-			if (cell.enabled) {
-				cell.toggle();
-			}
-		}
-
-		// Activar la celda actual
-		if (currentIndex < this.#currentPattern.length) {
-			const [column, row] = this.#currentPattern[currentIndex];
-			const cell = this.grid.get(column, row);
-			if (!cell.enabled) {
-				cell.toggle();
-			}
-		}
-	}
-
-	#handleUserInput([column, row]: [number, number]) {
-		if (!this.#isInteractive) {
-			return;
-		}
-
-		const previousCoords = this.#userPattern.at(-1);
-		if (previousCoords) {
-			const previousCell = this.grid.get(...previousCoords);
-			previousCell.toggle();
-		}
-
-		this.#userPattern.push([column, row]);
-
-		const cell = this.grid.get(column, row);
-		cell.toggle();
 	}
 
 	mouseClicked(p: p5) {
 		const intersected = this.grid.intersection(p, p.mouseX, p.mouseY);
 		if (intersected) {
 			this.#handleUserInput(intersected);
+		}
+	}
+
+	#handleUserInput([column, row]: [number, number]) {
+		const [phase] = this.#phase.get();
+
+		if (phase !== GamePhase.WatchingAttempt) {
+			return;
+		}
+
+		const cell = this.grid.get(column, row);
+		cell.highlight();
+
+		this.#userPattern.push([column, row]);
+		if (this.#userPattern.length === this.#currentPattern.length) {
+			this.#phase.set(GamePhase.AttemptCompleted);
 		}
 	}
 }
