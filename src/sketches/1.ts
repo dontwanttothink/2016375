@@ -744,7 +744,7 @@ class Game extends Page<{ difficulty: number }> {
 		// Dibujar la matriz y sus celdas
 		this.grid.draw(p);
 
-		// Si es apropiado, resaltar la salta que corresponde para mostrar el
+		// Si es apropiado, resaltar la celda que corresponde para mostrar el
 		// patrón a memorizar
 		this.#highlightPatternCell();
 
