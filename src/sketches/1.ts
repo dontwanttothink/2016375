@@ -822,11 +822,11 @@ class Game extends Page<{ difficulty: number }> {
 
 			if (userSucceeded) {
 				this.feedback.label = "¡bien!";
-				this.feedback.color = p.color("green");
+				this.feedback.color = p.color("oklch(0.8003 0.2618 133.42)");
 				this.feedback.show();
 			} else {
 				this.feedback.label = "oops";
-				this.feedback.color = p.color("red");
+				this.feedback.color = p.color("oklch(0.7 0.2316 23.16)");
 				this.feedback.show();
 			}
 		}
