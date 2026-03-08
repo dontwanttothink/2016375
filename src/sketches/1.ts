@@ -825,7 +825,7 @@ class Game extends Page<{ difficulty: number }> {
 				this.feedback.color = p.color("green");
 				this.feedback.show();
 			} else {
-				this.feedback.label = "mal >:(";
+				this.feedback.label = "oops";
 				this.feedback.color = p.color("red");
 				this.feedback.show();
 			}
