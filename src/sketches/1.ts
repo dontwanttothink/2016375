@@ -811,6 +811,7 @@ class Game extends Page<{ difficulty: number }> {
 			this.#currentPattern = this.#getNewPattern();
 			this.#userPattern = [];
 			this.#phase.set(GamePhase.PlayingPattern);
+			this.grid.randomizeColors(p);
 			return;
 		}
 
