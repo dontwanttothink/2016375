@@ -677,14 +677,14 @@ class GameFeedback {
 		return Math.sin(x * (Math.PI / 2));
 	}
 
-	draw(p: p5, x: number, y: number) {
+	#drawPrimary(p: p5, x: number, y: number) {
 		p.push();
 		p.textSize(64);
 
 		const scaleFactor = GameFeedback.#ease(this.progress);
 		p.scale(scaleFactor);
 
-		const opacity = -Math.abs(this.progress - 0.5) * 2 + 0.9;
+		const opacity = Math.max(0, -Math.abs(this.progress - 0.5) * 2 + 0.9);
 		const color = this.color ? p.color(this.color) : p.color(0);
 		color.setAlpha(opacity * 255);
 
@@ -695,6 +695,15 @@ class GameFeedback {
 		p.text(this.label, x / scaleFactor, y / scaleFactor);
 
 		p.pop();
+	}
+
+	#drawSecondary(_p: p5, _x: number, _y: number) {
+		// Quizá en el futuro agregar partículas o algo así :)
+	}
+
+	draw(p: p5, x: number, y: number) {
+		this.#drawSecondary(p, x, y);
+		this.#drawPrimary(p, x, y);
 	}
 }
 
