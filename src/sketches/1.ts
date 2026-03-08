@@ -597,6 +597,18 @@ class WelcomePage extends Page {
 	}
 }
 
+class GameOverPage extends Page {
+	setup(p: p5) {
+		p.textFont("system-ui");
+		p.textAlign(p.CENTER);
+	}
+
+	draw(p: p5) {
+		p.background(255);
+		p.text("Perdiste :(", p.width / 2, p.height / 2);
+	}
+}
+
 /**
  * Tres partes posibles de una interacción con el juego.
  */
@@ -629,6 +641,64 @@ class GamePhaseManager {
 }
 
 /**
+ * Un elemento de interfaz que muestra un mensaje efímero. Se utiliza para
+ * indicar al jugador si logró repetir correctamente el patrón.
+ */
+class GameFeedback {
+	static ANIMATION_DURATION = 900;
+
+	label: string = "";
+	color: p5.Color | null = null;
+
+	#animatingSince: number | null = null;
+
+	get isAnimating() {
+		return (
+			!!this.#animatingSince &&
+			currentTime() - this.#animatingSince < GameFeedback.ANIMATION_DURATION
+		);
+	}
+
+	get progress() {
+		if (!this.#animatingSince) {
+			return 0;
+		}
+
+		const raw =
+			(currentTime() - this.#animatingSince) / GameFeedback.ANIMATION_DURATION;
+		return Math.max(0, Math.min(1, raw));
+	}
+
+	show() {
+		this.#animatingSince = currentTime();
+	}
+
+	static #ease(x: number) {
+		return Math.sin(x * (Math.PI / 2));
+	}
+
+	draw(p: p5, x: number, y: number) {
+		p.push();
+		p.textSize(64);
+
+		const scaleFactor = GameFeedback.#ease(this.progress);
+		p.scale(scaleFactor);
+
+		const opacity = -Math.abs(this.progress - 0.5) * 2 + 0.9;
+		const color = this.color ? p.color(this.color) : p.color(0);
+		color.setAlpha(opacity * 255);
+
+		p.stroke(255, opacity);
+		p.strokeWeight(4);
+		p.fill(color);
+		p.textAlign(p.CENTER, p.CENTER);
+		p.text(this.label, x / scaleFactor, y / scaleFactor);
+
+		p.pop();
+	}
+}
+
+/**
  * El juego.
  */
 class Game extends Page<{ difficulty: number }> {
@@ -639,6 +709,8 @@ class Game extends Page<{ difficulty: number }> {
 	grid: Grid = new Grid(3);
 	difficulty = 1;
 	level = 1;
+
+	feedback = new GameFeedback();
 
 	#phase = new GamePhaseManager();
 
@@ -692,20 +764,10 @@ class Game extends Page<{ difficulty: number }> {
 	}
 
 	/**
-	 * Si se está reproduciendo el patrón y si es apropiado resaltar una celda
-	 * en este fotograma, resalta esa celda.
+	 * Resalta la celda apropiada según el patrón actual y el momento en que se
+	 * empezó a reproducir el patrón.
 	 */
-	#highlightPatternCell() {
-		const phaseData = this.#phase.get();
-		if (!phaseData) {
-			return;
-		}
-
-		const [phase, start] = phaseData;
-		if (phase !== GamePhase.PlayingPattern) {
-			return;
-		}
-
+	#highlightPatternCell(start: number) {
 		const index = Math.floor(
 			(currentTime() - start) / Game.PATTERN_HIGHLIGHT_INTERVAL,
 		);
@@ -725,7 +787,53 @@ class Game extends Page<{ difficulty: number }> {
 		}
 	}
 
+	/**
+	 * Revisa si el patrón introducido por el jugador es correcto. Si lo es,
+	 * continúa al siguiente nivel. Si no lo es, acaba el juego.
+	 */
+	#handleCompletedAttempt(p: p5, start: number) {
+		if (this.feedback.isAnimating) {
+			return;
+		}
+
+		if (currentTime() - start > Cell.ANIMATION_DURATION) {
+			const userSucceeded = this.#currentPattern.every(([col, row], i) => {
+				const [ucol, urow] = this.#userPattern[i];
+				return ucol === col && urow === row;
+			});
+
+			if (userSucceeded) {
+				++this.level;
+			} else {
+				this.level = 1;
+			}
+
+			this.#currentPattern = this.#getNewPattern();
+			this.#userPattern = [];
+			this.#phase.set(GamePhase.PlayingPattern);
+			return;
+		}
+
+		if (currentTime() - start < GameFeedback.ANIMATION_DURATION) {
+			const userSucceeded = this.#currentPattern.every(([col, row], i) => {
+				const [ucol, urow] = this.#userPattern[i];
+				return ucol === col && urow === row;
+			});
+
+			if (userSucceeded) {
+				this.feedback.label = "¡bien!";
+				this.feedback.color = p.color("green");
+				this.feedback.show();
+			} else {
+				this.feedback.label = "mal >:(";
+				this.feedback.color = p.color("red");
+				this.feedback.show();
+			}
+		}
+	}
+
 	draw(p: p5) {
+		const { startY, startX, size } = this.grid.properties(p);
 		const [phase, start] = this.#phase.get();
 
 		// Establecer figura del puntero
@@ -744,22 +852,22 @@ class Game extends Page<{ difficulty: number }> {
 		// Dibujar la matriz y sus celdas
 		this.grid.draw(p);
 
+		// Dibujar el mensaje de retroalimentación al jugador, que en general
+		// es invisible
+		this.feedback.draw(p, startX + size / 2, startY + size / 2);
+
 		// Si es apropiado, resaltar la celda que corresponde para mostrar el
 		// patrón a memorizar
-		this.#highlightPatternCell();
+		if (phase === GamePhase.PlayingPattern) {
+			this.#highlightPatternCell(start);
+		}
 
 		// Si es apropiado, iniciar un nuevo patrón y mostrarlo.
-		if (
-			phase === GamePhase.AttemptCompleted &&
-			currentTime() - start > Cell.ANIMATION_DURATION
-		) {
-			this.#currentPattern = this.#getNewPattern();
-			this.#userPattern = [];
-			this.#phase.set(GamePhase.PlayingPattern);
+		if (phase === GamePhase.AttemptCompleted) {
+			this.#handleCompletedAttempt(p, start);
 		}
 
 		// Texto del nivel
-		const { startY, size } = this.grid.properties(p);
 		p.textSize(Game.FONT_SIZE);
 		p.text(
 			`Nivel ${this.level}`,
@@ -793,7 +901,7 @@ class Game extends Page<{ difficulty: number }> {
 }
 
 // Estado global
-const navigator = new Navigator(WelcomePage, [Game]);
+const navigator = new Navigator(WelcomePage, [Game, GameOverPage]);
 
 // Configuración
 async function setup(p: p5) {
