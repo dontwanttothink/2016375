@@ -1,24 +1,32 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<link rel="stylesheet" href="/src/style.css" />
-		<link rel="icon" href="/favicon.png" type="image/png" />
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="/src/style.css">
+		<link rel="icon" href="/favicon.png" type="image/png">
 		<title>2016375</title>
 
 		<style>
-			ul {
-				display: flex;
-				flex-direction: row;
-				flex-wrap: wrap;
-				gap: 1rem;
-				padding: 0;
-				justify-content: center;
-			}
-			li {
-				display: contents;
-			}
+		ul {
+			display: flex;
+			flex-direction: row;
+			flex-wrap: wrap;
+			gap: 1rem;
+			padding: 0;
+			justify-content: center;
+		}
+		body {
+			max-width: 35rem;
+		}
+		li {
+			display: contents;
+		}
+		body {
+			text-align: left;
+		}
+		main {
+			text-align: center;
 			a {
 				display: flex;
 				align-items: center;
@@ -31,6 +39,7 @@
 				background-color: light-dark(white, hsl(0 0 0 / 20%));
 				font-size: 1.2rem;
 			}
+		}
 		</style>
 	</head>
 	<body>
@@ -42,9 +51,31 @@
 				<li><a href="proyectos/2/">Proyecto 2</a></li>
 				<li><a href="proyectos/3/">Proyecto 3</a></li>
 			</ul>
+			<p>Semestre 1, 2026</p>
 		</main>
-		<footer>
-			<p>2026-1</p>
-		</footer>
+
+		<h2>Derechos de autor</h2>
+		<p>
+			Todos los proyectos usan la librería <cite>p5.js</cite> para funcionar.
+			<cite>p5.js</cite>
+			está disponible bajo la licencia LGPL-2.1, cuyos términos en inglés se
+			pueden ver <a href="/lgpl-2.1.txt">aquí</a>.
+		</p>
+		<p>
+			Puedes descargar el código fuente de
+			<a href="/p5-sources.tar.gz" download>p5.js</a>
+			u obtener el código fuente de los
+			<a href="https://gitlab.com/bcuentas/2016375">proyectos</a>. Hacemos
+			disponible el código de los proyectos en sí bajo una licencia permisiva de
+			código abierto. Hay más información en el repositorio.
+		</p>
+
+		<h2>Accesibilidad</h2>
+		<p>
+			Los proyectos son ejercicios en la programación orientada a objetos.
+			Lamentablemente, el código con el que se dibujan los elementos de interfaz
+			es original y no se ha hecho compatible con tecnologías de asistencia
+			<span role="img" aria-label="carita triste">:(</span>.
+		</p>
 	</body>
 </html>
