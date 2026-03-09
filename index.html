@@ -16,29 +16,27 @@
 			padding: 0;
 			justify-content: center;
 		}
-		body {
-			max-width: 35rem;
-		}
 		li {
 			display: contents;
 		}
-		body {
-			text-align: left;
-		}
-		main {
+
+		main a {
+			display: flex;
+			align-items: center;
+			min-height: 3rem;
+			min-width: 3rem;
+			box-shadow: 0 0 10px hsl(0 0 0 / 15%);
+			border-radius: 10px;
+			padding: 1rem;
 			text-align: center;
-			a {
-				display: flex;
-				align-items: center;
-				min-height: 3rem;
-				min-width: 3rem;
-				box-shadow: 0 0 10px hsl(0 0 0 / 15%);
-				border-radius: 10px;
-				padding: 1rem;
-				text-align: center;
-				background-color: light-dark(white, hsl(0 0 0 / 20%));
-				font-size: 1.2rem;
-			}
+			background-color: light-dark(white, hsl(0 0 0 / 20%));
+			font-size: 1.2rem;
+		}
+
+		#details {
+			margin: auto;
+			max-width: 35rem;
+			text-align: left;
 		}
 		</style>
 	</head>
@@ -54,28 +52,31 @@
 			<p>Semestre 1, 2026</p>
 		</main>
 
-		<h2>Derechos de autor</h2>
-		<p>
-			Todos los proyectos usan la librería <cite>p5.js</cite> para funcionar.
-			<cite>p5.js</cite>
-			está disponible bajo la licencia LGPL-2.1, cuyos términos en inglés se
-			pueden ver <a href="/lgpl-2.1.txt">aquí</a>.
-		</p>
-		<p>
-			Puedes descargar el código fuente de
-			<a href="/p5-sources.tar.gz" download>p5.js</a>
-			u obtener el código fuente de los
-			<a href="https://gitlab.com/bcuentas/2016375">proyectos</a>. Hacemos
-			disponible el código de los proyectos en sí bajo una licencia permisiva de
-			código abierto. Hay más información en el repositorio.
-		</p>
+		<div id="details">
+			<h2>Derechos de autor</h2>
+			<p>
+				Todos los proyectos usan la librería <cite>p5.js</cite> para funcionar.
+				<cite>p5.js</cite>
+				está disponible bajo la licencia LGPL-2.1, cuyos términos en inglés se
+				pueden ver <a href="/lgpl-2.1.txt">aquí</a>.
+			</p>
+			<p>
+				Puedes descargar el código fuente de
+				<a href="/p5-sources.tar.gz" download>p5.js</a>
+				u obtener el código fuente de los
+				<a href="https://gitlab.com/bcuentas/2016375">proyectos</a>. Hacemos
+				disponible el código de los proyectos en sí bajo una licencia permisiva
+				de código abierto. Hay más información en el repositorio.
+			</p>
 
-		<h2>Accesibilidad</h2>
-		<p>
-			Los proyectos son ejercicios en la programación orientada a objetos.
-			Lamentablemente, el código con el que se dibujan los elementos de interfaz
-			es original y no se ha hecho compatible con tecnologías de asistencia
-			<span role="img" aria-label="carita triste">:(</span>.
-		</p>
+			<h2>Accesibilidad</h2>
+			<p>
+				Los proyectos son ejercicios en la programación orientada a objetos.
+				Lamentablemente, el código con el que se dibujan los elementos de
+				interfaz es original y no se ha hecho compatible con tecnologías de
+				asistencia
+				<span role="img" aria-label="carita triste">:(</span>.
+			</p>
+		</div>
 	</body>
 </html>

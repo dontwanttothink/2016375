@@ -32,6 +32,9 @@ body {
 	max-width: 1280px;
 	margin: 0 auto;
 	padding: var(--content-padding);
+}
+
+main {
 	text-align: center;
 }
 
