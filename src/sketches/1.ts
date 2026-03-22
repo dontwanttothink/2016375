@@ -466,7 +466,6 @@ class Ball {
 		this.position = [x - Ball.RADIUS * 2, y - Ball.RADIUS * 2];
 		this.velocity = [Math.random() * 5 - 2.5, 0];
 		this.color = color;
-		console.debug(x, y);
 	}
 
 	tick(width: number, height: number) {
