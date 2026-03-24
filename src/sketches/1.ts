@@ -681,6 +681,10 @@ class GameFeedback {
 		p.textSize(64);
 
 		const scaleFactor = GameFeedback.#ease(this.progress);
+		if (scaleFactor === 0) {
+			return;
+		}
+
 		p.scale(scaleFactor);
 
 		const opacity = Math.max(0, -Math.abs(this.progress - 0.5) * 2 + 0.9);
