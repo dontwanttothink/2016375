@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"prebuild": "bun run add_p5_sources.ts",
+		"prebuild": "bun run legal.ts",
 		"build": "tsc && vite build",
 		"preview": "vite preview"
 	},
