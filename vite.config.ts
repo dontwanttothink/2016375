@@ -1,6 +1,7 @@
 /// <reference types="@types/bun" />
 import { readdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig } from "vite";
 
 const hostname = "https://2016375-f5d5d5.gitlab.io";
@@ -17,8 +18,13 @@ async function inputs(root: string) {
 }
 
 export default defineConfig({
+	plugins: [
+		visualizer({
+			template: "network",
+		}),
+	],
 	server: {
-		allowedHosts: [".uq4.net", "localhost"]
+		allowedHosts: [".uq4.net", "localhost"],
 	},
 	build: {
 		sourcemap: true,

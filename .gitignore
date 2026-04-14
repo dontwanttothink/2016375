@@ -3,3 +3,4 @@ dist
 .DS_Store
 public/p5-sources.tar.gz
 public/p5-quadrille-sources.tar.gz
+stats.html
