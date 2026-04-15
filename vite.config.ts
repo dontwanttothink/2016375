@@ -17,6 +17,9 @@ async function inputs(root: string) {
 }
 
 export default defineConfig({
+	server: {
+		allowedHosts: [".uq4.net", "localhost"]
+	},
 	build: {
 		sourcemap: true,
 		license: {
