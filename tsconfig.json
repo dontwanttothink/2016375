@@ -4,7 +4,7 @@
 		"useDefineForClassFields": true,
 		"module": "ESNext",
 		"lib": ["ESNext", "DOM", "DOM.Iterable"],
-		"types": ["vite/client"],
+		"types": ["vite/client", "./types/p5.quadrille.d.ts"],
 		"skipLibCheck": true,
 
 		/* Bundler mode */
@@ -21,5 +21,5 @@
 		"noFallthroughCasesInSwitch": true,
 		"noUncheckedSideEffectImports": true
 	},
-	"include": ["src"]
+	"include": ["src", "types/p5.quadrille.d.ts", "types/p5.quadrille.ts"]
 }
