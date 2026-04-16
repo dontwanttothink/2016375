@@ -190,14 +190,6 @@ function estadoGanador(p: p5) {
 	);
 }
 
-function alturaDelTexto(p: p5, pts: number) {
-	p.push();
-	p.textSize(pts);
-	const out = p.textAscent() + p.textDescent();
-	p.pop();
-	return out;
-}
-
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
