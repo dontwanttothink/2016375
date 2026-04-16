@@ -14,7 +14,7 @@ const ROWS = 6;
 let game: Quadrille;
 let ganó = false; // usado solo por economía
 
-let últimaInteracción: number = -Infinity; // usado solo para las animaciones
+let últimaInteracción: number = -Infinity; // usado para las animaciones
 
 // Configuración del lienzo
 function setup(p: p5) {
