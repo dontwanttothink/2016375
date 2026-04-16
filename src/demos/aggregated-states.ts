@@ -72,7 +72,7 @@ function draw(p: p5) {
 		const tamañoAnuncio = 32;
 		const tamañoInstrucción = 16;
 
-		const instrucción = "Haz click en cualquier parte para volver a jugar.";
+		const instrucción = "Haz clic en cualquier parte para volver a jugar.";
 		const anuncio = ganó
 			? `¡${game.order % 2 === 0 ? "Azúl" : "Rojo"} ganó!`
 			: "¡Empate!";
