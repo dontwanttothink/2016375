@@ -2,7 +2,7 @@
  * @returns Un tamaño mínimo, o las coordenadas más grandes posibles para el lienzo sin exceder
  * el tamaño de la ventana.
  */
-export default function targetDimensions() {
+export default function targetDimensions(): [number, number] {
 	const MIN_WIDTH = 200;
 	const MAX_WIDTH = 1000;
 	const MIN_HEIGHT = 200;
