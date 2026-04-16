@@ -12,8 +12,9 @@ const ROWS = 6;
 
 // Estado
 let game: Quadrille;
-let ganó = false;
-let últimaInteracción: number = -Infinity;
+let ganó = false; // usado solo por economía
+
+let últimaInteracción: number = -Infinity; // usado solo para las animaciones
 
 // Configuración del lienzo
 function setup(p: p5) {
@@ -29,10 +30,13 @@ function windowResized(p: p5) {
 // Dibujo (cada fotograma)
 function draw(p: p5) {
 	p.clear();
+
+	// Calcular el tamaño que queremos dar a la cuadrícula.
 	const cl = cellLength(p);
 	const ancho = cl * COLS;
 	const alto = cl * ROWS;
 
+	// Dibujar la cuadrícula en el centro.
 	p.drawQuadrille(game, {
 		outline: p.color(200),
 		cellLength: cl,
@@ -52,6 +56,7 @@ function draw(p: p5) {
 	}
 
 	if (game.order === 0) {
+		// Una animación sutil para cuando inicia una nueva partida.
 		const progreso = p.constrain(
 			1 - (p.millis() - últimaInteracción) / 500,
 			0,
@@ -61,7 +66,7 @@ function draw(p: p5) {
 		p.fill(p.color(255, progreso * 230));
 		p.rect(0, 0, p.width, p.height);
 	} else if (ganó || game.order === game.size) {
-		// El juego acabó
+		// El juego acabó.
 		p.cursor(p.HAND);
 
 		const tamañoAnuncio = 32;
@@ -73,13 +78,17 @@ function draw(p: p5) {
 			: "¡Empate!";
 
 		const progreso = p.constrain((p.millis() - últimaInteracción) / 500, 0, 1);
+
+		// Dibujamos un rectángulo blanco translúcido para traer la atención al
+		// mensaje.
 		p.noStroke();
 		p.fill(p.color(255, progreso * 230));
 		p.rect(0, 0, p.width, p.height);
 
 		p.fill(p.color(0, progreso * 255));
-		p.textFont("system-ui");
+		p.textFont("system-ui, sans-serif");
 
+		// Dibujamos el mensaje.
 		p.textSize(tamañoAnuncio);
 		p.textAlign(p.CENTER, p.BOTTOM);
 		p.text(anuncio, p.width / 2, p.height / 2 - 10);
@@ -133,7 +142,13 @@ class Ficha {
 // Interactividad
 function mouseClicked(p: p5) {
 	if (ganó || game.order === game.size) {
+		// Si el juego ya se acabó, empezamos uno nuevo cuando el usuario hace
+		// click.
+
 		if (p.millis() - últimaInteracción > 1000) {
+			// Ignoramos los clicks por un segundo después de que el juego
+			// termina porque podrían ser accidentales.
+
 			últimaInteracción = p.millis();
 			ganó = false;
 			game.clear();
@@ -147,8 +162,11 @@ function mouseClicked(p: p5) {
 		return;
 	}
 
+	// Podemos inferir el turno correcto a partir del número de fichas que ya
+	// se han agregado.
 	const ficha = new Ficha(game.order % 2 === 0, p);
 
+	// Buscamos la celda libre que esté más hacia abajo dentro de esta columna.
 	for (let i = ROWS - 1; i >= 0; --i) {
 		if (game.isEmpty(i, col)) {
 			game.fill(i, col, ficha);
@@ -178,6 +196,12 @@ function estadoGanador(p: p5) {
 	patrones.push(...patrones.map((p) => p.clone().replace("rojo", "azul")));
 
 	return patrones.some(
+		// Para verificar si alguien ganó, temporalmente creamos una cuadrícula
+		// simplificada. Las `Fichas` se reemplazan por "rojo" y "azul" según
+		// corresponde. La razón es que JavaScript no considera que ninguna
+		// Ficha sea igual a otra. Dos Objetos solo son iguales si corresponden
+		// a la misma posición en memoria.
+
 		(patrón) =>
 			game
 				.clone()
