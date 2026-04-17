@@ -74,7 +74,7 @@ function draw(p: p5) {
 
 		const instrucción = "Haz clic en cualquier parte para volver a jugar.";
 		const anuncio = ganó
-			? `¡${game.order % 2 === 0 ? "Azúl" : "Rojo"} ganó!`
+			? `¡${game.order % 2 === 0 ? "Azul" : "Rojo"} ganó!`
 			: "¡Empate!";
 
 		const progreso = p.constrain((p.millis() - últimaInteracción) / 500, 0, 1);
