@@ -1,4 +1,5 @@
 import p5 from "p5";
+import "p5.quadrille";
 import targetDimensions from "../dimensions";
 
 // Estado
