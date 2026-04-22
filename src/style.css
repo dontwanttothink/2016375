@@ -43,9 +43,10 @@ article {
 	text-align: justify;
 	margin: auto;
 	max-width: 500px;
-	p {
-		text-transform: none;
-	}
+}
+
+p {
+	text-transform: none;
 }
 
 #canvas-container {
