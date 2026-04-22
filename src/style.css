@@ -96,14 +96,15 @@ nav {
 	display: flex;
 	gap: 1rem;
 	justify-content: center;
+
 	p {
 		margin-top: 0;
 	}
-}
 
-a {
-	font-weight: 300;
-	text-decoration: underline;
+	a {
+		font-weight: 300;
+		text-decoration: underline;
+	}
 }
 
 .error-notification {
