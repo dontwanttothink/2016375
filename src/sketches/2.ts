@@ -26,14 +26,25 @@ new p5((p) => {
 
 /**
  * Transiciones
+ *
+ * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
+ * un nuevo nivel cuando el usuario gana.
+ */
+
+/**
+ * Una partida.
  */
 let game: Game;
 
 /**
  * Visual
+ *
+ * Esta sección se encarga de.
  */
 
-// Dibujo (cada fotograma)
+/**
+ * Función de dibujo
+ */
 function draw(p: p5) {
 	p.background(100);
 	p.fill(105);
