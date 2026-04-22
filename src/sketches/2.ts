@@ -46,8 +46,23 @@ function draw(p: p5) {
 /**
  * Lógica
  */
+
+
 //tipos de estados para las celdas
 enum cellType { EMPTY, ENDPOINT, PATH }
+let timeline = [];
+let timelineIndex = 0;
+let game: Game;
+
+//reset
+function resetGame(p : p5) {
+  let game = new Game(5)
+  game.initMatrix()    
+  timeline = [game.grid];       
+  timelineIndex = 0;
+  let winner = undefined;
+  p.loop();
+}
 
 //clase para representar cada celda del tablero
 class FlowCell {
@@ -81,12 +96,15 @@ class Game {
 		}
 	}
 	//para añadir los puntos de colores de cada nivel
-	setEndpoint(row : number, col : number, color : string){
-		if (row >= 0 && row < this.size &&col >= 0 && col < this.size){
+	setEndpoint(row : number, col : number, row2 : number, col2 : number, color : string){
+		if (row >= 0 && row < this.size &&col >= 0 && col < this.size && row2 >= 0 && row2 < this.size &&col2 >= 0 && col2 < this.size){
 			const cell = this.grid[row][col]
-			if(cell.type === cellType.EMPTY){
+			const cell2 = this.grid[row2][col2]
+			if(cell.type === cellType.EMPTY && cell2.type === cellType.EMPTY){
 				cell.type = cellType.ENDPOINT;
-				cell.color = color;}
+				cell2.type = cellType.ENDPOINT;
+				cell.color = color;
+				cell2.color = color;}
 		}
 	}
 	//verifica si se puede conectar dos celdas adyacentes
@@ -100,5 +118,25 @@ class Game {
 			return true;}
 		return targetCell.type === cellType.EMPTY;
 	}
+
+	moveTo(fromRow : number, fromCol : number, toRow : number, toCol : number){
+		if(this.canConnect(fromRow, fromCol, toRow, toCol)){
+			timeline.push(this.grid)
+			timelineIndex++;
+			const fromCell = this.grid[fromRow][fromCol];
+			const toCell = this.grid[toRow][toCol];
+			if(toCell.type === cellType.EMPTY){
+				toCell.type = cellType.PATH;
+				toCell.color = fromCell.color;
+			}
+			if(toCell.type === cellType.ENDPOINT && toCell.color === fromCell.color){
+				//victoria
+		}	
+	} //bro, recuerda que necesitas copiar bien la grid para timelines
+	//ademas, mira gemini para ver las dos opciones
+	}
+
+	getGrid(){}
+
 
 }
