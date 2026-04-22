@@ -1132,7 +1132,8 @@ class Game extends Page<{ difficulty: number }> {
 
 // Estado global
 const navigator = new Navigator(WelcomePage, [Game, GameOverPage]);
-
+//
+//
 // Configuración
 async function setup(p: p5) {
 	const [width, height] = targetDimensions();
@@ -1159,6 +1160,8 @@ function keyPressed(p: p5) {
 }
 
 // Restaurar estado
+//
+//
 //
 // Durante el desarrollo (y solo durante el desarrollo), este
 // código se encarga de que la página actual no cambie cuando
@@ -1187,6 +1190,7 @@ function registerHMR(p: p5) {
 }
 
 // Inicializar el bosquejo p5
+//
 //
 // Se crea el elemento del lienzo en la página, pasamos nuestras
 // funciones, etc.
