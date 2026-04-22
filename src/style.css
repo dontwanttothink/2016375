@@ -39,6 +39,15 @@ main {
 	text-align: center;
 }
 
+article {
+	text-align: justify;
+	margin: auto;
+	max-width: 500px;
+	p {
+		text-transform: none;
+	}
+}
+
 #canvas-container {
 	display: flex;
 	flex-direction: row;
@@ -80,6 +89,22 @@ button {
 	font-size: 1.3rem;
 	font-weight: normal;
 	margin-top: 0;
+	margin-bottom: 0;
+}
+
+nav {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+
+	p {
+		margin-top: 0;
+	}
+
+	a {
+		font-weight: 300;
+		text-decoration: underline;
+	}
 }
 
 .error-notification {
