@@ -39,7 +39,7 @@ let game: Game;
 /**
  * Visual
  *
- * Esta sección se encarga de.
+ * Esta sección se encarga de representar el estado del juego en la pantalla.
  */
 
 /**
