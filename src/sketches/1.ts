@@ -10,7 +10,6 @@ function currentTime() {
 	return Number(document.timeline.currentTime);
 }
 
-
 /**
  * @returns Un número entero al azar en el intervalo [0, n).
  */
@@ -335,8 +334,6 @@ class Grid {
 	}
 }
 
-
-
 class Button {
 	static PADDING = 12;
 	static TEXT_SIZE = 20;
@@ -456,7 +453,6 @@ class Button {
 	}
 }
 
-
 class Ball {
 	static RADIUS = 20;
 	static MASS = 1;
@@ -505,7 +501,6 @@ class Ball {
 		p.circle(x + Ball.RADIUS, y - Ball.RADIUS, Ball.RADIUS);
 	}
 }
-
 
 // Páginas
 /**
@@ -715,7 +710,6 @@ class GameFeedback {
 	}
 }
 
-
 /**
  * El juego.
  */
@@ -919,7 +913,6 @@ class Game extends Page<{ difficulty: number }> {
 	}
 }
 
-
 // Estado global
 const navigator = new Navigator(WelcomePage, [Game, GameOverPage]);
 
@@ -948,7 +941,6 @@ function keyPressed(p: p5) {
 	navigator.currentPage.keyPressed(p);
 }
 
-
 // Restaurar estado
 //
 // Durante el desarrollo (y solo durante el desarrollo), este
@@ -963,7 +955,6 @@ if (import.meta.hot) {
 	}
 }
 
-
 function registerHMR(p: p5) {
 	if (import.meta.hot) {
 		// Señalar que este módulo acepta HMR
@@ -977,7 +968,6 @@ function registerHMR(p: p5) {
 		});
 	}
 }
-
 
 // Inicializar el bosquejo p5
 //

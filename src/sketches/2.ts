@@ -70,11 +70,11 @@ let timelineIndex = 0;
 
 //reset
 function resetGame(p: p5) {
-	let game = new Game(5);
+	const game = new Game(5);
 	game.initMatrix();
 	timeline = [game.grid];
 	timelineIndex = 0;
-	let winner = undefined;
+	const winner = undefined;
 	p.loop();
 }
 
