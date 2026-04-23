@@ -617,28 +617,6 @@ enum GamePhase {
 	AttemptCompleted,
 }
 
-class GamePhaseManager {
-	#since: number | null = null;
-	#phase: GamePhase | null = null;
-
-	set(phase: GamePhase) {
-		this.#phase = phase;
-		this.#since = currentTime();
-	}
-
-	/**
-	 * @returns La fase actual y el punto en el tiempo en que empezó.
-	 * @throws Si no hay una fase actual.
-	 */
-	get(): [GamePhase, number] {
-		if (this.#phase === null || this.#since === null) {
-			throw new ReferenceError("No se ha establecido una fase.");
-		}
-
-		return [this.#phase, this.#since];
-	}
-}
-
 /**
  * Un elemento de interfaz que muestra un mensaje efímero. Se utiliza para
  * indicar al jugador si logró repetir correctamente el patrón.
@@ -724,7 +702,22 @@ class Game extends Page<{ difficulty: number }> {
 
 	feedback = new GameFeedback();
 
-	#phase = new GamePhaseManager();
+	#phaseData: { since: number | null; phase: GamePhase | null } = {
+		since: null,
+		phase: null,
+	};
+
+	#getPhase(): [GamePhase, number] {
+		if (this.#phaseData.phase === null || this.#phaseData.since === null) {
+			throw new ReferenceError("No se ha establecido una fase.");
+		}
+
+		return [this.#phaseData.phase, this.#phaseData.since];
+	}
+	#setPhase(val: GamePhase) {
+		this.#phaseData.phase = val;
+		this.#phaseData.since = currentTime();
+	}
 
 	#currentPattern: [number, number][] = [];
 	#userPattern: [number, number][] = [];
@@ -768,7 +761,7 @@ class Game extends Page<{ difficulty: number }> {
 		this.grid.randomizeColors(p);
 
 		this.#currentPattern = this.#getNewPattern();
-		this.#phase.set(GamePhase.PlayingPattern);
+		this.#setPhase(GamePhase.PlayingPattern);
 
 		p.fill(0);
 		p.textFont("system-ui");
@@ -786,7 +779,7 @@ class Game extends Page<{ difficulty: number }> {
 
 		if (index >= this.#currentPattern.length) {
 			// Terminamos.
-			this.#phase.set(GamePhase.WatchingAttempt);
+			this.#setPhase(GamePhase.WatchingAttempt);
 			return;
 		}
 
@@ -822,7 +815,7 @@ class Game extends Page<{ difficulty: number }> {
 
 			this.#currentPattern = this.#getNewPattern();
 			this.#userPattern = [];
-			this.#phase.set(GamePhase.PlayingPattern);
+			this.#setPhase(GamePhase.PlayingPattern);
 			this.grid.randomizeColors(p);
 			return;
 		}
@@ -847,7 +840,7 @@ class Game extends Page<{ difficulty: number }> {
 
 	draw(p: p5) {
 		const { startY, startX, size } = this.grid.properties(p);
-		const [phase, start] = this.#phase.get();
+		const [phase, since] = this.#getPhase();
 
 		// Establecer figura del puntero
 		if (
@@ -872,12 +865,12 @@ class Game extends Page<{ difficulty: number }> {
 		// Si es apropiado, resaltar la celda que corresponde para mostrar el
 		// patrón a memorizar
 		if (phase === GamePhase.PlayingPattern) {
-			this.#highlightPatternCell(start);
+			this.#highlightPatternCell(since);
 		}
 
 		// Si es apropiado, iniciar un nuevo patrón y mostrarlo.
 		if (phase === GamePhase.AttemptCompleted) {
-			this.#handleCompletedAttempt(p, start);
+			this.#handleCompletedAttempt(p, since);
 		}
 
 		// Texto del nivel
@@ -897,7 +890,7 @@ class Game extends Page<{ difficulty: number }> {
 	}
 
 	#handleUserInput([column, row]: [number, number]) {
-		const [phase] = this.#phase.get();
+		const [phase] = this.#getPhase();
 
 		if (phase !== GamePhase.WatchingAttempt) {
 			return;
@@ -908,7 +901,7 @@ class Game extends Page<{ difficulty: number }> {
 
 		this.#userPattern.push([column, row]);
 		if (this.#userPattern.length === this.#currentPattern.length) {
-			this.#phase.set(GamePhase.AttemptCompleted);
+			this.#setPhase(GamePhase.AttemptCompleted);
 		}
 	}
 }
