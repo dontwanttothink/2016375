@@ -7,7 +7,7 @@
 
 	text-transform: lowercase;
 
-	color-scheme: light /*dark*/;
+	color-scheme: light dark;
 	color: light-dark(#213547, rgba(255, 255, 255, 0.87));
 	background-color: light-dark(#ffffff, #242424);
 }
@@ -59,6 +59,8 @@ p {
 
 	canvas {
 		display: block;
+		border-radius: 1rem;
+		background-color: white;
 	}
 }
 
