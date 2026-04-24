@@ -11,6 +11,15 @@ function currentTime() {
 }
 
 /**
+ * Una función que acelera y decelera naturalmente.
+ * @param x Un número en el intervalo [0, 1].
+ * @returns Un número dentro del mismo intervalo.
+ */
+function ease(x: number) {
+	return Math.sin(x * (Math.PI / 2));
+}
+
+/**
  * @returns Un número entero al azar en el intervalo [0, n).
  */
 function randomInt(n: number) {
@@ -344,6 +353,8 @@ class Button {
 	baseColor: p5.Color;
 	highlightColor: p5.Color;
 
+	alpha: number = 255;
+
 	textFill: p5.Color;
 
 	minWidth: number = 70;
@@ -414,6 +425,7 @@ class Button {
 			this.highlightColor,
 			this.#animationProgress,
 		);
+		currentColor.setAlpha(this.alpha);
 
 		p.textSize(Button.TEXT_SIZE);
 
@@ -424,7 +436,10 @@ class Button {
 		p.rect(x, y, this.width, this.height, 10);
 
 		// Dibujar el texto
-		p.fill(this.textFill);
+		const textFill = p.color(this.textFill);
+		textFill.setAlpha(this.alpha);
+
+		p.fill(textFill);
 		p.textAlign(p.CENTER, p.CENTER);
 		p.text(this.label, x, y);
 
@@ -596,15 +611,192 @@ class WelcomePage extends Page {
 	}
 }
 
-class GameOverPage extends Page {
+/**
+ * Un rayo colorido que aparece cuando el usuario va a jugar otra vez después
+ * de haber perdido.
+ */
+class GameOverRay {
+	speed = 15;
+
+	x = 0;
+	y = 0;
+
+	length: number;
+	color: p5.Color;
+	angle: number;
+	since: number;
+
+	constructor(color: p5.Color) {
+		this.length = 90;
+		this.color = color;
+		this.angle = Math.random() * 2 * Math.PI;
+		this.since = currentTime();
+	}
+
+	draw(p: p5, originX: number, originY: number) {
+		this.x += Math.cos(this.angle) * this.speed;
+		this.y += Math.sin(this.angle) * this.speed;
+
+		let x0 = this.x - Math.cos(this.angle) * this.length;
+		let y0 = this.y - Math.sin(this.angle) * this.length;
+
+		// Evitar que el origen de las líneas cruce el botón
+		if (this.x * x0 < 0) {
+			x0 = 0;
+		}
+		if (this.y * y0 < 0) {
+			y0 = 0;
+		}
+
+		p.push();
+
+		const c = p.color(this.color);
+
+		const left = -originX;
+		const right = left + p.width;
+		const top = -originY;
+		const bottom = top + p.height;
+
+		const distances = [
+			this.x - left,
+			right - this.x,
+			this.y - top,
+			bottom - this.y,
+		];
+		const minimumDistance = Math.min(...distances);
+
+		c.setAlpha(p.constrain(minimumDistance / 100, 0, 0.8) * 255);
+
+		p.stroke(c);
+		p.strokeWeight(10);
+		p.translate(originX, originY);
+		p.line(x0, y0, this.x, this.y);
+		p.pop();
+
+		this.speed = Math.max(5, this.speed - 0.5);
+	}
+}
+
+class GameOverPage extends Page<{ points: number }> {
+	static SIZE_LARGE = 30;
+	static SIZE_MEDIUM = 20;
+	static SIZE_SMALL = 16;
+	static MARGIN = 5;
+
+	static MAX_RAYS = 100;
+
+	#presentedSince = 0;
+	#points = 0;
+
+	#rays: GameOverRay[] = [];
+	#rayHead: number = 0;
+
+	#h = 0;
+
+	#button: Button | null = null;
+	#buttonHoveredSince: number | null = null;
+
 	setup(p: p5) {
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER);
+		this.#presentedSince = currentTime();
+
+		this.#button = new Button(p);
+		const button_height = this.#button.minHeight;
+
+		this.#h =
+			GameOverPage.SIZE_LARGE +
+			GameOverPage.SIZE_MEDIUM +
+			button_height +
+			GameOverPage.MARGIN * 8;
+	}
+
+	receive({ points }: { points: number }): void {
+		this.#points = points;
 	}
 
 	draw(p: p5) {
 		p.background(255);
-		p.text("Perdiste :(", p.width / 2, p.height / 2);
+
+		if (!this.#button) {
+			throw new ReferenceError();
+		}
+
+		for (const r of this.#rays) {
+			r.draw(p, this.#button.x, this.#button.y);
+		}
+
+		if (this.#button.intersectsWith(p.mouseX, p.mouseY)) {
+			p.cursor(p.HAND);
+
+			if (!this.#buttonHoveredSince) {
+				this.#buttonHoveredSince = currentTime();
+			}
+
+			if (currentTime() - this.#buttonHoveredSince < 300) {
+				this.#addRay(p);
+			}
+		} else {
+			p.cursor(p.ARROW);
+			this.#buttonHoveredSince = null;
+		}
+
+		const startY = (p.height - this.#h) / 2;
+		let y = startY;
+
+		const tFirst = Math.min(1, (currentTime() - this.#presentedSince) / 500);
+
+		p.fill(0, 255 * tFirst);
+		p.textSize(GameOverPage.SIZE_LARGE);
+		p.text("¡Perdiste!", p.width / 2, y);
+
+		const tSecond = p.constrain(
+			(currentTime() - this.#presentedSince - 600) / 500,
+			0,
+			1,
+		);
+
+		p.fill(0, tSecond * 255);
+		y += GameOverPage.SIZE_LARGE + GameOverPage.MARGIN;
+		p.textSize(GameOverPage.SIZE_MEDIUM);
+		p.text(
+			`Obtuviste ${this.#points} punto${this.#points === 1 ? "" : "s"}.`,
+			p.width / 2,
+			y,
+		);
+
+		y += GameOverPage.SIZE_MEDIUM + GameOverPage.MARGIN * 5;
+		this.#button.x = p.width / 2;
+		this.#button.alpha = tSecond * 255;
+		this.#button.y = y;
+		this.#button.setLabel(p, "Jugar de nuevo");
+		this.#button.draw(p);
+
+		p.textSize(GameOverPage.SIZE_SMALL);
+		p.text(
+			"Gracias por jugar.",
+			p.width / 2,
+			p.height - GameOverPage.SIZE_SMALL - GameOverPage.MARGIN,
+		);
+	}
+
+	#addRay(p: p5) {
+		const ray = new GameOverRay(Cell.randomColor(p));
+
+		if (this.#rayHead === this.#rays.length) {
+			this.#rays.push(ray);
+		} else {
+			this.#rays[this.#rayHead] = ray;
+		}
+
+		++this.#rayHead;
+		this.#rayHead = this.#rayHead % GameOverPage.MAX_RAYS;
+	}
+
+	mouseClicked(p: p5) {
+		if (this.#button?.intersectsWith(p.mouseX, p.mouseY)) {
+			this.navigator.switchPage(p, WelcomePage);
+		}
 	}
 }
 
@@ -615,6 +807,7 @@ enum GamePhase {
 	PlayingPattern,
 	WatchingAttempt,
 	AttemptCompleted,
+	Lost,
 }
 
 /**
@@ -650,15 +843,11 @@ class GameFeedback {
 		this.#animatingSince = currentTime();
 	}
 
-	static #ease(x: number) {
-		return Math.sin(x * (Math.PI / 2));
-	}
-
 	#drawPrimary(p: p5, x: number, y: number) {
 		p.push();
 		p.textSize(64);
 
-		const scaleFactor = GameFeedback.#ease(this.progress);
+		const scaleFactor = ease(this.progress);
 		if (scaleFactor === 0) {
 			return;
 		}
@@ -699,6 +888,7 @@ class Game extends Page<{ difficulty: number }> {
 	grid: Grid = new Grid(3);
 	difficulty = 1;
 	level = 1;
+	lives = 1;
 
 	feedback = new GameFeedback();
 
@@ -725,6 +915,7 @@ class Game extends Page<{ difficulty: number }> {
 	receive({ difficulty }: { difficulty: number }) {
 		this.difficulty = difficulty;
 		this.grid.count = 2 + difficulty;
+		this.lives = 6 - difficulty;
 	}
 
 	#getNewPattern() {
@@ -757,15 +948,16 @@ class Game extends Page<{ difficulty: number }> {
 	}
 
 	setup(p: p5) {
-		this.grid.marginBottom = Game.FONT_SIZE + Game.MARGIN_SIZE;
+		p.fill(0);
+		p.textFont("system-ui");
+		p.textAlign(p.CENTER);
+
+		this.grid.marginBottom = Game.FONT_SIZE * 2.5 + Game.MARGIN_SIZE;
+
 		this.grid.randomizeColors(p);
 
 		this.#currentPattern = this.#getNewPattern();
 		this.#setPhase(GamePhase.PlayingPattern);
-
-		p.fill(0);
-		p.textFont("system-ui");
-		p.textAlign(p.CENTER);
 	}
 
 	/**
@@ -810,7 +1002,12 @@ class Game extends Page<{ difficulty: number }> {
 			if (userSucceeded) {
 				++this.level;
 			} else {
-				this.level = 1;
+				--this.lives;
+			}
+
+			if (this.lives === 0) {
+				this.#setPhase(GamePhase.Lost);
+				return;
 			}
 
 			this.#currentPattern = this.#getNewPattern();
@@ -875,11 +1072,32 @@ class Game extends Page<{ difficulty: number }> {
 
 		// Texto del nivel
 		p.textSize(Game.FONT_SIZE);
+		p.fill(0);
 		p.text(
 			`Nivel ${this.level}`,
 			p.width / 2,
 			startY + size + Game.MARGIN_SIZE + Game.FONT_SIZE,
 		);
+		p.textSize(Game.FONT_SIZE * 0.9);
+		p.fill(90);
+		p.text(
+			`${this.lives} vida${this.lives === 1 ? "" : "s"} restante${this.lives === 1 ? "" : "s"}`,
+			p.width / 2,
+			startY + size + Game.MARGIN_SIZE + Game.FONT_SIZE * 2.2,
+		);
+
+		// Fade out en caso de que el jugador haya perdido
+		if (phase === GamePhase.Lost) {
+			p.noStroke();
+
+			const t = ease(Math.min(1, (currentTime() - since) / 900));
+			p.fill(255, t * 255);
+			p.rect(0, 0, p.width, p.height);
+
+			if (t === 1) {
+				this.navigator.switchPage(p, GameOverPage, { points: this.level });
+			}
+		}
 	}
 
 	mouseClicked(p: p5) {
@@ -980,3 +1198,5 @@ new p5((p) => {
 
 	registerHMR(p);
 }, canvasParent);
+
+p5.disableFriendlyErrors = true; // demasiados falsos positivos en la consola
