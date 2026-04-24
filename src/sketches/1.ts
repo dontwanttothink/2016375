@@ -702,6 +702,8 @@ class GameOverPage extends Page<{ points: number }> {
 		this.#presentedSince = currentTime();
 
 		this.#button = new Button(p);
+		this.#button.alpha = 0;
+
 		const button_height = this.#button.minHeight;
 
 		this.#h =
@@ -726,7 +728,10 @@ class GameOverPage extends Page<{ points: number }> {
 			r.draw(p, this.#button.x, this.#button.y);
 		}
 
-		if (this.#button.intersectsWith(p.mouseX, p.mouseY)) {
+		if (
+			this.#button.intersectsWith(p.mouseX, p.mouseY) &&
+			this.#button.alpha === 255
+		) {
 			p.cursor(p.HAND);
 
 			if (!this.#buttonHoveredSince) {
