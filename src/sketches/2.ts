@@ -25,18 +25,6 @@ new p5((p) => {
 }, canvasParent);
 
 /**
- * Transiciones
- *
- * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
- * un nuevo nivel cuando el usuario gana.
- */
-
-/**
- * Una partida.
- */
-let game: Game;
-
-/**
  * Visual
  *
  * Esta sección se encarga de representar el estado del juego en la pantalla.
@@ -46,9 +34,7 @@ let game: Game;
  * Función de dibujo
  */
 function draw(p: p5) {
-	p.background(100);
-	p.fill(105);
-	p.ellipse(p.width / 2, p.height / 2, 200, 200);
+	const grid = game.getGrid();
 }
 
 /**
@@ -186,3 +172,15 @@ class Game {
 
 	getGrid() {}
 }
+
+/**
+ * Transiciones
+ *
+ * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
+ * un nuevo nivel cuando el usuario gana.
+ */
+
+/**
+ * Una partida.
+ */
+let game = new Game(5);
