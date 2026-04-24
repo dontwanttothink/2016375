@@ -1095,7 +1095,7 @@ class Game extends Page<{ difficulty: number }> {
 			p.rect(0, 0, p.width, p.height);
 
 			if (t === 1) {
-				this.navigator.switchPage(p, GameOverPage, { points: this.level });
+				this.navigator.switchPage(p, GameOverPage, { points: this.level - 1 });
 			}
 		}
 	}
