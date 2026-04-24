@@ -957,7 +957,8 @@ class Game extends Page<{ difficulty: number }> {
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER);
 
-		this.grid.marginBottom = Game.FONT_SIZE * 2.5 + Game.MARGIN_SIZE;
+		this.grid.marginBottom = Game.FONT_SIZE * 2.5 + 2 * Game.MARGIN_SIZE;
+		this.grid.marginTop = Game.MARGIN_SIZE * 1.3;
 
 		this.grid.randomizeColors(p);
 
