@@ -703,6 +703,7 @@ class GameOverPage extends Page<{ points: number }> {
 
 		this.#button = new Button(p);
 		this.#button.alpha = 0;
+		this.#buttonHoveredSince = null;
 
 		const button_height = this.#button.minHeight;
 
@@ -711,6 +712,9 @@ class GameOverPage extends Page<{ points: number }> {
 			GameOverPage.SIZE_MEDIUM +
 			button_height +
 			GameOverPage.MARGIN * 8;
+
+		this.#rays = [];
+		this.#rayHead = 0;
 	}
 
 	receive({ points }: { points: number }): void {
