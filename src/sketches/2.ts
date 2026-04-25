@@ -170,7 +170,9 @@ class Game {
 		//ademas, mira gemini para ver las dos opciones
 	}
 
-	getGrid() {}
+	getGrid() {
+		return this.grid;
+	}
 }
 
 /**
@@ -179,6 +181,66 @@ class Game {
  * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
  * un nuevo nivel cuando el usuario gana.
  */
+class LevelManager {
+    public currentLevelIndex: number = 0;
+    public isGameComplete: boolean = false;
+
+    public loadLevel(levelIndex: number): void {
+        this.currentLevelIndex = levelIndex;
+        
+        //Aquí dejamos como nueva la linea del tiempo
+        timeline = [];
+        timelineIndex = 0;
+
+        switch (levelIndex) {
+            case 0:
+                // Nivel 1: Fácil
+                game = new Game(4);
+                game.setEndpoint(0, 0, 3, 0, "green");
+                game.setEndpoint(0, 3, 3, 3, "blue");
+                game.setEndpoint(1, 1, 2, 2, "red");
+                break;
+
+            case 1:
+                // Nivel 2: Medio
+                game = new Game(5);
+                game.setEndpoint(0, 0, 4, 4, "blue");
+                game.setEndpoint(0, 4, 4, 0, "yellow");
+                game.setEndpoint(1, 2, 3, 2, "red");
+                game.setEndpoint(2, 1, 2, 3, "green");
+                break;
+
+            case 2:
+                // Nivel 3: Difícil
+                game = new Game(6);
+                game.setEndpoint(0, 0, 5, 1, "red");
+                game.setEndpoint(0, 5, 4, 5, "blue");
+                game.setEndpoint(1, 2, 4, 2, "green");
+                game.setEndpoint(2, 3, 5, 4, "yellow");
+                game.setEndpoint(1, 4, 3, 5, "orange");
+                break;
+
+            default:
+                this.isGameComplete = true;
+                break;
+        }
+
+        if (!this.isGameComplete) {
+            timeline.push(game.grid);
+        }
+    }
+
+    public nextLevel(): void {
+        this.loadLevel(this.currentLevelIndex + 1);
+    }
+
+    public restartLevel(): void {
+        this.loadLevel(this.currentLevelIndex);
+    }
+}
+
+const levelManager = new LevelManager();
+
 
 /**
  * Una partida.
