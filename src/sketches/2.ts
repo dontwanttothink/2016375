@@ -184,7 +184,7 @@ class Game {
  * Una partida.
  */
 let game = new Game(5);
-}
+
 
 
 
