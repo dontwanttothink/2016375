@@ -953,6 +953,9 @@ class Game extends Page<{ difficulty: number }> {
 	}
 
 	setup(p: p5) {
+		this.level = 0;
+		this.#userPattern = [];
+
 		p.fill(0);
 		p.textFont("system-ui");
 		p.textAlign(p.CENTER);
@@ -1011,13 +1014,14 @@ class Game extends Page<{ difficulty: number }> {
 				--this.lives;
 			}
 
+			this.#userPattern = [];
+
 			if (this.lives === 0) {
 				this.#setPhase(GamePhase.Lost);
 				return;
 			}
 
 			this.#currentPattern = this.#getNewPattern();
-			this.#userPattern = [];
 			this.#setPhase(GamePhase.PlayingPattern);
 			this.grid.randomizeColors(p);
 			return;
@@ -1132,8 +1136,7 @@ class Game extends Page<{ difficulty: number }> {
 
 // Estado global
 const navigator = new Navigator(WelcomePage, [Game, GameOverPage]);
-//
-//
+
 // Configuración
 async function setup(p: p5) {
 	const [width, height] = targetDimensions();
@@ -1160,8 +1163,6 @@ function keyPressed(p: p5) {
 }
 
 // Restaurar estado
-//
-//
 //
 // Durante el desarrollo (y solo durante el desarrollo), este
 // código se encarga de que la página actual no cambie cuando
@@ -1190,7 +1191,6 @@ function registerHMR(p: p5) {
 }
 
 // Inicializar el bosquejo p5
-//
 //
 // Se crea el elemento del lienzo en la página, pasamos nuestras
 // funciones, etc.
