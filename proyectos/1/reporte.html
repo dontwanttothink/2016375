@@ -22,6 +22,16 @@
 					resultados (incluyendo sus limitaciones) y los materiales
 					referenciados.
 				</p>
+
+				<p>Los integrantes del equipo fueron:</p>
+
+				<ul class="preserve-case">
+					<li>Andrés</li>
+					<li>Belcar Santiago Cuentas Zavala Infante</li>
+					<li>Santiago Rodríguez</li>
+					<li>Sergio</li>
+				</ul>
+
 				<h3>Objetivos</h3>
 				<p>
 					Quisimos implementar un juego que mostrara una secuencia de celdas en
@@ -230,24 +240,223 @@
 				</p>
 
 				<h3>Resultados y limitaciones</h3>
+				<p>
+					El resultado es un juego interactivo que cumple con los objetivos
+					básicos propuestos. Se puede elegir entre tres opciones básicas de
+					dificultad: «Fácil», «Medio» y «Difícil». La dificultad afecta el
+					tamaño de la cuadrícula, la longitud de los patrones y el número de
+					vidas iniciales.
+				</p>
+
+				<p>
+					Se usan animaciones ampliamente y hay varios elementos decorativos.
+				</p>
+
+				<p>
+					La implementación está profundamente orientada a objetos. Hubo un
+					esfuerzo de diseñar y escribir los sistemas de la forma más limpia
+					posible. El resultado está documentado con comentarios detallados. Sin
+					embargo, con el tiempo, la complejidad se fue incrementando. A futuro,
+					es posible hacer cambios para mejorar la elegancia y simplicidad.
+				</p>
 
 				<h4>Código muerto</h4>
-				<!-- márgenes a la izquierda, etc. más largo/complicado de lo
-				que necesariamente puede ser -->
+
+				<p>
+					Mientras se estaba escribiendo el programa, se introdujeron funciones
+					que terminaron sin usarse. Por ejemplo, al principio consideramos
+					poner elementos a los lados de la cuadrícula del juego, como texto o
+					botones. Por eso, la implementación de la cuadrícula tiene la
+					habilidad de guardar márgenes a la izquierda y la derecha. Esta
+					habilidad no se usa.
+				</p>
+
+				<p>
+					Otro ejemplo es la función <code>async preload()</code> definida en la
+					clase abstracta <code>Page</code>. El objetivo de esa función era
+					permitir la carga de imágenes asincrónicamente, lo cual no puede
+					hacerse correctamente dentro de los <code>setup</code> o
+					<code>draw</code>
+					sincrónicos. Al final, no usamos imágenes.
+				</p>
+
+				<p>
+					Para mejorar el proyecto y simplificarlo, estas funciones deberían
+					eliminarse a futuro.
+				</p>
 
 				<h4>Accesibilidad</h4>
-				<!-- la única forma de interacción con el juego es visual. -->
+
+				<p>
+					La única forma de interacción con el juego es visual. No es posible
+					usar audio, por ejemplo, para recibir el patrón a memorizar o para
+					percibir los elementos de interfaz. En particular, las tecnologías de
+					asistencia no pueden entender el juego porque se dibuja manualmente en
+					un lienzo HTML; no se usan elementos semánticos. En parte, la librería
+					<i>p5.js</i>
+					conduce a este resultado porque está diseñada para proyectos visuales.
+					Sin embargo, también ofrece
+					<a
+						href="https://p5js.org/tutorials/writing-accessible-canvas-descriptions/"
+						>varias funciones de accesibilidad</a
+					>, y es enteramente posible combinarlas con las habilidades nativas
+					del DOM para ayudar a que más personas puedan cómodamente jugar.
+				</p>
+
+				<p>
+					Es posible ajustar el tamaño del texto del juego a través de la
+					interfaz del navegador.
+				</p>
 
 				<h4>Jugabilidad</h4>
-				<!-- mucha gente me ha dicho que las celdas se resaltan demasiado
-				rápido :') entonces podría ser que empezaran más lento y se
-				volvieran más rápido con el tiempo, sobre todo en el modo fácil.
 
-				también es notorio que cada 'nivel' sea idéntico en dificultad. -->
+				<p>
+					Hemos visto que varias personas se divierten con el juego y se sienten
+					motivadas a intentar lograr más niveles.
+				</p>
+
+				<p>
+					Actualmente, todos los modos muestran la secuencia de celdas a la
+					misma velocidad. Algunas personas encuentran esa velocidad demasiado
+					rápida al principio. Podríamos mejorar esto haciendo que el patrón se
+					muestre más pausadamente al principio y aumente su velocidad con el
+					tiempo, sobre todo en el modo fácil.
+				</p>
+
+				<p>
+					Dentro de un mismo modo de dificultad, todos los <i>niveles</i> son
+					idénticos, y no hay progresión. Esto se podría cambiar para hacer el
+					juego algo más emocionante.
+				</p>
 
 				<h3>Uso de modelos de lenguaje</h3>
 
+				<p>
+					En general, no se usaron modelos de lenguaje para escribir porciones
+					significativas del código. Sin embargo, sí se usaron para recordar
+					cómo usar APIs de JavaScript. También se usaron para obtener ideas,
+					explicaciones, e incluso ocasionalmente para ver ejemplos de
+					implementación de funciones o clases.
+				</p>
+
+				<p>Este uso varió entre los distintos miembros del equipo.</p>
+
+				<h4 class="preserve-case">Andrés</h4>
+
+				<h5>Herramientas usadas</h5>
+
+				<p>
+					Usé dos herramientas de IA. La primera fue ChatGPT, debido a que he
+					trabajado mucho más con esta IA que con otras. También usé GitHub
+					Copilot, que a menudo me facilitó un poco más lo que buscaba realizar
+					y que se encuentra en Visual Studio Code.
+				</p>
+
+				<h5>Razón por la que se usó</h5>
+
+				<p>
+					Al principio del proyecto, usé estas herramientas para poder entender
+					un poco más acerca de este tipo de programación. Esto se debe
+					principalmente a que nunca había tenido un acercamiento a la
+					programación en JavaScript. En la carrera que estudio, la programación
+					no se enseña de manera tan continua como en otras carreras.
+				</p>
+
+				<p>
+					También llegué a usar los modelos de IA tanto para ayudarme a entender
+					qué hacían mis compañeros como para mejorar lo que estaba haciendo de
+					mi parte. Sin embargo, no fue una escritura total del código; quería
+					que me enseñara cómo trabajar en ello, y a partir de esto, yo usar lo
+					que consideraba más útil e importante. Yo trabajo mucho mejor a partir
+					de ejemplos.
+				</p>
+
+				<h5>Alcance</h5>
+
+				<p>Moderado.</p>
+
+				<p>
+					A pesar de mi uso de este tipo de herramientas, también busqué ayuda
+					de mis compañeros, ya que ellos conocían más de la materia. Realmente,
+					me parece más fácil y cómoda la explicación de una persona que la de
+					una IA.
+				</p>
+
+				<h5>Validación</h5>
+
+				<p></p>
+
+				<h4 class="preserve-case">Belcar Santiago</h4>
+
+				<h5>Herramientas usadas</h5>
+
+				<ul class="preserve-case">
+					<li>
+						sugerencias predictivas en <a href="https://zed.dev">Zed</a> usando
+						el modelo
+						<a href="https://www.inceptionlabs.ai/models"
+							>Mercury Coder de Inception Labs</a
+						>
+					</li>
+					<li>Claude Sonnet 4.6</li>
+				</ul>
+
+				<h5>Razón por la que se usó</h5>
+
+				<p>
+					Brevemente usé sugerencias predictivas dentro de mi editor. Las
+					sugerencias fueron líneas triviales de código que se ajustaban a la
+					idea de lo que estaba escribiendo. Activé esta función porque tenía
+					curiosidad de los modelos de difusión de Inception Labs. Poco tiempo
+					después, lo desactivé porque sentí que me distraía más de lo que me
+					ayudaba.
+				</p>
+
+				<p>
+					Usé el chat web de Claude para hacer preguntas abiertas sobre APIs Web
+					y de JavaScript. También lo usé para aclarar dudas relacionadas al
+					sistema de tipos de TypeScript.
+				</p>
+
+				<h4 class="preserve-case">Santiago Rodríguez</h4>
+
+				<h4 class="preserve-case">Sergio</h4>
+
 				<h3>Materiales referenciados</h3>
+
+				<ul class="preserve-case">
+					<li>
+						Charalambos, Jean Pierre. (2026).
+						<cite>Grid-Based Game Programming</cite>
+						[Materiales privados de clase].
+					</li>
+					<li>
+						Contribuidores de Mozilla. (2026).
+						<cite
+							><a href="https://developer.mozilla.org/">MDN Web Docs</a></cite
+						>
+						[Documentación].
+					</li>
+					<li>
+						Contribuidores de p5.js. (2026).
+						<cite
+							><a href="https://beta.p5js.org/reference/"
+								>p5.js Reference</a
+							></cite
+						>
+						[Documentación].
+					</li>
+					<li>
+						C. G., Héctor. (marzo, 2021).
+						<cite
+							><a
+								href="https://hektorprofe.github.io/academia/javascript/biblioteca-p5js/"
+								>Introducción a la biblioteca p5.js</a
+							></cite
+						>
+						[Guía]
+					</li>
+				</ul>
 			</article>
 		</main>
 	</body>
