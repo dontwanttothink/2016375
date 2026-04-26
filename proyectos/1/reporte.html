@@ -10,16 +10,244 @@
 	<body>
 		<main>
 			<h1>Simón dice</h1>
+			<nav style="opacity: 80%">
+				<p><a href="/">Ir al inicio</a></p>
+				<p><a href=".">Ver proyecto</a></p>
+			</nav>
 			<article>
 				<h2>Informe</h2>
 				<p>
-					Este documento corto documenta los objetivos del proyecto, las
+					Este documento corto describe los objetivos del proyecto, las
 					decisiones técnicas que se tomaron mientras se desarrolló, los
 					resultados (incluyendo sus limitaciones) y los materiales
 					referenciados.
 				</p>
 				<h3>Objetivos</h3>
-				<p>Quisimos implementar un juego de memoria.</p>
+				<p>
+					Quisimos implementar un juego que mostrara una secuencia de celdas en
+					una cuadrícula y que retara al usuario a repetir la secuencia de
+					memoria.
+				</p>
+				<p>
+					La implementación debía usar técnicas de la clase de programación
+					orientada a objetos y tener ciertas características funcionales. En
+					particular, nos propusimos:
+				</p>
+
+				<ul>
+					<li>usar la librería <i>p5.js</i></li>
+					<li>
+						generar patrones aleatorios y representarlos gráficamente en la
+						cuadrícula
+					</li>
+					<li>
+						permitir al usuario usar clics del ratón para intentar reproducir el
+						patrón presentado
+					</li>
+					<li>
+						verificar si el intento del usuario fue correcto e indicar si lo fue
+						o no
+					</li>
+					<li>ofrecer al menos tres opciones básicas de dificultad</li>
+				</ul>
+
+				<p>
+					Se intentó dar una presentación visual atractiva desde el inicio,
+					usando colores y animación. Sin embargo, ese no fue el enfoque
+					principal.
+				</p>
+
+				<p>
+					Dadas las instrucciones del primer proyecto, nos limitamos a las
+					funciones de la librería base <i>p5.js</i>, y no usamos
+					<i>addons</i>
+					como
+					<i>p5.quadrille.js</i>.
+				</p>
+
+				<h3>Decisiones arquitecturales o de diseño técnico</h3>
+
+				<h4 class="preserve-case">GitLab, Vite y el modo instancia</h4>
+
+				<p>
+					Para empezar, necesitábamos una forma de almacenar el código y
+					colaborar. Aprovechamos las cuentas de GitLab de cada uno, creadas
+					para acceder a los materiales del curso, para crear un repositorio
+					Git.
+				</p>
+
+				<p>
+					Nuestros proyectos, así como este reporte, se albergan en GitLab Pages
+					a través de una página estática generada con
+					<a href="https://vite.dev">Vite</a>. Debido a la naturaleza modular de
+					este modelo de desarrollo, nuestro código usa
+					<a
+						href="https://github.com/processing/p5.js/wiki/Global-and-instance-mode"
+						>el modo instancia de
+						<i>p5.js</i>
+						y no el modo global.</a
+					>
+					Por eso, nuestras funciones típicamente tienen un parámetro
+					<code>p</code>
+					que permite acceder a las rutinas de dibujo, como
+					<code>p.background(…)</code>
+					o <code>p.rect(…)</code>.
+				</p>
+
+				<h4>Páginas múltiples</h4>
+
+				<p>
+					Necesitábamos ofrecer distintos niveles de dificultad. Además,
+					queríamos mostrar una pantalla especial cuando el jugador perdiera.
+					Rápidamente resultó evidente que era necesaria alguna forma de definir
+					varias interfaces posibles, presentarlas según el contexto y
+					transicionar entre ellas.
+				</p>
+
+				<p>
+					Para esto, se definió un sistema de <i>páginas</i>. Cada página define
+					funciones para dibujar un fotograma y para reaccionar a interacciones
+					como clics. Un componente, llamado el
+					<i>navegador</i>, se encarga de recibir directamente las llamadas de
+					<code>draw()</code>
+					o <code>mouseClicked()</code> provenientes de
+					<i>p5.js</i>
+					y pasarlas a la página actual. Cada página tiene acceso a una
+					referencia al navegador, y puede usarla para ceder el lienzo a una
+					página nueva: <code>this.navigator.switchPage(p, WelcomePage)</code>,
+					por ejemplo.
+				</p>
+
+				<p>
+					Opcionalmente, una página puede recibir información de la página
+					anterior. La página que aparece cuando pierdes, por ejemplo, recibe de
+					la página del juego un número que se muestra como tu calificación.
+					Esto se logra con expresiones como
+					<code
+						>this.navigator.switchPage(p, GameOverPage, { points: this.level - 1
+						})</code
+					>.
+				</p>
+
+				<p>
+					Se definió una clase abstracta, llamada <code>Page</code>, para
+					expresar en el código la interfaz deseada de una página. Esta clase
+					también ofrece un constructor mínimo por defecto que se comparte entre
+					todas las páginas que creamos.
+				</p>
+
+				<h4>Dibujo</h4>
+
+				<p>
+					El lienzo se dibuja en una clase de proceso jerárquico. La página
+					actual tiene un método, <code>draw</code>, que a su vez llama el
+					método <code>draw</code> de sus componentes más pequeños, como una
+					cuadrícula, un botón o una pelota saltarina. Los componentes, a su
+					vez, a menudo llaman el método <code>draw</code> de sus propios
+					componentes anidados; por ejemplo, la cuadrícula llama la función de
+					dibujo de sus celdas.
+				</p>
+
+				<p>
+					Las animaciones se implementan de dos formas principales. La primera
+					forma involucra almacenar un estado dentro del objeto animado. Cada
+					fotograma, este estado se actualiza para progresar la animación. Las
+					pelotas saltarinas, así como los botones, funcionan de esta manera.
+					Este método permite a las animaciones reaccionar en tiempo real a
+					condiciones de interacción. Por ejemplo, los botones inmediatamente
+					retroceden a su color de base cuando el puntero deja de estar sobre
+					ellos; en otras palabras, esa animación es interrumpible.
+				</p>
+
+				<p>
+					La segunda involucra almacenar solo un dato: el punto en el tiempo en
+					que empezó la animación. Entonces, se ajusta la apariencia del objeto
+					en función del tiempo transcurrido. Esto es algo más elegante, pero,
+					cuando se usó este método, no hubo interrumpibilidad. La mayoría de
+					las animaciones usaron esta estrategia.
+				</p>
+
+				<h4>Interactividad</h4>
+
+				<p>
+					La principal interactividad ocurre con botones y celdas. Los botones
+					permiten seleccionar la dificultad, por ejemplo. Las celdas permiten
+					intentar reproducir una secuencia con el ratón.
+				</p>
+
+				<p>
+					Para hacer funcionar a los botones, se usa el método
+					<code>button.intersectsWith(x, y)</code>
+					cuando se recibe un clic para revisar si el clic corresponde a un
+					botón en particular. Por ejemplo, la página de bienvenida usa un bucle
+					para revisar cada uno de los tres botones. El método está implementado
+					con matemáticas simples, aprovechando el conocimiento del botón de sus
+					propias dimensiones y posición.
+				</p>
+
+				<p>
+					En cuanto a las celdas, se llama un método de la cuadrícula:
+					<code>grid.intersection(x, y)</code>. Se devuelve la fila y columna de
+					la celda correspondiente. La implementación también usa un par de
+					expresiones matemáticas simples.
+				</p>
+
+				<p>
+					El diseño del cursor cambia si está encima de un elemento con el que
+					se puede interactuar. Esto se implementa con una revisión rápida
+					mientras se dibuja el fotograma.
+				</p>
+
+				<h4>Lógica</h4>
+
+				<p>El juego se divide en cuatro fases:</p>
+
+				<ul>
+					<li>la fase en que se reproduce el patrón</li>
+					<li>la fase en que el usuario debe repetir el patrón</li>
+					<li>
+						la fase entre patrones después de que el usuario haya acabado un
+						patrón
+					</li>
+					<li>la fase después de que el usuario acaba con todas sus vidas</li>
+				</ul>
+
+				<p>
+					Estas fases se representan internamente y controlan, por ejemplo, si
+					se ignoran los clics o si se muestra un mensaje de retroalimentación
+					(como «¡bien!» o «ups»).
+				</p>
+
+				<p>
+					La generación de los patrones es aleatoria. La única condición
+					adicional es que una misma celda no puede aparecer dos veces seguidas.
+				</p>
+
+				<p>
+					Para verificar si un patrón introducido por el usuario es correcto,
+					simplemente se comparan las coordenadas una a la vez con el patrón que
+					se generó.
+				</p>
+
+				<h3>Resultados y limitaciones</h3>
+
+				<h4>Código muerto</h4>
+				<!-- márgenes a la izquierda, etc. más largo/complicado de lo
+				que necesariamente puede ser -->
+
+				<h4>Accesibilidad</h4>
+				<!-- la única forma de interacción con el juego es visual. -->
+
+				<h4>Jugabilidad</h4>
+				<!-- mucha gente me ha dicho que las celdas se resaltan demasiado
+				rápido :') entonces podría ser que empezaran más lento y se
+				volvieran más rápido con el tiempo, sobre todo en el modo fácil.
+
+				también es notorio que cada 'nivel' sea idéntico en dificultad. -->
+
+				<h3>Uso de modelos de lenguaje</h3>
+
+				<h3>Materiales referenciados</h3>
 			</article>
 		</main>
 	</body>

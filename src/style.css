@@ -112,6 +112,10 @@ nav {
 	}
 }
 
+.preserve-case {
+	text-transform: none;
+}
+
 .error-notification {
 	background: linear-gradient(
 		to bottom,
