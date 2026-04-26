@@ -957,7 +957,7 @@ class Game extends Page<{ difficulty: number }> {
 	}
 
 	setup(p: p5) {
-		this.level = 0;
+		this.level = 1;
 		this.#userPattern = [];
 
 		p.fill(0);
