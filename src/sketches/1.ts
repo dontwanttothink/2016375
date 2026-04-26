@@ -1042,7 +1042,7 @@ class Game extends Page<{ difficulty: number }> {
 				this.feedback.color = p.color("oklch(0.8003 0.2618 133.42)");
 				this.feedback.show();
 			} else {
-				this.feedback.label = "oops";
+				this.feedback.label = "ups";
 				this.feedback.color = p.color("oklch(0.7 0.2316 23.16)");
 				this.feedback.show();
 			}
