@@ -2,27 +2,23 @@ import p5 from "p5";
 import "p5.quadrille";
 import targetDimensions from "../dimensions";
 
-// Configuración del lienzo
-function setup(p: p5) {
-	const [width, height] = targetDimensions();
-	p.createCanvas(width, height);
-}
-function windowResized(p: p5) {
-	const [width, height] = targetDimensions();
-	p.resizeCanvas(width, height);
+interface ThemeColors {
+	foreground: p5.Color;
 }
 
-// Inicializar el bosquejo p5
-const canvasParent = document.getElementById("canvas-container");
-if (!canvasParent) {
-	throw new Error();
+function getThemeColors(p: p5): ThemeColors {
+	const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+	return {
+		foreground: isDark ? p.color("white") : p.color("black"),
+	};
 }
 
-new p5((p) => {
-	p.setup = () => setup(p);
-	p.draw = () => draw(p);
-	p.windowResized = () => windowResized(p);
-}, canvasParent);
+interface Rectangle {
+	top: number;
+	bottom: number;
+	left: number;
+	right: number;
+}
 
 /**
  * Interacción del usuario
@@ -57,6 +53,8 @@ class FlowCell {
 		public readonly type: cellType = cellType.EMPTY,
 		public readonly color: string | null = null,
 	) {}
+
+	draw(p: p5) {}
 }
 
 class Grid {
@@ -165,6 +163,26 @@ class Game {
 	getGrid() {
 		return this.grid;
 	}
+
+	draw(p: p5, container: Rectangle) {
+		const containerWidth = container.right - container.left;
+		const containerHeight = container.bottom - container.top;
+
+		const vertexLength = Math.min(containerWidth, containerHeight) - 10;
+		const originX = container.left + (containerWidth - vertexLength) / 2;
+		const originY = container.top + (containerHeight - vertexLength) / 2;
+
+		p.noFill();
+		p.stroke(getThemeColors(p).foreground);
+		for (let i = 1; i < this.size; ++i) {
+			const y = originY + (vertexLength / this.size) * i;
+			p.line(originX, y, originX + vertexLength, y);
+
+			const x = originX + (vertexLength / this.size) * i;
+			p.line(x, originY, x, originY + vertexLength);
+		}
+		p.square(originX, originY, vertexLength, 10);
+	}
 }
 
 /**
@@ -248,20 +266,33 @@ let game = new Game(5);
  * Función de dibujo
  */
 function draw(p: p5) {
-	const grid = game.getGrid();
-
 	p.clear();
-
-	// Calcular el tamaño que queremos dar a la cuadrícula.
-	const cl = cellLength(p);
-	const ancho = cl * grid.;
-	const alto = cl * ROWS;
-
-	// Dibujar la cuadrícula en el centro.
-	p.drawQuadrille(grid, {
-		outline: p.color(200),
-		cellLength: cl,
-		x: p.width / 2 - ancho / 2,
-		y: p.height / 2 - alto / 2,
+	game.draw(p, {
+		top: 0,
+		bottom: p.height,
+		left: 0,
+		right: p.width,
 	});
 }
+
+// Configuración del lienzo
+function setup(p: p5) {
+	const [width, height] = targetDimensions();
+	p.createCanvas(width, height);
+}
+function windowResized(p: p5) {
+	const [width, height] = targetDimensions();
+	p.resizeCanvas(width, height);
+}
+
+// Inicializar el bosquejo p5
+const canvasParent = document.getElementById("canvas-container");
+if (!canvasParent) {
+	throw new Error();
+}
+
+new p5((p) => {
+	p.setup = () => setup(p);
+	p.draw = () => draw(p);
+	p.windowResized = () => windowResized(p);
+}, canvasParent);
