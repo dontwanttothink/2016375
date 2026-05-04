@@ -70,16 +70,34 @@ class Grid {
 			for (let c = 0; c < this.size; c++) {
 				row.push(new FlowCell());
 			}
-			this.grid.push(row);;
+			this.grid.push(row);
 		}
+	}
+
+	draw(p: p5, container: Rectangle) {
+		const containerWidth = container.right - container.left;
+		const containerHeight = container.bottom - container.top;
+
+		const vertexLength = Math.min(containerWidth, containerHeight) - 10;
+		const originX = container.left + (containerWidth - vertexLength) / 2;
+		const originY = container.top + (containerHeight - vertexLength) / 2;
+
+		p.noFill();
+		p.stroke(getThemeColors(p).foreground);
+		for (let i = 1; i < this.size; ++i) {
+			const y = originY + (vertexLength / this.size) * i;
+			p.line(originX, y, originX + vertexLength, y);
+
+			const x = originX + (vertexLength / this.size) * i;
+			p.line(x, originY, x, originY + vertexLength);
+		}
+		p.square(originX, originY, vertexLength, 10);
 	}
 }
 
-
-
 //clase para recibir endpoints y manejar la lógica del juego
 class Game {
-	size: number
+	size: number;
 	constructor(size: number) {
 		this.size = size;
 		const grid = new Grid(size);
@@ -162,26 +180,6 @@ class Game {
 
 	getGrid() {
 		return this.grid;
-	}
-
-	draw(p: p5, container: Rectangle) {
-		const containerWidth = container.right - container.left;
-		const containerHeight = container.bottom - container.top;
-
-		const vertexLength = Math.min(containerWidth, containerHeight) - 10;
-		const originX = container.left + (containerWidth - vertexLength) / 2;
-		const originY = container.top + (containerHeight - vertexLength) / 2;
-
-		p.noFill();
-		p.stroke(getThemeColors(p).foreground);
-		for (let i = 1; i < this.size; ++i) {
-			const y = originY + (vertexLength / this.size) * i;
-			p.line(originX, y, originX + vertexLength, y);
-
-			const x = originX + (vertexLength / this.size) * i;
-			p.line(x, originY, x, originY + vertexLength);
-		}
-		p.square(originX, originY, vertexLength, 10);
 	}
 }
 
