@@ -54,8 +54,8 @@ function resetGame(p: p5) {
 //clase para representar cada celda del tablero
 class FlowCell {
 	constructor(
-		public type: cellType = cellType.EMPTY,
-		public color: string | null = null,
+		public readonly type: cellType = cellType.EMPTY,
+		public readonly color: string | null = null,
 	) {}
 }
 
@@ -244,17 +244,4 @@ function draw(p: p5) {
 	const grid = game.getGrid();
 
 	p.clear();
-
-	// Calcular el tamaño que queremos dar a la cuadrícula.
-	const cl = cellLength(p);
-	const ancho = cl * grid.;
-	const alto = cl * ROWS;
-
-	// Dibujar la cuadrícula en el centro.
-	p.drawQuadrille(grid, {
-		outline: p.color(200),
-		cellLength: cl,
-		x: p.width / 2 - ancho / 2,
-		y: p.height / 2 - alto / 2,
-	});
 }
