@@ -59,26 +59,34 @@ class FlowCell {
 	) {}
 }
 
-//clase para crear la grid, recibir endpoints y manejar la lógica del juego
-class Game {
+class Grid {
 	grid: FlowCell[][] = [];
-	size: number;
+	limit: number;
 
-	constructor(size: number) {
-		this.size = size;
-		this.initMatrix();
-	}
-	//inicializa la matriz con celdas vacías
-	initMatrix() {
+	constructor(limit: number) {
+		this.limit = limit;
+		//inicializa la matriz con celdas vacías
 		this.grid = [];
 		for (let r = 0; r < this.size; r++) {
 			const row: FlowCell[] = [];
 			for (let c = 0; c < this.size; c++) {
 				row.push(new FlowCell());
 			}
-			this.grid.push(row);
+			this.grid.push(row);;
 		}
 	}
+}
+
+
+
+//clase para recibir endpoints y manejar la lógica del juego
+class Game {
+	size: number
+	constructor(size: number) {
+		this.size = size;
+		const grid = new Grid(size);
+	}
+
 	//para añadir los puntos de colores de cada nivel
 	setEndpoint(
 		row: number,
@@ -151,8 +159,7 @@ class Game {
 			) {
 				//victoria
 			}
-		} //bro, recuerda que necesitas copiar bien la grid para timelines
-		//ademas, mira gemini para ver las dos opciones
+		}
 	}
 
 	getGrid() {
@@ -244,4 +251,17 @@ function draw(p: p5) {
 	const grid = game.getGrid();
 
 	p.clear();
+
+	// Calcular el tamaño que queremos dar a la cuadrícula.
+	const cl = cellLength(p);
+	const ancho = cl * grid.;
+	const alto = cl * ROWS;
+
+	// Dibujar la cuadrícula en el centro.
+	p.drawQuadrille(grid, {
+		outline: p.color(200),
+		cellLength: cl,
+		x: p.width / 2 - ancho / 2,
+		y: p.height / 2 - alto / 2,
+	});
 }
