@@ -54,8 +54,6 @@ function resetGame(p: p5) {
 //clase para representar cada celda del tablero
 class FlowCell {
 	constructor(
-		public row: number,
-		public col: number,
 		public type: cellType = cellType.EMPTY,
 		public color: string | null = null,
 	) {}
@@ -76,7 +74,7 @@ class Game {
 		for (let r = 0; r < this.size; r++) {
 			const row: FlowCell[] = [];
 			for (let c = 0; c < this.size; c++) {
-				row.push(new FlowCell(r, c));
+				row.push(new FlowCell());
 			}
 			this.grid.push(row);
 		}
