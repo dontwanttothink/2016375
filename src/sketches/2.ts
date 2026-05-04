@@ -25,19 +25,6 @@ new p5((p) => {
 }, canvasParent);
 
 /**
- * Visual
- *
- * Esta sección se encarga de representar el estado del juego en la pantalla.
- */
-
-/**
- * Función de dibujo
- */
-function draw(p: p5) {
-	const grid = game.getGrid();
-}
-
-/**
  * Interacción del usuario
  */
 
@@ -245,3 +232,31 @@ const levelManager = new LevelManager();
  * Una partida.
  */
 let game = new Game(5);
+
+/**
+ * Visual
+ *
+ * Esta sección se encarga de representar el estado del juego en la pantalla.
+ */
+
+/**
+ * Función de dibujo
+ */
+function draw(p: p5) {
+	const grid = game.getGrid();
+
+	p.clear();
+
+	// Calcular el tamaño que queremos dar a la cuadrícula.
+	const cl = cellLength(p);
+	const ancho = cl * grid.;
+	const alto = cl * ROWS;
+
+	// Dibujar la cuadrícula en el centro.
+	p.drawQuadrille(grid, {
+		outline: p.color(200),
+		cellLength: cl,
+		x: p.width / 2 - ancho / 2,
+		y: p.height / 2 - alto / 2,
+	});
+}
