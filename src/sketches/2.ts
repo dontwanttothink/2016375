@@ -41,7 +41,7 @@ let timelineIndex = 0;
 function resetGame(p: p5) {
 	const game = new Game(5);
 	game.initMatrix();
-	timeline = [game.grid];
+	timeline = [Grid.g];
 	timelineIndex = 0;
 	const winner = undefined;
 	p.loop();
@@ -76,6 +76,10 @@ class Grid {
 
 	get(row: number, col: number){
 		return this.grid[row][col]
+	}
+
+	set(row: number, col: number, cell: FlowCell) {
+		this.grid[row][col] = cell;
 	}
 
 	draw(p: p5, container: Rectangle) {
@@ -125,14 +129,8 @@ class Game {
 			col2 >= 0 &&
 			col2 < this.grid.size
 		) {
-			const cell = this.grid.get(row, col);
-			const cell2 = this.grid[row2][col2];
-			if (cell.type === cellType.EMPTY && cell2.type === cellType.EMPTY) {
-				cell.type = cellType.ENDPOINT;
-				cell2.type = cellType.ENDPOINT;
-				cell.color = color;
-				cell2.color = color;
-			}
+			this.grid.set(row, col, new FlowCell(cellType.ENDPOINT, color));
+			this.grid.set(row2, col2, new FlowCell(cellType.ENDPOINT, color));
 		}
 	}
 	//verifica si se puede conectar dos celdas adyacentes
