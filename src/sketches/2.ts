@@ -59,10 +59,10 @@ class FlowCell {
 
 class Grid {
 	grid: FlowCell[][] = [];
-	limit: number;
+	size: number;
 
-	constructor(limit: number) {
-		this.limit = limit;
+	constructor(size: number) {
+		this.size = size;
 		//inicializa la matriz con celdas vacías
 		this.grid = [];
 		for (let r = 0; r < this.size; r++) {
@@ -72,6 +72,10 @@ class Grid {
 			}
 			this.grid.push(row);
 		}
+	}
+
+	get(row: number, col: number){
+		return this.grid[row][col]
 	}
 
 	draw(p: p5, container: Rectangle) {
@@ -97,10 +101,10 @@ class Grid {
 
 //clase para recibir endpoints y manejar la lógica del juego
 class Game {
-	size: number;
+	grid: Grid;
+
 	constructor(size: number) {
-		this.size = size;
-		const grid = new Grid(size);
+		this.grid = new Grid(size);
 	}
 
 	//para añadir los puntos de colores de cada nivel
@@ -113,15 +117,15 @@ class Game {
 	) {
 		if (
 			row >= 0 &&
-			row < this.size &&
+			row < this.grid.size &&
 			col >= 0 &&
-			col < this.size &&
+			col < this.grid.size &&
 			row2 >= 0 &&
-			row2 < this.size &&
+			row2 < this.grid.size &&
 			col2 >= 0 &&
-			col2 < this.size
+			col2 < this.grid.size
 		) {
-			const cell = this.grid[row][col];
+			const cell = this.grid.get(row, col);
 			const cell2 = this.grid[row2][col2];
 			if (cell.type === cellType.EMPTY && cell2.type === cellType.EMPTY) {
 				cell.type = cellType.ENDPOINT;
