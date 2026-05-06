@@ -1,15 +1,28 @@
 import p5 from "p5";
 import "p5.quadrille";
 import targetDimensions from "../dimensions";
+import { Navigator, Page } from "../pages";
 
-interface ThemeColors {
-	foreground: p5.Color;
+function isDark() {
+	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function getThemeColors(p: p5): ThemeColors {
-	const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+function randomThemeColor(p: p5): () => p5.Color {
+	const hue = p.random(360);
+	return themeColor(p, hue);
+}
+
+function themeColor(p: p5, hue: number) {
+	// Constantes escogidas usando https://oklch.com/ :)
+	const lightness = 0.65;
+	const chroma = 0.212;
+
+	return () => p.color(`oklch(${lightness} ${chroma} ${hue})`);
+}
+
+function themeColors(p: p5) {
 	return {
-		foreground: isDark ? p.color("white") : p.color("black"),
+		foreground: isDark() ? p.color(200) : p.color(105),
 	};
 }
 
@@ -74,8 +87,8 @@ class Grid {
 		}
 	}
 
-	get(row: number, col: number){
-		return this.grid[row][col]
+	get(row: number, col: number) {
+		return this.grid[row][col];
 	}
 
 	set(row: number, col: number, cell: FlowCell) {
@@ -91,7 +104,7 @@ class Grid {
 		const originY = container.top + (containerHeight - vertexLength) / 2;
 
 		p.noFill();
-		p.stroke(getThemeColors(p).foreground);
+		p.stroke(themeColors(p).foreground);
 		for (let i = 1; i < this.size; ++i) {
 			const y = originY + (vertexLength / this.size) * i;
 			p.line(originX, y, originX + vertexLength, y);
@@ -183,6 +196,15 @@ class Game {
 	getGrid() {
 		return this.grid;
 	}
+
+	draw(p: p5) {
+		this.grid.draw(p, {
+			bottom: p.height,
+			top: 0,
+			left: 0,
+			right: p.width,
+		});
+	}
 }
 
 /**
@@ -191,6 +213,25 @@ class Game {
  * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
  * un nuevo nivel cuando el usuario gana.
  */
+class GamePage extends Page {
+	draw(p: p5) {
+		p.clear();
+		game.draw(p);
+	}
+}
+
+class WelcomePage extends Page {
+	draw(p: p5) {
+		p.clear();
+		p.text("haz click lol", p.width / 2, p.height / 2);
+	}
+
+	mouseClicked(p: p5) {
+		this.navigator.switchPage(p, GamePage);
+	}
+}
+
+const navigator = new Navigator(WelcomePage, [GamePage]);
 class LevelManager {
 	public currentLevelIndex: number = 0;
 	public isGameComplete: boolean = false;
@@ -236,7 +277,7 @@ class LevelManager {
 		}
 
 		if (!this.isGameComplete) {
-			timeline.push(game.grid);
+			// timeline.push(game.grid);
 		}
 	}
 
@@ -261,38 +302,10 @@ let game = new Game(5);
  *
  * Esta sección se encarga de representar el estado del juego en la pantalla.
  */
-
-/**
- * Función de dibujo
- */
-function draw(p: p5) {
-	p.clear();
-	game.draw(p, {
-		top: 0,
-		bottom: p.height,
-		left: 0,
-		right: p.width,
-	});
-}
-
-// Configuración del lienzo
-function setup(p: p5) {
-	const [width, height] = targetDimensions();
-	p.createCanvas(width, height);
-}
-function windowResized(p: p5) {
-	const [width, height] = targetDimensions();
-	p.resizeCanvas(width, height);
-}
-
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
 	throw new Error();
 }
 
-new p5((p) => {
-	p.setup = () => setup(p);
-	p.draw = () => draw(p);
-	p.windowResized = () => windowResized(p);
-}, canvasParent);
+new p5(navigator.sketch, canvasParent);
