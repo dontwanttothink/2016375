@@ -64,38 +64,44 @@ function resetGame(p: p5) {
 class FlowCell {
 	constructor(
 		public readonly type: cellType = cellType.EMPTY,
-		public readonly color: string | null = null,
+		public readonly color: p5.Color,
 	) {}
 
-	draw(p: p5) {}
+	draw(p: p5, cellLength: number) {
+		p.push();
+		p.circle(0, 0, cellLength - 10);
+		p.pop();
+	}
 }
 
 class Grid {
-	grid: FlowCell[][] = [];
+	#grid: FlowCell[][] = [];
 	size: number;
 
 	constructor(size: number) {
 		this.size = size;
 		//inicializa la matriz con celdas vacías
-		this.grid = [];
+		this.#grid = [];
 		for (let r = 0; r < this.size; r++) {
 			const row: FlowCell[] = [];
 			for (let c = 0; c < this.size; c++) {
 				row.push(new FlowCell());
 			}
-			this.grid.push(row);
+			this.#grid.push(row);
 		}
 	}
 
 	get(row: number, col: number) {
-		return this.grid[row][col];
+		return this.#grid[row][col];
 	}
 
 	set(row: number, col: number, cell: FlowCell) {
-		this.grid[row][col] = cell;
+		this.#grid[row][col] = cell;
 	}
 
 	draw(p: p5, container: Rectangle) {
+		p.push();
+		p.translate(0, 0);
 		const containerWidth = container.right - container.left;
 		const containerHeight = container.bottom - container.top;
 
@@ -113,6 +119,19 @@ class Grid {
 			p.line(x, originY, x, originY + vertexLength);
 		}
 		p.square(originX, originY, vertexLength, 10);
+
+		for (const [i, row] of this.#grid.entries()) {
+			for (const [j, cell] of row.entries()) {
+				const cellLength = vertexLength / this.size;
+
+				const cellY = originY + (vertexLength / this.size) * (i + 0.5);
+				const cellX = originX + (vertexLength / this.size) * (j + 0.5);
+
+				p.translate(cellX, cellY);
+				cell.draw(p, cellLength);
+			}
+		}
+		p.pop();
 	}
 }
 
@@ -130,7 +149,7 @@ class Game {
 		col: number,
 		row2: number,
 		col2: number,
-		color: string,
+		color: p5.Color,
 	) {
 		if (
 			row >= 0 &&
