@@ -1,4 +1,5 @@
 import type p5 from "p5";
+import targetDimensions from "./dimensions";
 
 /**
  * Un objeto de argumentos posible para pasar a una página.
@@ -87,7 +88,14 @@ export class Navigator {
 		}
 	}
 
+	/**
+	 * @deprecated
+	 */
 	async setup(p: p5) {
+		return await this.#setup(p);
+	}
+
+	async #setup(p: p5) {
 		await Promise.all([...this.#pages.values()].map((page) => page.preload(p)));
 		p.push();
 		this.#currentPage.setup(p);
@@ -127,13 +135,45 @@ export class Navigator {
 		this.#currentPage = page;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	get currentPage() {
+		return this.#getCurrentPage();
+	}
+
+	#getCurrentPage() {
 		if (this.#preloadCompleted) {
 			return this.#currentPage;
 		}
 		throw new Error(
 			"La página actual no está disponible hasta que `.setup(p)` haya terminado su ejecución por completo.",
 		);
+	}
+
+	get sketch() {
+		return (p: p5) => {
+			p.setup = async () => {
+				const [width, height] = targetDimensions();
+				p.createCanvas(width, height);
+
+				await this.#setup(p);
+			};
+
+			p.draw = () => {
+				p.clear();
+				this.#currentPage.draw(p);
+			};
+
+			p.windowResized = () => {
+				const [width, height] = targetDimensions();
+				p.resizeCanvas(width, height);
+			};
+
+			p.mouseClicked = (_event) => {
+				this.#currentPage.mouseClicked(p);
+			};
+		};
 	}
 
 	// Las siguientes funciones son utilizadas para la restauración de estado de
