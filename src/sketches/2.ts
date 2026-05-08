@@ -50,9 +50,9 @@ interface Rectangle {
 
 //tipos de estados para las celdas
 enum CellType {
-	EMPTY,
-	ENDPOINT,
-	PATH,
+	Empty,
+	Endpoint,
+	Path,
 }
 let timeline = [];
 let timelineIndex = 0;
@@ -70,7 +70,7 @@ function resetGame(p: p5) {
 //clase para representar cada celda del tablero
 class FlowCell {
 	constructor(
-		public readonly type: CellType = CellType.EMPTY,
+		public readonly type: CellType = CellType.Empty,
 		public readonly color: ThemeColor,
 	) {}
 
@@ -94,7 +94,7 @@ class Grid {
 		for (let r = 0; r < this.size; r++) {
 			const row: FlowCell[] = [];
 			for (let c = 0; c < this.size; c++) {
-				row.push(new FlowCell(CellType.EMPTY, randomThemeColor()));
+				row.push(new FlowCell(CellType.Empty, randomThemeColor()));
 			}
 			this.#grid.push(row);
 		}
@@ -170,8 +170,8 @@ class Game {
 			col2 >= 0 &&
 			col2 < this.grid.size
 		) {
-			this.grid.set(row, col, new FlowCell(CellType.ENDPOINT, color));
-			this.grid.set(row2, col2, new FlowCell(CellType.ENDPOINT, color));
+			this.grid.set(row, col, new FlowCell(CellType.Endpoint, color));
+			this.grid.set(row2, col2, new FlowCell(CellType.Endpoint, color));
 		}
 	}
 	//verifica si se puede conectar dos celdas adyacentes
@@ -194,12 +194,12 @@ class Game {
 		const fromCell = this.grid[fromRow][fromCol];
 		if (
 			targetCell.color === fromCell.color &&
-			targetCell.type === CellType.ENDPOINT
+			targetCell.type === CellType.Endpoint
 		) {
 			//depronto puede fallar, q opinan?
 			return true;
 		}
-		return targetCell.type === CellType.EMPTY;
+		return targetCell.type === CellType.Empty;
 	}
 
 	moveTo(fromRow: number, fromCol: number, toRow: number, toCol: number) {
@@ -208,12 +208,12 @@ class Game {
 			timelineIndex++;
 			const fromCell = this.grid[fromRow][fromCol];
 			const toCell = this.grid[toRow][toCol];
-			if (toCell.type === CellType.EMPTY) {
-				toCell.type = CellType.PATH;
+			if (toCell.type === CellType.Empty) {
+				toCell.type = CellType.Path;
 				toCell.color = fromCell.color;
 			}
 			if (
-				toCell.type === CellType.ENDPOINT &&
+				toCell.type === CellType.Endpoint &&
 				toCell.color === fromCell.color
 			) {
 				//victoria
