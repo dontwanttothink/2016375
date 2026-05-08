@@ -1,30 +1,37 @@
 import p5 from "p5";
 import "p5.quadrille";
 import targetDimensions from "../dimensions";
+import "../displayErrors";
 import { Navigator, Page } from "../pages";
+
+type ThemeColor = (p: p5) => p5.Color;
 
 function isDark() {
 	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function randomThemeColor(p: p5): () => p5.Color {
-	const hue = p.random(360);
-	return themeColor(p, hue);
+function randomThemeColor(): ThemeColor {
+	const hue = Math.floor(Math.random() * 360);
+	return themeColor(hue);
 }
 
-function themeColor(p: p5, hue: number) {
+function themeColor(hue: number): ThemeColor {
 	// Constantes escogidas usando https://oklch.com/ :)
 	const lightness = 0.65;
 	const chroma = 0.212;
 
-	return () => p.color(`oklch(${lightness} ${chroma} ${hue})`);
+	return (p: p5) => p.color(`oklch(${lightness} ${chroma} ${hue})`);
 }
 
-function themeColors(p: p5) {
-	return {
-		foreground: isDark() ? p.color(200) : p.color(105),
-	};
-}
+const themeColors = {
+	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(105)),
+	subtler: (p: p5) => (isDark() ? p.color(150) : p.color(155)),
+	red: themeColor(0),
+	yellow: themeColor(100),
+	blue: themeColor(230),
+	green: themeColor(140),
+	orange: themeColor(63),
+} satisfies Record<string, ThemeColor>;
 
 interface Rectangle {
 	top: number;
@@ -42,7 +49,7 @@ interface Rectangle {
  */
 
 //tipos de estados para las celdas
-enum cellType {
+enum CellType {
 	EMPTY,
 	ENDPOINT,
 	PATH,
@@ -63,12 +70,14 @@ function resetGame(p: p5) {
 //clase para representar cada celda del tablero
 class FlowCell {
 	constructor(
-		public readonly type: cellType = cellType.EMPTY,
-		public readonly color: p5.Color,
+		public readonly type: CellType = CellType.EMPTY,
+		public readonly color: ThemeColor,
 	) {}
 
 	draw(p: p5, cellLength: number) {
 		p.push();
+		p.stroke(themeColors.subtler(p));
+		p.fill(this.color(p));
 		p.circle(0, 0, cellLength - 10);
 		p.pop();
 	}
@@ -85,7 +94,7 @@ class Grid {
 		for (let r = 0; r < this.size; r++) {
 			const row: FlowCell[] = [];
 			for (let c = 0; c < this.size; c++) {
-				row.push(new FlowCell());
+				row.push(new FlowCell(CellType.EMPTY, randomThemeColor()));
 			}
 			this.#grid.push(row);
 		}
@@ -101,34 +110,34 @@ class Grid {
 
 	draw(p: p5, container: Rectangle) {
 		p.push();
-		p.translate(0, 0);
 		const containerWidth = container.right - container.left;
 		const containerHeight = container.bottom - container.top;
 
 		const vertexLength = Math.min(containerWidth, containerHeight) - 10;
+		const cellLength = vertexLength / this.size;
 		const originX = container.left + (containerWidth - vertexLength) / 2;
 		const originY = container.top + (containerHeight - vertexLength) / 2;
 
 		p.noFill();
-		p.stroke(themeColors(p).foreground);
+		p.stroke(themeColors.foreground(p));
 		for (let i = 1; i < this.size; ++i) {
-			const y = originY + (vertexLength / this.size) * i;
+			const y = originY + cellLength * i;
 			p.line(originX, y, originX + vertexLength, y);
 
-			const x = originX + (vertexLength / this.size) * i;
+			const x = originX + cellLength * i;
 			p.line(x, originY, x, originY + vertexLength);
 		}
 		p.square(originX, originY, vertexLength, 10);
 
 		for (const [i, row] of this.#grid.entries()) {
 			for (const [j, cell] of row.entries()) {
-				const cellLength = vertexLength / this.size;
+				const cellY = originY + cellLength * (i + 0.5);
+				const cellX = originX + cellLength * (j + 0.5);
 
-				const cellY = originY + (vertexLength / this.size) * (i + 0.5);
-				const cellX = originX + (vertexLength / this.size) * (j + 0.5);
-
+				p.push();
 				p.translate(cellX, cellY);
 				cell.draw(p, cellLength);
+				p.pop();
 			}
 		}
 		p.pop();
@@ -149,7 +158,7 @@ class Game {
 		col: number,
 		row2: number,
 		col2: number,
-		color: p5.Color,
+		color: ThemeColor,
 	) {
 		if (
 			row >= 0 &&
@@ -161,8 +170,8 @@ class Game {
 			col2 >= 0 &&
 			col2 < this.grid.size
 		) {
-			this.grid.set(row, col, new FlowCell(cellType.ENDPOINT, color));
-			this.grid.set(row2, col2, new FlowCell(cellType.ENDPOINT, color));
+			this.grid.set(row, col, new FlowCell(CellType.ENDPOINT, color));
+			this.grid.set(row2, col2, new FlowCell(CellType.ENDPOINT, color));
 		}
 	}
 	//verifica si se puede conectar dos celdas adyacentes
@@ -185,12 +194,12 @@ class Game {
 		const fromCell = this.grid[fromRow][fromCol];
 		if (
 			targetCell.color === fromCell.color &&
-			targetCell.type === cellType.ENDPOINT
+			targetCell.type === CellType.ENDPOINT
 		) {
 			//depronto puede fallar, q opinan?
 			return true;
 		}
-		return targetCell.type === cellType.EMPTY;
+		return targetCell.type === CellType.EMPTY;
 	}
 
 	moveTo(fromRow: number, fromCol: number, toRow: number, toCol: number) {
@@ -199,12 +208,12 @@ class Game {
 			timelineIndex++;
 			const fromCell = this.grid[fromRow][fromCol];
 			const toCell = this.grid[toRow][toCol];
-			if (toCell.type === cellType.EMPTY) {
-				toCell.type = cellType.PATH;
+			if (toCell.type === CellType.EMPTY) {
+				toCell.type = CellType.PATH;
 				toCell.color = fromCell.color;
 			}
 			if (
-				toCell.type === cellType.ENDPOINT &&
+				toCell.type === CellType.ENDPOINT &&
 				toCell.color === fromCell.color
 			) {
 				//victoria
@@ -242,6 +251,7 @@ class GamePage extends Page {
 class WelcomePage extends Page {
 	draw(p: p5) {
 		p.clear();
+		p.fill(themeColors.foreground(p));
 		p.text("haz click lol", p.width / 2, p.height / 2);
 	}
 
@@ -255,39 +265,41 @@ class LevelManager {
 	public currentLevelIndex: number = 0;
 	public isGameComplete: boolean = false;
 
-	public loadLevel(levelIndex: number): void {
+	public loadLevel(p: p5, levelIndex: number): void {
 		this.currentLevelIndex = levelIndex;
 
 		//Aquí dejamos como nueva la linea del tiempo
 		timeline = [];
 		timelineIndex = 0;
 
+		const { green, blue, red, orange, yellow } = themeColors;
+
 		switch (levelIndex) {
 			case 0:
 				// Nivel 1: Fácil
 				game = new Game(4);
-				game.setEndpoint(0, 0, 3, 0, "green");
-				game.setEndpoint(0, 3, 3, 3, "blue");
-				game.setEndpoint(1, 1, 2, 2, "red");
+				game.setEndpoint(0, 0, 3, 0, green);
+				game.setEndpoint(0, 3, 3, 3, blue);
+				game.setEndpoint(1, 1, 2, 2, red);
 				break;
 
 			case 1:
 				// Nivel 2: Medio
 				game = new Game(5);
-				game.setEndpoint(0, 0, 4, 4, "blue");
-				game.setEndpoint(0, 4, 4, 0, "yellow");
-				game.setEndpoint(1, 2, 3, 2, "red");
-				game.setEndpoint(2, 1, 2, 3, "green");
+				game.setEndpoint(0, 0, 4, 4, blue);
+				game.setEndpoint(0, 4, 4, 0, yellow);
+				game.setEndpoint(1, 2, 3, 2, red);
+				game.setEndpoint(2, 1, 2, 3, green);
 				break;
 
 			case 2:
 				// Nivel 3: Difícil
 				game = new Game(6);
-				game.setEndpoint(0, 0, 5, 1, "red");
-				game.setEndpoint(0, 5, 4, 5, "blue");
-				game.setEndpoint(1, 2, 4, 2, "green");
-				game.setEndpoint(2, 3, 5, 4, "yellow");
-				game.setEndpoint(1, 4, 3, 5, "orange");
+				game.setEndpoint(0, 0, 5, 1, red);
+				game.setEndpoint(0, 5, 4, 5, blue);
+				game.setEndpoint(1, 2, 4, 2, green);
+				game.setEndpoint(2, 3, 5, 4, yellow);
+				game.setEndpoint(1, 4, 3, 5, orange);
 				break;
 
 			default:
