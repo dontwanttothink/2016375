@@ -5,16 +5,16 @@ import { Navigator, Page } from "../pages";
 
 type ThemeColor = (p: p5) => p5.Color;
 
-function isDark() {
+function isDark() { // mira si el usuario utiliza el tema oscuro
 	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function randomThemeColor(): ThemeColor {
+function randomThemeColor(): ThemeColor { // Crea un color aleatoriamente
 	const hue = Math.floor(Math.random() * 360);
 	return themeColor(hue);
 }
 
-function themeColor(hue: number): ThemeColor {
+function themeColor(hue: number): ThemeColor { //Les coloca especificaciones al color
 	// Constantes escogidas usando https://oklch.com/ :)
 	const lightness = 0.65;
 	const chroma = 0.212;
@@ -22,7 +22,7 @@ function themeColor(hue: number): ThemeColor {
 	return (p: p5) => p.color(`oklch(${lightness} ${chroma} ${hue})`);
 }
 
-const themeColors = {
+const themeColors = { // Define colores
 	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(105)),
 	subtler: (p: p5) => (isDark() ? p.color(150) : p.color(155)),
 	red: themeColor(0),
@@ -32,7 +32,7 @@ const themeColors = {
 	orange: themeColor(63),
 } satisfies Record<string, ThemeColor>;
 
-interface Rectangle {
+interface Rectangle { //constructor de rectangulo
 	top: number;
 	bottom: number;
 	left: number;
@@ -53,10 +53,11 @@ enum CellType {
 	Endpoint,
 	Path,
 }
+//Sistema de timeline
 let timeline = [];
 let timelineIndex = 0;
 
-//reset
+//reset (No funciona por el momento)
 function resetGame(p: p5) {
 	const game = new Game(5);
 	game.initMatrix();
@@ -69,8 +70,8 @@ function resetGame(p: p5) {
 //clase para representar cada celda del tablero
 class FlowCell {
 	constructor(
-		public readonly type: CellType = CellType.Empty,
-		public readonly color: ThemeColor,
+		public type: CellType = CellType.Empty,
+		public color: ThemeColor,
 	) {}
 
 	draw(p: p5, cellLength: number) {
