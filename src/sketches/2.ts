@@ -99,7 +99,6 @@ class Grid {
 			this.#grid.push(row);
 		}
 	}
-
 	get(row: number, col: number) {
 		return this.#grid[row][col];
 	}
@@ -107,7 +106,36 @@ class Grid {
 	set(row: number, col: number, cell: FlowCell) {
 		this.#grid[row][col] = cell;
 	}
+	getCellFromPosition(
+		x: number,
+		y: number,
+		canvasWidth: number,
+		canvasHeight: number
+	) {
+		const boardSize = Math.min(canvasWidth, canvasHeight) - 10;
 
+		const cellSize = boardSize / this.size;
+
+		const originX = (canvasWidth - boardSize) / 2;
+		const originY = (canvasHeight - boardSize) / 2;
+
+		const localX = x - originX;
+		const localY = y - originY;
+
+		const col = Math.floor(localX / cellSize);
+		const row = Math.floor(localY / cellSize);
+
+		if (
+			row < 0 ||
+			row >= this.size ||
+			col < 0 ||
+			col >= this.size
+		) {
+			return null;
+		}
+
+	return { row, col };
+	}
 	draw(p: p5, container: Rectangle) {
 		p.push();
 		const containerWidth = container.right - container.left;
@@ -146,6 +174,7 @@ class Grid {
 
 //clase para recibir endpoints y manejar la lógica del juego
 class Game {
+	
 	grid: Grid;
 
 	constructor(size: number) {
@@ -175,7 +204,19 @@ class Game {
 		}
 	}
 	// verifica si se puede conectar dos celdas adyacentes
-
+	getCellFromMouse(
+		mouseX: number,
+		mouseY: number,
+		canvasWidth: number,
+		canvasHeight: number,
+	) {
+		return this.grid.getCellFromPosition(
+			mouseX,
+			mouseY,
+			canvasWidth,
+			canvasHeight,
+		);
+	}
 	canConnect(
 		fromRow: number,
 		fromCol: number,
@@ -256,6 +297,18 @@ class GamePage extends Page {
 		p.clear();
 		game.draw(p);
 	}
+	mouseClicked(p: p5) {
+	const target = game.getCellFromMouse(
+		p.mouseX,
+		p.mouseY,
+		p.width,
+		p.height
+	);
+
+	if (!target) return;
+
+	console.log(target.row, target.col);
+}
 }
 
 class WelcomePage extends Page {
@@ -271,7 +324,6 @@ class WelcomePage extends Page {
 }
 
 const navigator = new Navigator(WelcomePage, [GamePage]);
-
 //Niveles arreglados (Esto entendi)
 
 interface EndpointConfig {
