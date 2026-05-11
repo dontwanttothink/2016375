@@ -185,15 +185,15 @@ class Game {
 		if (
 			Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) !== 1 ||
 			toRow < 0 ||
-			toRow >= this.size ||
+			toRow >= this.grid.size ||
 			toCol < 0 ||
-			toCol >= this.size
+			toCol >= this.grid.size
 		) {
 			return false;
 		}
 
-		const targetCell = this.grid[toRow][toCol];
-		const fromCell = this.grid[fromRow][fromCol];
+		const targetCell = this.grid.get(toRow, toCol);
+		const fromCell = this.grid.get(fromRow, fromCol);
 
 		if (
 			targetCell.color === fromCell.color &&
@@ -211,17 +211,15 @@ class Game {
 			timeline.push(this.grid);
 			timelineIndex++;
 
-			const fromCell = this.grid[fromRow][fromCol];
-			const toCell = this.grid[toRow][toCol];
+			const fromCell = this.grid.get(fromRow, fromCol);
 
-			if (toCell.type === CellType.Empty) {
-				toCell.type = CellType.Path;
-				toCell.color = fromCell.color;
+			if (this.grid.get(toRow, toCol).type === CellType.Empty) {
+				this.grid.set(toRow, toCol, new FlowCell(CellType.Path, fromCell.color));
 			}
 
 			if (
-				toCell.type === CellType.Endpoint &&
-				toCell.color === fromCell.color
+				this.grid.get(toRow, toCol).type === CellType.Endpoint &&
+				this.grid.get(toRow, toCol).color === fromCell.color
 			) {
 				//victoria
 			}
@@ -320,6 +318,11 @@ const levels: LevelData[] = [
 		],
 	},
 ];
+
+
+
+
+
 
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
