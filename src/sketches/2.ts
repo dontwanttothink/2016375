@@ -1,6 +1,5 @@
 import p5 from "p5";
 import "p5.quadrille";
-import targetDimensions from "../dimensions";
 import "../displayErrors";
 import { Navigator, Page } from "../pages";
 
@@ -328,15 +327,34 @@ const levelManager = new LevelManager();
  */
 let game = new Game(5);
 
-/**
- * Visual
- *
- * Esta sección se encarga de representar el estado del juego en la pantalla.
- */
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
 	throw new Error();
 }
 
-new p5(navigator.sketch, canvasParent);
+const s = new p5(navigator.sketch, canvasParent);
+if (import.meta.hot) {
+	// HMR
+	//
+	// Durante el desarrollo (y solo durante el desarrollo), este
+	// código se encarga de que la página actual no cambie cuando
+	// Vite decide recargar el proyecto después de un cambio.
+	// Señalar que este módulo acepta HMR
+	import.meta.hot.accept();
+
+	// Restaurar estado
+	const previousPageID = import.meta.hot.data?.currentPageID;
+	if (previousPageID) {
+		try {
+			navigator.overridePage(previousPageID);
+		} catch {}
+	}
+
+	// Guardar el ID de la página actual e invalidar el
+	// bosquejo antiguo
+	import.meta.hot.dispose((data) => {
+		data.currentPageID = navigator.currentPageName;
+		s.remove();
+	});
+}
