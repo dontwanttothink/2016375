@@ -318,6 +318,11 @@ const levels: LevelData[] = [
 	},
 ];
 
+
+
+
+
+
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
