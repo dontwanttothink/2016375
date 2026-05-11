@@ -13,12 +13,23 @@
 }
 
 a {
+	--base-color: light-dark(#2c96bc, #7ebbe9);
+	--base-visited-color: oklch(from var(--base-color) l c calc(h + 20));
 	font-weight: 500;
-	color: light-dark(#646cff, #999eff);
-	text-decoration: inherit;
+	color: var(--base-color);
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-decoration-color: hsl(from currentColor h s l / calc(alpha * 0.6));
 
 	&:hover {
-		color: light-dark(#535bf2, hsl(from #999eff h s calc(l - 5)));
+		color: oklch(from var(--base-color) calc(l - 0.1) c h);
+	}
+
+	&:visited {
+		color: var(--base-visited-color);
+		&:hover {
+			color: oklch(from var(--base-visited-color) calc(l - 0.1) c h);
+		}
 	}
 }
 
