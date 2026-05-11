@@ -76,9 +76,9 @@ class FlowCell {
 
 	draw(p: p5, cellLength: number) {
 		p.push();
-		p.stroke(themeColors.subtler(p));
+		p.noStroke();
 		p.fill(this.color(p));
-		p.circle(0, 0, cellLength - 10);
+		p.circle(0, 0, cellLength * 0.7);
 		p.pop();
 	}
 }
@@ -119,7 +119,7 @@ class Grid {
 		const originY = container.top + (containerHeight - vertexLength) / 2;
 
 		p.noFill();
-		p.stroke(themeColors.foreground(p));
+		p.stroke(themeColors.subtler(p));
 		for (let i = 1; i < this.size; ++i) {
 			const y = originY + cellLength * i;
 			p.line(originX, y, originX + vertexLength, y);
