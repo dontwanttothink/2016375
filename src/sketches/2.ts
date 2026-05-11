@@ -53,8 +53,7 @@ enum CellType {
 	Endpoint,
 	Path,
 }
-let timeline = [];
-let timelineIndex = 0;
+
 
 //reset
 function resetGame(p: p5) {
@@ -71,7 +70,7 @@ class FlowCell {
 	constructor(
 		public readonly type: CellType = CellType.Empty,
 		public readonly color: ThemeColor,
-	) {}
+	) { }
 
 	draw(p: p5, cellLength: number) {
 		p.push();
@@ -85,7 +84,8 @@ class FlowCell {
 class Grid {
 	#grid: FlowCell[][] = [];
 	size: number;
-
+	timeline: FlowCell[][][] = [];
+	timelineIndex = 0;
 	constructor(size: number) {
 		this.size = size;
 		//inicializa la matriz con celdas vacías
@@ -105,6 +105,21 @@ class Grid {
 
 	set(row: number, col: number, cell: FlowCell) {
 		this.#grid[row][col] = cell;
+	}
+
+	saveTimeline(){
+		this.timeline.push(this.#grid.map(row => [...row]))
+		this.timelineIndex++
+	}
+
+	timelinePrev(){
+		this.#grid = this.timeline[this.timelineIndex]
+		if(this.timelineIndex>=0){this.timelineIndex--}
+	}
+
+	timelinePost(){
+		if(this.timelineIndex<this.timeline.length){this.timelineIndex--}
+		this.#grid = this.timeline[this.timelineIndex]
 	}
 
 	draw(p: p5, container: Rectangle) {
@@ -149,6 +164,7 @@ class Game {
 
 	constructor(size: number) {
 		this.grid = new Grid(size);
+		this.grid.saveTimeline();
 	}
 
 	//para añadir los puntos de colores de cada nivel
@@ -207,9 +223,6 @@ class Game {
 
 	moveTo(fromRow: number, fromCol: number, toRow: number, toCol: number) {
 		if (this.canConnect(fromRow, fromCol, toRow, toCol)) {
-			timeline.push(this.grid);
-			timelineIndex++;
-
 			const fromCell = this.grid.get(fromRow, fromCol);
 
 			if (this.grid.get(toRow, toCol).type === CellType.Empty) {
@@ -220,7 +233,7 @@ class Game {
 				this.grid.get(toRow, toCol).type === CellType.Endpoint &&
 				this.grid.get(toRow, toCol).color === fromCell.color
 			) {
-				//victoria
+				this.grid.saveTimeline()
 			}
 		}
 	}
@@ -341,7 +354,7 @@ if (import.meta.hot) {
 	if (previousPageID) {
 		try {
 			navigator.overridePage(previousPageID);
-		} catch {}
+		} catch { }
 	}
 
 	// Guardar el ID de la página actual e invalidar el
