@@ -173,6 +173,7 @@ class Game {
 			this.grid.set(row2, col2, new FlowCell(CellType.Endpoint, color));
 		}
 	}
+	// verifica si se puede conectar dos celdas adyacentes
 
 	canConnect(
 		fromRow: number,
@@ -197,6 +198,7 @@ class Game {
 			targetCell.color === fromCell.color &&
 			targetCell.type === CellType.Endpoint
 		) {
+			// de pronto puede fallar, q opinan?
 			return true;
 		}
 
@@ -241,7 +243,15 @@ class Game {
 
 /**
  * Transiciones
+ *
+ * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
+ * un nuevo nivel cuando el usuario gana.
  */
+/**
+ * Una partida.
+ */
+let game = new Game(5);
+
 class GamePage extends Page {
 	draw(p: p5) {
 		p.clear();
@@ -262,7 +272,6 @@ class WelcomePage extends Page {
 }
 
 const navigator = new Navigator(WelcomePage, [GamePage]);
-
 
 //Niveles arreglados (Esto entendi)
 
@@ -311,11 +320,6 @@ const levels: LevelData[] = [
 	},
 ];
 
-
-
-
-
-
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
@@ -324,9 +328,16 @@ if (!canvasParent) {
 
 const s = new p5(navigator.sketch, canvasParent);
 
+// HMR
+//
+// Durante el desarrollo (y solo durante el desarrollo), este
+// código se encarga de que la página actual no cambie cuando
+// Vite decide recargar el proyecto después de un cambio.
+// Señalar que este módulo acepta HMR
 if (import.meta.hot) {
 	import.meta.hot.accept();
 
+	// Restaurar estado
 	const previousPageID = import.meta.hot.data?.currentPageID;
 
 	if (previousPageID) {
@@ -335,6 +346,8 @@ if (import.meta.hot) {
 		} catch {}
 	}
 
+	// Guardar el ID de la página actual e invalidar el
+	// bosquejo antiguo
 	import.meta.hot.dispose((data) => {
 		data.currentPageID = navigator.currentPageName;
 		s.remove();
