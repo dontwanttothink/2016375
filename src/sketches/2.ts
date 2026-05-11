@@ -173,7 +173,7 @@ class Game {
 			this.grid.set(row2, col2, new FlowCell(CellType.Endpoint, color));
 		}
 	}
-	//verifica si se puede conectar dos celdas adyacentes
+
 	canConnect(
 		fromRow: number,
 		fromCol: number,
@@ -189,15 +189,17 @@ class Game {
 		) {
 			return false;
 		}
+
 		const targetCell = this.grid[toRow][toCol];
 		const fromCell = this.grid[fromRow][fromCol];
+
 		if (
 			targetCell.color === fromCell.color &&
 			targetCell.type === CellType.Endpoint
 		) {
-			//depronto puede fallar, q opinan?
 			return true;
 		}
+
 		return targetCell.type === CellType.Empty;
 	}
 
@@ -205,12 +207,15 @@ class Game {
 		if (this.canConnect(fromRow, fromCol, toRow, toCol)) {
 			timeline.push(this.grid);
 			timelineIndex++;
+
 			const fromCell = this.grid[fromRow][fromCol];
 			const toCell = this.grid[toRow][toCol];
+
 			if (toCell.type === CellType.Empty) {
 				toCell.type = CellType.Path;
 				toCell.color = fromCell.color;
 			}
+
 			if (
 				toCell.type === CellType.Endpoint &&
 				toCell.color === fromCell.color
@@ -236,9 +241,6 @@ class Game {
 
 /**
  * Transiciones
- *
- * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
- * un nuevo nivel cuando el usuario gana.
  */
 class GamePage extends Page {
 	draw(p: p5) {
@@ -260,72 +262,59 @@ class WelcomePage extends Page {
 }
 
 const navigator = new Navigator(WelcomePage, [GamePage]);
-class LevelManager {
-	public currentLevelIndex: number = 0;
-	public isGameComplete: boolean = false;
 
-	public loadLevel(p: p5, levelIndex: number): void {
-		this.currentLevelIndex = levelIndex;
 
-		//Aquí dejamos como nueva la linea del tiempo
-		timeline = [];
-		timelineIndex = 0;
+//Niveles arreglados (Esto entendi)
 
-		const { green, blue, red, orange, yellow } = themeColors;
-
-		switch (levelIndex) {
-			case 0:
-				// Nivel 1: Fácil
-				game = new Game(4);
-				game.setEndpoint(0, 0, 3, 0, green);
-				game.setEndpoint(0, 3, 3, 3, blue);
-				game.setEndpoint(1, 1, 2, 2, red);
-				break;
-
-			case 1:
-				// Nivel 2: Medio
-				game = new Game(5);
-				game.setEndpoint(0, 0, 4, 4, blue);
-				game.setEndpoint(0, 4, 4, 0, yellow);
-				game.setEndpoint(1, 2, 3, 2, red);
-				game.setEndpoint(2, 1, 2, 3, green);
-				break;
-
-			case 2:
-				// Nivel 3: Difícil
-				game = new Game(6);
-				game.setEndpoint(0, 0, 5, 1, red);
-				game.setEndpoint(0, 5, 4, 5, blue);
-				game.setEndpoint(1, 2, 4, 2, green);
-				game.setEndpoint(2, 3, 5, 4, yellow);
-				game.setEndpoint(1, 4, 3, 5, orange);
-				break;
-
-			default:
-				this.isGameComplete = true;
-				break;
-		}
-
-		if (!this.isGameComplete) {
-			// timeline.push(game.grid);
-		}
-	}
-
-	public nextLevel(): void {
-		this.loadLevel(this.currentLevelIndex + 1);
-	}
-
-	public restartLevel(): void {
-		this.loadLevel(this.currentLevelIndex);
-	}
+interface EndpointConfig {
+	row: number;
+	col: number;
+	row2: number;
+	col2: number;
+	color: ThemeColor;
 }
 
-const levelManager = new LevelManager();
+interface LevelData {
+	size: number;
+	endpoints: EndpointConfig[];
+}
 
-/**
- * Una partida.
- */
-let game = new Game(5);
+const levels: LevelData[] = [
+	{
+		size: 4,
+		endpoints: [
+			{ row: 0, col: 0, row2: 3, col2: 0, color: themeColors.green },
+			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.blue },
+			{ row: 1, col: 1, row2: 2, col2: 2, color: themeColors.red },
+		],
+	},
+
+	{
+		size: 5,
+		endpoints: [
+			{ row: 0, col: 0, row2: 4, col2: 4, color: themeColors.blue },
+			{ row: 0, col: 4, row2: 4, col2: 0, color: themeColors.yellow },
+			{ row: 1, col: 2, row2: 3, col2: 2, color: themeColors.red },
+			{ row: 2, col: 1, row2: 2, col2: 3, color: themeColors.green },
+		],
+	},
+
+	{
+		size: 6,
+		endpoints: [
+			{ row: 0, col: 0, row2: 5, col2: 1, color: themeColors.red },
+			{ row: 0, col: 5, row2: 4, col2: 5, color: themeColors.blue },
+			{ row: 1, col: 2, row2: 4, col2: 2, color: themeColors.green },
+			{ row: 2, col: 3, row2: 5, col2: 4, color: themeColors.yellow },
+			{ row: 1, col: 4, row2: 3, col2: 5, color: themeColors.orange },
+		],
+	},
+];
+
+
+
+
+
 
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
@@ -334,25 +323,18 @@ if (!canvasParent) {
 }
 
 const s = new p5(navigator.sketch, canvasParent);
+
 if (import.meta.hot) {
-	// HMR
-	//
-	// Durante el desarrollo (y solo durante el desarrollo), este
-	// código se encarga de que la página actual no cambie cuando
-	// Vite decide recargar el proyecto después de un cambio.
-	// Señalar que este módulo acepta HMR
 	import.meta.hot.accept();
 
-	// Restaurar estado
 	const previousPageID = import.meta.hot.data?.currentPageID;
+
 	if (previousPageID) {
 		try {
 			navigator.overridePage(previousPageID);
 		} catch {}
 	}
 
-	// Guardar el ID de la página actual e invalidar el
-	// bosquejo antiguo
 	import.meta.hot.dispose((data) => {
 		data.currentPageID = navigator.currentPageName;
 		s.remove();
