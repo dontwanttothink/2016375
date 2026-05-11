@@ -5,16 +5,16 @@ import { Navigator, Page } from "../pages";
 
 type ThemeColor = (p: p5) => p5.Color;
 
-function isDark() {
+function isDark() { // mira si el usuario utiliza el tema oscuro
 	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function randomThemeColor(): ThemeColor {
+function randomThemeColor(): ThemeColor { // Crea un color aleatoriamente
 	const hue = Math.floor(Math.random() * 360);
 	return themeColor(hue);
 }
 
-function themeColor(hue: number): ThemeColor {
+function themeColor(hue: number): ThemeColor { //Les coloca especificaciones al color
 	// Constantes escogidas usando https://oklch.com/ :)
 	const lightness = 0.65;
 	const chroma = 0.212;
@@ -22,7 +22,7 @@ function themeColor(hue: number): ThemeColor {
 	return (p: p5) => p.color(`oklch(${lightness} ${chroma} ${hue})`);
 }
 
-const themeColors = {
+const themeColors = { // Define colores
 	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(105)),
 	subtler: (p: p5) => (isDark() ? p.color(150) : p.color(155)),
 	red: themeColor(0),
@@ -32,7 +32,7 @@ const themeColors = {
 	orange: themeColor(63),
 } satisfies Record<string, ThemeColor>;
 
-interface Rectangle {
+interface Rectangle { //constructor de rectangulo
 	top: number;
 	bottom: number;
 	left: number;
@@ -55,7 +55,7 @@ enum CellType {
 }
 
 
-//reset
+//reset (No funciona por el momento)
 function resetGame(p: p5) {
 	const game = new Game(5);
 	game.initMatrix();
@@ -98,7 +98,6 @@ class Grid {
 			this.#grid.push(row);
 		}
 	}
-
 	get(row: number, col: number) {
 		return this.#grid[row][col];
 	}
@@ -160,6 +159,7 @@ class Grid {
 
 //clase para recibir endpoints y manejar la lógica del juego
 class Game {
+	
 	grid: Grid;
 
 	constructor(size: number) {
@@ -190,7 +190,19 @@ class Game {
 		}
 	}
 	// verifica si se puede conectar dos celdas adyacentes
-
+	getCellFromMouse(
+		mouseX: number,
+		mouseY: number,
+		canvasWidth: number,
+		canvasHeight: number,
+	) {
+		return this.grid.getCellFromPosition(
+			mouseX,
+			mouseY,
+			canvasWidth,
+			canvasHeight,
+		);
+	}
 	canConnect(
 		fromRow: number,
 		fromCol: number,
@@ -268,6 +280,18 @@ class GamePage extends Page {
 		p.clear();
 		game.draw(p);
 	}
+	mouseClicked(p: p5) {
+	const target = game.getCellFromMouse(
+		p.mouseX,
+		p.mouseY,
+		p.width,
+		p.height
+	);
+
+	if (!target) return;
+
+	console.log(target.row, target.col);
+}
 }
 
 class WelcomePage extends Page {
@@ -283,7 +307,6 @@ class WelcomePage extends Page {
 }
 
 const navigator = new Navigator(WelcomePage, [GamePage]);
-
 //Niveles arreglados (Esto entendi)
 
 interface EndpointConfig {
@@ -330,6 +353,11 @@ const levels: LevelData[] = [
 		],
 	},
 ];
+
+
+
+
+
 
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
