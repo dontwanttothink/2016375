@@ -122,8 +122,8 @@ class Grid {
 	timelinePost() {
 		if (this.timelineIndex+1 < this.timeline.length) {
 			this.timelineIndex++;
+			this.#grid = this.timeline[this.timelineIndex];
 		}
-		this.#grid = this.timeline[this.timelineIndex];
 	}
 
 	properties(container: Rectangle) {
