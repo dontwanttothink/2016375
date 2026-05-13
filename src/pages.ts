@@ -60,7 +60,10 @@ export abstract class Page<TArgs extends PageArgs = undefined> {
 	receive(_args: TArgs) {}
 	setup(_p: p5): void {}
 
-	mouseClicked(_p: p5) {}
+	mouseClicked(_p: p5, _event: MouseEvent) {}
+	mousePressed(_p: p5, _event: MouseEvent) {}
+	mouseReleased(_p: p5, _event: MouseEvent) {}
+	mouseDragged(_p: p5, _event: MouseEvent) {}
 	keyPressed(_p: p5) {}
 }
 
@@ -170,8 +173,36 @@ export class Navigator {
 				p.resizeCanvas(width, height);
 			};
 
-			p.mouseClicked = (_event) => {
-				this.#currentPage.mouseClicked(p);
+			p.mouseClicked = (event) => {
+				if (!event) {
+					// nunca debería pasar
+					throw new ReferenceError();
+				}
+				this.#currentPage.mouseClicked(p, event);
+			};
+
+			p.mouseDragged = (event) => {
+				if (!event) {
+					// nunca debería pasar
+					throw new ReferenceError();
+				}
+				this.#currentPage.mouseDragged(p, event);
+			};
+
+			p.mouseReleased = (event) => {
+				if (!event) {
+					// nunca debería pasar
+					throw new ReferenceError();
+				}
+				this.#currentPage.mouseReleased(p, event);
+			};
+
+			p.mousePressed = (event) => {
+				if (!event) {
+					// nunca debería pasar
+					throw new ReferenceError();
+				}
+				this.#currentPage.mousePressed(p, event);
 			};
 		};
 	}

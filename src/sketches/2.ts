@@ -60,12 +60,7 @@ enum CellType {
 }
 
 //reset (No funciona por el momento)
-function resetGame(p: p5) {
-	const game = new Game(5);
-	Grid.initMatrix();
-	const winner = undefined;
-	p.loop();
-}
+function resetGame(p: p5) {}
 
 //clase para representar cada celda del tablero
 class FlowCell {
@@ -112,6 +107,7 @@ class Grid {
 	}
 
 	saveTimeline() {
+		this.timeline.splice(this.timelineIndex)
 		this.timeline.push(this.#grid.map((row) => [...row]));
 		this.timelineIndex++;
 	}
@@ -429,6 +425,8 @@ const levels: LevelData[] = [
 			{ row: 1, col: 4, row2: 3, col2: 5, color: themeColors.orange },
 		],
 	},
+
+	
 ];
 
 // Inicializar el bosquejo p5
