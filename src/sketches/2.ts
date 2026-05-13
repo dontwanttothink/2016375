@@ -126,7 +126,7 @@ class Grid {
 		this.#grid = this.timeline[this.timelineIndex];
 	}
 
-	properties(p: p5) {
+	properties(container: Rectangle) {
 		const containerWidth = container.right - container.left;
 		const containerHeight = container.bottom - container.top;
 
@@ -136,6 +136,22 @@ class Grid {
 		const originY = container.top + (containerHeight - vertexLength) / 2;
 
 		return { vertexLength, cellLength, originX, originY };
+	}
+
+	getCellFromPosition(x: number, y: number, container: Rectangle) {
+		const { originX, originY, cellLength } = this.properties(container);
+
+		const localX = x - originX;
+		const localY = y - originY;
+
+		const col = Math.floor(localX / cellLength);
+		const row = Math.floor(localY / cellLength);
+
+		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
+			return null;
+		}
+
+		return { row, col };
 	}
 
 	draw(p: p5, container: Rectangle) {
@@ -166,21 +182,6 @@ class Grid {
 			}
 		}
 		p.pop();
-	}
-	getCellFromPosition(x: number, y: number, container: Rectangle) {
-		const { originX, originY, cellLength } = this.properties(container);
-
-		const localX = x - originX;
-		const localY = y - originY;
-
-		const col = Math.floor(localX / cellLength);
-		const row = Math.floor(localY / cellLength);
-
-		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
-			return null;
-		}
-
-		return { row, col };
 	}
 }
 
@@ -301,43 +302,29 @@ let game = new Game(5);
 
 class GamePage extends Page {
 	isDragging = false;
-	lastCell: FlowCell | null = null;
-	row1 = 0;
-	col1 = 0;
-	row2 = 0;
-	col2 = 0;
+	lastPosition: [number, number] | null = null;
 	draw(p: p5) {
 		p.clear();
 		game.draw(p);
 	}
+	setup(p: p5) {
+		game.setEndpoint(0, 0, 4, 4, randomThemeColor());
+	}
 
-	mousePressed(p: p5) {
+	mouseDragged(p: p5) {
 		const target = game.getCellFromMouse(p);
 		if (!target) return;
-		const { row, col } = target;
-		this.isDragging = true;
-		this.row1 = row;
-		this.col1 = col;
-	}
-	mouseReleased(p: p5) {
-		const target = game.getCellFromMouse(p);
-		if (!target) return;
-		const { row, col } = target;
-		this.isDragging = false;
-		this.row2 = row;
-		this.col2 = col;
-	}
-	mouseMoved(p: p5) {
-		if (this.isDragging) {
-			const target = game.getCellFromMouse(p);
-			if (!target) return;
+
+		if (this.lastPosition) {
 			const { row, col } = target;
-			const cell = game.getGrid().get(row, col);
-			if (cell !== this.lastCell) {
-				game.moveTo(this.row1, this.col1, this.row2, this.col2);
-				this.lastCell = cell;
+
+			const [lastRow, lastCol] = this.lastPosition;
+
+			if (lastRow !== row || lastCol !== col) {
+				game.moveTo(lastRow, lastCol, row, col);
 			}
 		}
+		this.lastPosition = [target.row, target.col];
 	}
 }
 
@@ -373,6 +360,25 @@ const levels: LevelData[] = [
 	{
 		size: 4,
 		endpoints: [
+			{ row: 0, col: 0, row2: 3, col2: 3, color: themeColors.green },
+			{ row: 1, col: 1, row2: 0, col2: 3, color: themeColors.blue },
+			{ row: 0, col: 1, row2: 1, col2: 2, color: themeColors.red },
+		],
+	},
+
+	{
+		size: 4,
+		endpoints: [
+			{ row: 0, col: 0, row2: 2, col2: 1, color: themeColors.green },
+			{ row: 1, col: 0, row2: 3, col2: 2, color: themeColors.blue },
+			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.red },
+			{ row: 0, col: 2, row2: 2, col2: 2, color: themeColors.yellow },
+		],
+	},
+
+	{
+		size: 4,
+		endpoints: [
 			{ row: 0, col: 0, row2: 3, col2: 0, color: themeColors.green },
 			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.blue },
 			{ row: 1, col: 1, row2: 2, col2: 2, color: themeColors.red },
@@ -382,20 +388,20 @@ const levels: LevelData[] = [
 	{
 		size: 5,
 		endpoints: [
-			{ row: 0, col: 0, row2: 4, col2: 4, color: themeColors.blue },
-			{ row: 0, col: 4, row2: 4, col2: 0, color: themeColors.yellow },
-			{ row: 1, col: 2, row2: 3, col2: 2, color: themeColors.red },
-			{ row: 2, col: 1, row2: 2, col2: 3, color: themeColors.green },
+			{ row: 0, col: 0, row2: 3, col2: 1, color: themeColors.blue },
+			{ row: 0, col: 4, row2: 4, col2: 4, color: themeColors.yellow },
+			{ row: 1, col: 0, row2: 4, col2: 3, color: themeColors.red },
+			{ row: 1, col: 3, row2: 1, col2: 4, color: themeColors.green },
 		],
 	},
 
 	{
 		size: 6,
 		endpoints: [
-			{ row: 0, col: 0, row2: 5, col2: 1, color: themeColors.red },
-			{ row: 0, col: 5, row2: 4, col2: 5, color: themeColors.blue },
-			{ row: 1, col: 2, row2: 4, col2: 2, color: themeColors.green },
-			{ row: 2, col: 3, row2: 5, col2: 4, color: themeColors.yellow },
+			{ row: 0, col: 0, row2: 5, col2: 2, color: themeColors.red },
+			{ row: 0, col: 5, row2: 5, col2: 5, color: themeColors.blue },
+			{ row: 0, col: 1, row2: 4, col2: 2, color: themeColors.green },
+			{ row: 1, col: 3, row2: 4, col2: 5, color: themeColors.yellow },
 			{ row: 1, col: 4, row2: 3, col2: 5, color: themeColors.orange },
 		],
 	},
