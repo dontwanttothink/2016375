@@ -432,6 +432,18 @@ const levels: LevelData[] = [
 			{ row: 2, col: 3, row2: 4, col2: 4, color: themeColors.orange },
 		],
 	},
+
+	{
+		size: 6,
+		endpoints: [
+			{ row: 0, col: 2, row2: 4, col2: 1, color: themeColors.red },
+			{ row: 1, col: 1, row2: 4, col2: 3, color: themeColors.blue },
+			{ row: 1, col: 2, row2: 3, col2: 3, color: themeColors.green },
+			{ row: 5, col: 2, row2: 5, col2: 5, color: themeColors.yellow },
+			{ row: 2, col: 4, row2: 1, col2: 5, color: themeColors.orange },
+			{ row: 3, col: 4, row2: 2, col2: 5, color: themeColors.blue },
+		],
+	},
 ];
 
 // Inicializar el bosquejo p5
