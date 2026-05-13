@@ -183,6 +183,10 @@ class Grid {
 		}
 		p.pop();
 	}
+
+	static direccion(): CellType{
+
+	}
 }
 
 //clase para recibir endpoints y manejar la lógica del juego
@@ -226,18 +230,18 @@ class Game {
 		toRow: number,
 		toCol: number,
 	): boolean {
+	const targetCell = this.grid.get(toRow, toCol);
+	const fromCell = this.grid.get(fromRow, fromCol);
 		if (
 			Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) !== 1 ||
 			toRow < 0 ||
 			toRow >= this.grid.size ||
 			toCol < 0 ||
-			toCol >= this.grid.size
+			toCol >= this.grid.size||
+			fromCell.type != CellType.Empty
 		) {
 			return false;
 		}
-
-		const targetCell = this.grid.get(toRow, toCol);
-		const fromCell = this.grid.get(fromRow, fromCol);
 
 		if (
 			targetCell.color === fromCell.color &&
