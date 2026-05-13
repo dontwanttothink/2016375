@@ -60,12 +60,7 @@ enum CellType {
 }
 
 //reset (No funciona por el momento)
-function resetGame(p: p5) {
-	const game = new Game(5);
-	Grid.initMatrix();
-	const winner = undefined;
-	p.loop();
-}
+function resetGame(p: p5) {}
 
 //clase para representar cada celda del tablero
 class FlowCell {
