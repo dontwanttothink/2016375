@@ -319,24 +319,7 @@ class GamePage extends Page {
 		p.clear();
 		game.draw(p);
 	}
-	mouseClicked(p: p5) {
-		const target = game.getCellFromMouse(p.mouseX, p.mouseY, p.width, p.height);
 
-		if (!target) return;
-
-		const { row, col } = target;
-		const cell = game.getGrid().get(row, col);
-
-		if (cell.type === CellType.Empty) {
-			// Empty a Path
-			game.getGrid().set(row, col, new FlowCell(CellType.Path, cell.color));
-		} else if (cell.type === CellType.Path) {
-			// Path a Empty
-			game.getGrid().set(row, col, new FlowCell(CellType.Empty, cell.color));
-		}
-
-		p.redraw(); // Redibujar tras el cambio
-	}
 	mousePressed(p : p5) {
 		const target = game.getCellFromMouse(p.mouseX, p.mouseY, p.width, p.height);
 			if (!target) return;
