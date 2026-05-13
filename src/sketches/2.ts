@@ -396,6 +396,8 @@ const levels: LevelData[] = [
 			{ row: 1, col: 4, row2: 3, col2: 5, color: themeColors.orange },
 		],
 	},
+
+	
 ];
 
 // Inicializar el bosquejo p5
