@@ -389,7 +389,6 @@ const levels: LevelData[] = [
 		],
 	},
 
-	
 
 	{
 		size: 5,
