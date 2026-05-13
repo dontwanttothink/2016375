@@ -107,14 +107,14 @@ class Grid {
 	}
 
 	saveTimeline() {
-		this.timeline.splice(this.timelineIndex);
+		this.timeline.slice(this.timelineIndex+1);
 		this.timeline.push(this.#grid.map((row) => [...row]));
 		this.timelineIndex++;
 	}
 
 	timelinePrev() {
-		this.#grid = this.timeline[this.timelineIndex];
-		if (this.timelineIndex >= 0) {
+		this.#grid = this.timeline[this.timelineIndex>0?this.timelineIndex-1:this.timelineIndex];
+		if (this.timelineIndex > 0) {
 			this.timelineIndex--;
 		}
 	}
@@ -136,6 +136,22 @@ class Grid {
 		const originY = container.top + (containerHeight - vertexLength) / 2;
 
 		return { vertexLength, cellLength, originX, originY };
+	}
+
+	getCellFromPosition(x: number, y: number, container: Rectangle) {
+		const { originX, originY, cellLength } = this.properties(container);
+
+		const localX = x - originX;
+		const localY = y - originY;
+
+		const col = Math.floor(localX / cellLength);
+		const row = Math.floor(localY / cellLength);
+
+		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
+			return null;
+		}
+
+		return { row, col };
 	}
 
 	draw(p: p5, container: Rectangle) {
@@ -167,20 +183,9 @@ class Grid {
 		}
 		p.pop();
 	}
-	getCellFromPosition(x: number, y: number, container: Rectangle) {
-		const { originX, originY, cellLength } = this.properties(container);
 
-		const localX = x - originX;
-		const localY = y - originY;
+	static direccion(): CellType{
 
-		const col = Math.floor(localX / cellLength);
-		const row = Math.floor(localY / cellLength);
-
-		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
-			return null;
-		}
-
-		return { row, col };
 	}
 }
 class Button {
@@ -347,18 +352,18 @@ class Game {
 		toRow: number,
 		toCol: number,
 	): boolean {
+	const targetCell = this.grid.get(toRow, toCol);
+	const fromCell = this.grid.get(fromRow, fromCol);
 		if (
 			Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) !== 1 ||
 			toRow < 0 ||
 			toRow >= this.grid.size ||
 			toCol < 0 ||
-			toCol >= this.grid.size
+			toCol >= this.grid.size||
+			fromCell.type != CellType.Empty
 		) {
 			return false;
 		}
-
-		const targetCell = this.grid.get(toRow, toCol);
-		const fromCell = this.grid.get(fromRow, fromCol);
 
 		if (
 			targetCell.color === fromCell.color &&
@@ -498,30 +503,83 @@ const levels: LevelData[] = [
 	{
 		size: 4,
 		endpoints: [
-			{ row: 0, col: 0, row2: 3, col2: 0, color: themeColors.green },
-			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.blue },
-			{ row: 1, col: 1, row2: 2, col2: 2, color: themeColors.red },
+			{ row: 0, col: 0, row2: 3, col2: 3, color: themeColors.green },
+			{ row: 1, col: 1, row2: 0, col2: 3, color: themeColors.blue },
+			{ row: 0, col: 1, row2: 1, col2: 2, color: themeColors.red },
+		],
+	},
+
+	{
+		size: 4,
+		endpoints: [
+			{ row: 0, col: 0, row2: 2, col2: 1, color: themeColors.green },
+			{ row: 1, col: 0, row2: 3, col2: 2, color: themeColors.blue },
+			{ row: 1, col: 3, row2: 3, col2: 3, color: themeColors.red },
+		],
+	},
+
+	{
+		size: 4,
+		endpoints: [
+			{ row: 0, col: 0, row2: 2, col2: 1, color: themeColors.green },
+			{ row: 1, col: 0, row2: 3, col2: 2, color: themeColors.blue },
+			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.red },
+			{ row: 0, col: 2, row2: 2, col2: 2, color: themeColors.yellow },
+		],
+	},
+
+
+	{
+		size: 5,
+		endpoints: [
+			{ row: 0, col: 0, row2: 3, col2: 1, color: themeColors.blue },
+			{ row: 0, col: 4, row2: 4, col2: 4, color: themeColors.yellow },
+			{ row: 1, col: 0, row2: 4, col2: 3, color: themeColors.red },
+			{ row: 1, col: 3, row2: 1, col2: 4, color: themeColors.green },
 		],
 	},
 
 	{
 		size: 5,
 		endpoints: [
-			{ row: 0, col: 0, row2: 4, col2: 4, color: themeColors.blue },
-			{ row: 0, col: 4, row2: 4, col2: 0, color: themeColors.yellow },
-			{ row: 1, col: 2, row2: 3, col2: 2, color: themeColors.red },
-			{ row: 2, col: 1, row2: 2, col2: 3, color: themeColors.green },
+			{ row: 0, col: 1, row2: 4, col2: 4, color: themeColors.blue },
+			{ row: 1, col: 1, row2: 2, col2: 3, color: themeColors.yellow },
+			{ row: 2, col: 1, row2: 1, col2: 4, color: themeColors.red },
+			{ row: 0, col: 2, row2: 0, col2: 4, color: themeColors.green },
 		],
 	},
 
 	{
 		size: 6,
 		endpoints: [
-			{ row: 0, col: 0, row2: 5, col2: 1, color: themeColors.red },
-			{ row: 0, col: 5, row2: 4, col2: 5, color: themeColors.blue },
-			{ row: 1, col: 2, row2: 4, col2: 2, color: themeColors.green },
-			{ row: 2, col: 3, row2: 5, col2: 4, color: themeColors.yellow },
+			{ row: 0, col: 0, row2: 5, col2: 2, color: themeColors.red },
+			{ row: 0, col: 5, row2: 5, col2: 5, color: themeColors.blue },
+			{ row: 0, col: 1, row2: 4, col2: 2, color: themeColors.green },
+			{ row: 1, col: 3, row2: 4, col2: 5, color: themeColors.yellow },
 			{ row: 1, col: 4, row2: 3, col2: 5, color: themeColors.orange },
+		],
+	},
+
+	{
+		size: 6,
+		endpoints: [
+			{ row: 0, col: 0, row2: 4, col2: 3, color: themeColors.red },
+			{ row: 0, col: 5, row2: 5, col2: 2, color: themeColors.blue },
+			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.green },
+			{ row: 0, col: 4, row2: 2, col2: 2, color: themeColors.yellow },
+			{ row: 2, col: 3, row2: 4, col2: 4, color: themeColors.orange },
+		],
+	},
+
+	{
+		size: 6,
+		endpoints: [
+			{ row: 0, col: 2, row2: 4, col2: 1, color: themeColors.red },
+			{ row: 1, col: 1, row2: 4, col2: 3, color: themeColors.blue },
+			{ row: 1, col: 2, row2: 3, col2: 3, color: themeColors.green },
+			{ row: 5, col: 2, row2: 5, col2: 5, color: themeColors.yellow },
+			{ row: 2, col: 4, row2: 1, col2: 5, color: themeColors.orange },
+			{ row: 3, col: 4, row2: 2, col2: 5, color: themeColors.blue },
 		],
 	},
 ];
