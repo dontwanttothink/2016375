@@ -5,16 +5,19 @@ import { Navigator, Page } from "../pages";
 
 type ThemeColor = (p: p5) => p5.Color;
 
-function isDark() { // mira si el usuario utiliza el tema oscuro
+function isDark() {
+	// mira si el usuario utiliza el tema oscuro
 	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-function randomThemeColor(): ThemeColor { // Crea un color aleatoriamente
+function randomThemeColor(): ThemeColor {
+	// Crea un color aleatoriamente
 	const hue = Math.floor(Math.random() * 360);
 	return themeColor(hue);
 }
 
-function themeColor(hue: number): ThemeColor { //Les coloca especificaciones al color
+function themeColor(hue: number): ThemeColor {
+	//Les coloca especificaciones al color
 	// Constantes escogidas usando https://oklch.com/ :)
 	const lightness = 0.65;
 	const chroma = 0.212;
@@ -22,7 +25,8 @@ function themeColor(hue: number): ThemeColor { //Les coloca especificaciones al 
 	return (p: p5) => p.color(`oklch(${lightness} ${chroma} ${hue})`);
 }
 
-const themeColors = { // Define colores
+const themeColors = {
+	// Define colores
 	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(105)),
 	subtler: (p: p5) => (isDark() ? p.color(150) : p.color(155)),
 	red: themeColor(0),
@@ -32,7 +36,8 @@ const themeColors = { // Define colores
 	orange: themeColor(63),
 } satisfies Record<string, ThemeColor>;
 
-interface Rectangle { //constructor de rectangulo
+interface Rectangle {
+	//constructor de rectangulo
 	top: number;
 	bottom: number;
 	left: number;
@@ -54,7 +59,6 @@ enum CellType {
 	Path,
 }
 
-
 //reset (No funciona por el momento)
 function resetGame(p: p5) {
 	const game = new Game(5);
@@ -68,9 +72,12 @@ class FlowCell {
 	constructor(
 		public readonly type: CellType = CellType.Empty,
 		public readonly color: ThemeColor,
-	) { }
+	) {}
 
 	draw(p: p5, cellLength: number) {
+		if (this.type === CellType.Empty) {
+			return;
+		}
 		p.push();
 		p.noStroke();
 		p.fill(this.color(p));
@@ -105,18 +112,22 @@ class Grid {
 	}
 
 	saveTimeline() {
-		this.timeline.push(this.#grid.map(row => [...row]))
-		this.timelineIndex++
+		this.timeline.push(this.#grid.map((row) => [...row]));
+		this.timelineIndex++;
 	}
 
 	timelinePrev() {
-		this.#grid = this.timeline[this.timelineIndex]
-		if (this.timelineIndex >= 0) { this.timelineIndex-- }
+		this.#grid = this.timeline[this.timelineIndex];
+		if (this.timelineIndex >= 0) {
+			this.timelineIndex--;
+		}
 	}
 
 	timelinePost() {
-		if (this.timelineIndex < this.timeline.length) { this.timelineIndex-- }
-		this.#grid = this.timeline[this.timelineIndex]
+		if (this.timelineIndex < this.timeline.length) {
+			this.timelineIndex--;
+		}
+		this.#grid = this.timeline[this.timelineIndex];
 	}
 
 	draw(p: p5, container: Rectangle) {
@@ -157,7 +168,7 @@ class Grid {
 		x: number,
 		y: number,
 		canvasWidth: number,
-		canvasHeight: number
+		canvasHeight: number,
 	) {
 		const boardSize = Math.min(canvasWidth, canvasHeight) - 10;
 
@@ -172,12 +183,7 @@ class Grid {
 		const col = Math.floor(localX / cellSize);
 		const row = Math.floor(localY / cellSize);
 
-		if (
-			row < 0 ||
-			row >= this.size ||
-			col < 0 ||
-			col >= this.size
-		) {
+		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
 			return null;
 		}
 
@@ -187,7 +193,6 @@ class Grid {
 
 //clase para recibir endpoints y manejar la lógica del juego
 class Game {
-
 	grid: Grid;
 
 	constructor(size: number) {
@@ -266,14 +271,18 @@ class Game {
 			const fromCell = this.grid.get(fromRow, fromCol);
 
 			if (this.grid.get(toRow, toCol).type === CellType.Empty) {
-				this.grid.set(toRow, toCol, new FlowCell(CellType.Path, fromCell.color));
+				this.grid.set(
+					toRow,
+					toCol,
+					new FlowCell(CellType.Path, fromCell.color),
+				);
 			}
 
 			if (
 				this.grid.get(toRow, toCol).type === CellType.Endpoint &&
 				this.grid.get(toRow, toCol).color === fromCell.color
 			) {
-				this.grid.saveTimeline()
+				this.grid.saveTimeline();
 			}
 		}
 	}
@@ -309,12 +318,7 @@ class GamePage extends Page {
 		game.draw(p);
 	}
 	mouseClicked(p: p5) {
-		const target = game.getCellFromMouse(
-			p.mouseX,
-			p.mouseY,
-			p.width,
-			p.height,
-		);
+		const target = game.getCellFromMouse(p.mouseX, p.mouseY, p.width, p.height);
 
 		if (!target) return;
 
@@ -393,11 +397,6 @@ const levels: LevelData[] = [
 	},
 ];
 
-
-
-
-
-
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
@@ -421,7 +420,7 @@ if (import.meta.hot) {
 	if (previousPageID) {
 		try {
 			navigator.overridePage(previousPageID);
-		} catch { }
+		} catch {}
 	}
 
 	// Guardar el ID de la página actual e invalidar el
