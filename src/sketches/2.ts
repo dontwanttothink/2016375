@@ -106,18 +106,18 @@ class Grid {
 		this.#grid[row][col] = cell;
 	}
 
-	saveTimeline(){
+	saveTimeline() {
 		this.timeline.push(this.#grid.map(row => [...row]))
 		this.timelineIndex++
 	}
 
-	timelinePrev(){
+	timelinePrev() {
 		this.#grid = this.timeline[this.timelineIndex]
-		if(this.timelineIndex>=0){this.timelineIndex--}
+		if (this.timelineIndex >= 0) { this.timelineIndex-- }
 	}
 
-	timelinePost(){
-		if(this.timelineIndex<this.timeline.length){this.timelineIndex--}
+	timelinePost() {
+		if (this.timelineIndex < this.timeline.length) { this.timelineIndex-- }
 		this.#grid = this.timeline[this.timelineIndex]
 	}
 
@@ -155,11 +155,41 @@ class Grid {
 		}
 		p.pop();
 	}
+	getCellFromPosition(
+		x: number,
+		y: number,
+		canvasWidth: number,
+		canvasHeight: number
+	) {
+		const boardSize = Math.min(canvasWidth, canvasHeight) - 10;
+
+		const cellSize = boardSize / this.size;
+
+		const originX = (canvasWidth - boardSize) / 2;
+		const originY = (canvasHeight - boardSize) / 2;
+
+		const localX = x - originX;
+		const localY = y - originY;
+
+		const col = Math.floor(localX / cellSize);
+		const row = Math.floor(localY / cellSize);
+
+		if (
+			row < 0 ||
+			row >= this.size ||
+			col < 0 ||
+			col >= this.size
+		) {
+			return null;
+		}
+
+		return { row, col };
+	}
 }
 
 //clase para recibir endpoints y manejar la lógica del juego
 class Game {
-	
+
 	grid: Grid;
 
 	constructor(size: number) {
@@ -281,17 +311,28 @@ class GamePage extends Page {
 		game.draw(p);
 	}
 	mouseClicked(p: p5) {
-	const target = game.getCellFromMouse(
-		p.mouseX,
-		p.mouseY,
-		p.width,
-		p.height
-	);
+		const target = game.getCellFromMouse(
+			p.mouseX,
+			p.mouseY,
+			p.width,
+			p.height,
+		);
 
-	if (!target) return;
+		if (!target) return;
 
-	console.log(target.row, target.col);
-}
+		const { row, col } = target;
+		const cell = game.getGrid().get(row, col);
+
+		if (cell.type === CellType.Empty) {
+			// Empty a Path
+			game.getGrid().set(row, col, new FlowCell(CellType.Path, cell.color));
+		} else if (cell.type === CellType.Path) {
+			// Path a Empty
+			game.getGrid().set(row, col, new FlowCell(CellType.Empty, cell.color));
+		}
+
+		p.redraw(); // Redibujar tras el cambio
+	}
 }
 
 class WelcomePage extends Page {
