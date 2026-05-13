@@ -58,9 +58,7 @@ enum CellType {
 //reset (No funciona por el momento)
 function resetGame(p: p5) {
 	const game = new Game(5);
-	game.initMatrix();
-	timeline = [Grid.g];
-	timelineIndex = 0;
+	Grid.initMatrix();
 	const winner = undefined;
 	p.loop();
 }
