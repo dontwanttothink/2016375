@@ -112,6 +112,7 @@ class Grid {
 	}
 
 	saveTimeline() {
+		this.timeline.splice(this.timelineIndex)
 		this.timeline.push(this.#grid.map((row) => [...row]));
 		this.timelineIndex++;
 	}
