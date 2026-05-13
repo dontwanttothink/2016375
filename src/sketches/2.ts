@@ -107,7 +107,7 @@ class Grid {
 	}
 
 	saveTimeline() {
-		this.timeline.splice(this.timelineIndex)
+		this.timeline.splice(this.timelineIndex);
 		this.timeline.push(this.#grid.map((row) => [...row]));
 		this.timelineIndex++;
 	}
@@ -126,8 +126,7 @@ class Grid {
 		this.#grid = this.timeline[this.timelineIndex];
 	}
 
-	draw(p: p5, container: Rectangle) {
-		p.push();
+	properties(p: p5) {
 		const containerWidth = container.right - container.left;
 		const containerHeight = container.bottom - container.top;
 
@@ -135,6 +134,14 @@ class Grid {
 		const cellLength = vertexLength / this.size;
 		const originX = container.left + (containerWidth - vertexLength) / 2;
 		const originY = container.top + (containerHeight - vertexLength) / 2;
+
+		return { vertexLength, cellLength, originX, originY };
+	}
+
+	draw(p: p5, container: Rectangle) {
+		p.push();
+		const { vertexLength, cellLength, originX, originY } =
+			this.properties(container);
 
 		p.noFill();
 		p.stroke(themeColors.subtler(p));
@@ -160,24 +167,14 @@ class Grid {
 		}
 		p.pop();
 	}
-	getCellFromPosition(
-		x: number,
-		y: number,
-		canvasWidth: number,
-		canvasHeight: number,
-	) {
-		const boardSize = Math.min(canvasWidth, canvasHeight) - 10;
-
-		const cellSize = boardSize / this.size;
-
-		const originX = (canvasWidth - boardSize) / 2;
-		const originY = (canvasHeight - boardSize) / 2;
+	getCellFromPosition(x: number, y: number, container: Rectangle) {
+		const { originX, originY, cellLength } = this.properties(container);
 
 		const localX = x - originX;
 		const localY = y - originY;
 
-		const col = Math.floor(localX / cellSize);
-		const row = Math.floor(localY / cellSize);
+		const col = Math.floor(localX / cellLength);
+		const row = Math.floor(localY / cellLength);
 
 		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
 			return null;
@@ -218,20 +215,10 @@ class Game {
 			this.grid.set(row2, col2, new FlowCell(CellType.Endpoint, color));
 		}
 	}
-	// verifica si se puede conectar dos celdas adyacentes
-	getCellFromMouse(
-		mouseX: number,
-		mouseY: number,
-		canvasWidth: number,
-		canvasHeight: number,
-	) {
-		return this.grid.getCellFromPosition(
-			mouseX,
-			mouseY,
-			canvasWidth,
-			canvasHeight,
-		);
+	getCellFromMouse(p: p5) {
+		return this.grid.getCellFromPosition(p.mouseX, p.mouseY, this.container(p));
 	}
+	// verifica si se puede conectar dos celdas adyacentes
 	canConnect(
 		fromRow: number,
 		fromCol: number,
@@ -287,13 +274,17 @@ class Game {
 		return this.grid;
 	}
 
-	draw(p: p5) {
-		this.grid.draw(p, {
+	container(p: p5) {
+		return {
 			bottom: p.height,
 			top: 0,
 			left: 0,
 			right: p.width,
-		});
+		};
+	}
+
+	draw(p: p5) {
+		this.grid.draw(p, this.container(p));
 	}
 }
 
@@ -320,7 +311,7 @@ class GamePage extends Page {
 	}
 
 	mouseDragged(p : p5) {
-		const target = game.getCellFromMouse(p.mouseX, p.mouseY, p.width, p.height);
+		const target = game.getCellFromMouse(p);
 		if (!target) return;
 		console.debug("target existe")
 
@@ -397,8 +388,6 @@ const levels: LevelData[] = [
 			{ row: 1, col: 4, row2: 3, col2: 5, color: themeColors.orange },
 		],
 	},
-
-	
 ];
 
 // Inicializar el bosquejo p5
@@ -425,7 +414,7 @@ if (import.meta.hot) {
 		try {
 			navigator.overridePage(previousPageID);
 		} catch {}
- 	}
+	}
 
 	// Guardar el ID de la página actual e invalidar el
 	// bosquejo antiguo
