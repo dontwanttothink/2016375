@@ -1159,8 +1159,8 @@ function draw(p: p5) {
 }
 
 // Responder a las entradas
-function mouseClicked(p: p5) {
-	navigator.currentPage.mouseClicked(p);
+function mouseClicked(p: p5, e: MouseEvent) {
+	navigator.currentPage.mouseClicked(p, e);
 }
 function keyPressed(p: p5) {
 	navigator.currentPage.keyPressed(p);
