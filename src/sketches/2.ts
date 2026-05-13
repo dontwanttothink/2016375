@@ -126,7 +126,7 @@ class Grid {
 		this.#grid = this.timeline[this.timelineIndex];
 	}
 
-	properties(p: p5) {
+	properties(container: Rectangle) {
 		const containerWidth = container.right - container.left;
 		const containerHeight = container.bottom - container.top;
 
@@ -306,24 +306,24 @@ class GamePage extends Page {
 		p.clear();
 		game.draw(p);
 	}
-	setup(p : p5){
-		game.setEndpoint(0,0,4,4,randomThemeColor());
+	setup(p: p5) {
+		game.setEndpoint(0, 0, 4, 4, randomThemeColor());
 	}
 
-	mouseDragged(p : p5) {
+	mouseDragged(p: p5) {
 		const target = game.getCellFromMouse(p);
 		if (!target) return;
-		console.debug("target existe")
+		console.debug("target existe");
 
-		if(this.lastPosition){
-			console.log("quizá movimiento")
+		if (this.lastPosition) {
+			console.log("quizá movimiento");
 			const { row, col } = target;
 
 			const [lastRow, lastCol] = this.lastPosition;
 
-			if(lastRow !== row || lastCol !== col){
-				console.log("movimiento")
-				game.moveTo(lastRow, lastCol,row,col);
+			if (lastRow !== row || lastCol !== col) {
+				console.log("movimiento");
+				game.moveTo(lastRow, lastCol, row, col);
 			}
 		}
 		this.lastPosition = [target.row, target.col];
