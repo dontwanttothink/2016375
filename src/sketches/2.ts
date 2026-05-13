@@ -313,16 +313,13 @@ class GamePage extends Page {
 	mouseDragged(p: p5) {
 		const target = game.getCellFromMouse(p);
 		if (!target) return;
-		console.debug("target existe");
 
 		if (this.lastPosition) {
-			console.log("quizá movimiento");
 			const { row, col } = target;
 
 			const [lastRow, lastCol] = this.lastPosition;
 
 			if (lastRow !== row || lastCol !== col) {
-				console.log("movimiento");
 				game.moveTo(lastRow, lastCol, row, col);
 			}
 		}
