@@ -183,7 +183,129 @@ class Grid {
 		return { row, col };
 	}
 }
+class Button {
+	static PADDING = 12;
+	static TEXT_SIZE = 20;
+	static ANIMATION_DURATION = 200;
 
+	#animationProgress = 0;
+
+	baseColor: p5.Color;
+	highlightColor: p5.Color;
+
+	alpha: number = 255;
+
+	textFill: p5.Color;
+
+	minWidth: number = 70;
+	minHeight: number = 30;
+
+	#height: number = 0;
+	get height() {
+		return this.#height;
+	}
+	#width: number = 0;
+	get width() {
+		return this.#width;
+	}
+
+	#label: string = "Oprímeme";
+	get label() {
+		return this.#label;
+	}
+	setLabel(p: p5, l: string) {
+		this.#label = l;
+		this.#refreshDimensions(p);
+	}
+
+	x: number;
+	y: number;
+	constructor(p: p5) {
+		this.#refreshDimensions(p);
+		this.baseColor = p.color(50);
+		this.highlightColor = p.color(0, 150, 255);
+		this.textFill = p.color(255);
+		this.x = p.width / 2;
+		this.y = p.height / 2;
+	}
+
+	#refreshDimensions(p: p5) {
+		const contentHeight =
+			p.textAscent(this.#label) + p.textDescent(this.#label);
+		const targetHeight = contentHeight + Button.PADDING * 1.7;
+		const height = Math.max(targetHeight, this.minHeight);
+
+		const contentWidth = p.textWidth(this.#label);
+		const targetWidth = contentWidth + Button.PADDING * 2;
+		const width = Math.max(targetWidth, this.minWidth);
+
+		this.#height = height;
+		this.#width = width;
+	}
+
+	draw(p: p5) {
+		p.push();
+		const hovering = this.intersectsWith(p.mouseX, p.mouseY);
+
+		const x = this.x;
+		const y = this.y;
+
+		// Actualizar estado de la animación
+		if (hovering) {
+			this.#advanceAnimation(p);
+		} else {
+			this.#reverseAnimation(p);
+		}
+
+		// Calcular color intermedio
+		p.colorMode(p.OKLCH);
+		const currentColor = p.lerpColor(
+			this.baseColor,
+			this.highlightColor,
+			this.#animationProgress,
+		);
+		currentColor.setAlpha(this.alpha);
+
+		p.textSize(Button.TEXT_SIZE);
+
+		// Dibujar el rectángulo
+		p.noStroke();
+		p.fill(currentColor);
+		p.rectMode(p.CENTER);
+		p.rect(x, y, this.width, this.height, 10);
+
+		// Dibujar el texto
+		const textFill = p.color(this.textFill);
+		textFill.setAlpha(this.alpha);
+
+		p.fill(textFill);
+		p.textAlign(p.CENTER, p.CENTER);
+		p.text(this.label, x, y);
+
+		p.pop();
+	}
+
+	intersectsWith(x: number, y: number) {
+		return (
+			Math.abs(x - this.x) < this.width / 2 &&
+			Math.abs(y - this.y) < this.height / 2
+		);
+	}
+
+	#advanceAnimation(p: p5) {
+		this.#animationProgress = Math.min(
+			this.#animationProgress + p.deltaTime / Button.ANIMATION_DURATION,
+			1,
+		);
+	}
+
+	#reverseAnimation(p: p5) {
+		this.#animationProgress = Math.max(
+			this.#animationProgress - p.deltaTime / Button.ANIMATION_DURATION,
+			0,
+		);
+	}
+}
 //clase para recibir endpoints y manejar la lógica del juego
 class Game {
 	grid: Grid;
@@ -274,17 +396,8 @@ class Game {
 		return this.grid;
 	}
 
-	container(p: p5) {
-		return {
-			bottom: p.height,
-			top: 0,
-			left: 0,
-			right: p.width,
-		};
-	}
-
-	draw(p: p5) {
-		this.grid.draw(p, this.container(p));
+	draw(p: p5, container: Rectangle) {
+		this.grid.draw(p, container);
 	}
 }
 
@@ -302,12 +415,29 @@ let game = new Game(5);
 class GamePage extends Page {
 	isDragging = false;
 	lastPosition: [number, number] | null = null;
+	undoButton: Button | null = null;
+	redoButton: Button | null = null;
 	draw(p: p5) {
+		if (!this.undoButton || !this.redoButton) {
+			throw new ReferenceError();
+		}
+
 		p.clear();
-		game.draw(p);
+		game.draw(p, this.container(p));
+
+		this.undoButton.y = p.height - 20;
+		this.undoButton.x = (p.width / 2)-100;
+		this.undoButton.draw(p);
+		this.redoButton.y = p.height - 20;
+		this.redoButton.x = (p.width / 2)+100;
+		this.redoButton.draw(p);
 	}
 	setup(p: p5) {
 		game.setEndpoint(0, 0, 4, 4, randomThemeColor());
+		this.undoButton = new Button(p);
+		this.undoButton.setLabel(p, "Deshacer");
+		this.redoButton = new Button(p);
+		this.redoButton.setLabel(p, "Rehacer");
 	}
 
 	mouseDragged(p: p5) {
@@ -324,6 +454,15 @@ class GamePage extends Page {
 			}
 		}
 		this.lastPosition = [target.row, target.col];
+	}
+
+	container(p: p5) {
+		return {
+			bottom: p.height - 40,
+			top: 0,
+			left: 0,
+			right: p.width,
+		};
 	}
 }
 

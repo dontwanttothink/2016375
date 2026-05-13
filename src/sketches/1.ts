@@ -343,6 +343,7 @@ class Grid {
 	}
 }
 
+
 class Button {
 	static PADDING = 12;
 	static TEXT_SIZE = 20;
@@ -380,7 +381,6 @@ class Button {
 
 	x: number;
 	y: number;
-
 	constructor(p: p5) {
 		this.#refreshDimensions(p);
 		this.baseColor = p.color(50);
