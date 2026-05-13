@@ -138,6 +138,22 @@ class Grid {
 		return { vertexLength, cellLength, originX, originY };
 	}
 
+	getCellFromPosition(x: number, y: number, container: Rectangle) {
+		const { originX, originY, cellLength } = this.properties(container);
+
+		const localX = x - originX;
+		const localY = y - originY;
+
+		const col = Math.floor(localX / cellLength);
+		const row = Math.floor(localY / cellLength);
+
+		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
+			return null;
+		}
+
+		return { row, col };
+	}
+
 	draw(p: p5, container: Rectangle) {
 		p.push();
 		const { vertexLength, cellLength, originX, originY } =
@@ -166,21 +182,6 @@ class Grid {
 			}
 		}
 		p.pop();
-	}
-	getCellFromPosition(x: number, y: number, container: Rectangle) {
-		const { originX, originY, cellLength } = this.properties(container);
-
-		const localX = x - originX;
-		const localY = y - originY;
-
-		const col = Math.floor(localX / cellLength);
-		const row = Math.floor(localY / cellLength);
-
-		if (row < 0 || row >= this.size || col < 0 || col >= this.size) {
-			return null;
-		}
-
-		return { row, col };
 	}
 }
 
