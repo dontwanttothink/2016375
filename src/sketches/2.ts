@@ -375,19 +375,21 @@ const levels: LevelData[] = [
 		endpoints: [
 			{ row: 0, col: 0, row2: 2, col2: 1, color: themeColors.green },
 			{ row: 1, col: 0, row2: 3, col2: 2, color: themeColors.blue },
-			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.red },
-			{ row: 0, col: 2, row2: 2, col2: 2, color: themeColors.yellow },
+			{ row: 1, col: 3, row2: 3, col2: 3, color: themeColors.red },
 		],
 	},
 
 	{
 		size: 4,
 		endpoints: [
-			{ row: 0, col: 0, row2: 3, col2: 0, color: themeColors.green },
-			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.blue },
-			{ row: 1, col: 1, row2: 2, col2: 2, color: themeColors.red },
+			{ row: 0, col: 0, row2: 2, col2: 1, color: themeColors.green },
+			{ row: 1, col: 0, row2: 3, col2: 2, color: themeColors.blue },
+			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.red },
+			{ row: 0, col: 2, row2: 2, col2: 2, color: themeColors.yellow },
 		],
 	},
+
+	
 
 	{
 		size: 5,
@@ -400,6 +402,16 @@ const levels: LevelData[] = [
 	},
 
 	{
+		size: 5,
+		endpoints: [
+			{ row: 0, col: 1, row2: 4, col2: 4, color: themeColors.blue },
+			{ row: 1, col: 1, row2: 2, col2: 3, color: themeColors.yellow },
+			{ row: 2, col: 1, row2: 1, col2: 4, color: themeColors.red },
+			{ row: 0, col: 2, row2: 0, col2: 4, color: themeColors.green },
+		],
+	},
+
+	{
 		size: 6,
 		endpoints: [
 			{ row: 0, col: 0, row2: 5, col2: 2, color: themeColors.red },
@@ -407,6 +419,17 @@ const levels: LevelData[] = [
 			{ row: 0, col: 1, row2: 4, col2: 2, color: themeColors.green },
 			{ row: 1, col: 3, row2: 4, col2: 5, color: themeColors.yellow },
 			{ row: 1, col: 4, row2: 3, col2: 5, color: themeColors.orange },
+		],
+	},
+
+	{
+		size: 6,
+		endpoints: [
+			{ row: 0, col: 0, row2: 4, col2: 3, color: themeColors.red },
+			{ row: 0, col: 5, row2: 5, col2: 2, color: themeColors.blue },
+			{ row: 0, col: 3, row2: 3, col2: 3, color: themeColors.green },
+			{ row: 0, col: 4, row2: 2, col2: 2, color: themeColors.yellow },
+			{ row: 2, col: 3, row2: 4, col2: 4, color: themeColors.orange },
 		],
 	},
 ];
