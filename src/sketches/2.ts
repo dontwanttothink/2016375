@@ -107,13 +107,16 @@ class Grid {
 	}
 
 	saveTimeline() {
-		this.timeline.slice(this.timelineIndex+1);
+		this.timeline.slice(this.timelineIndex + 1);
 		this.timeline.push(this.#grid.map((row) => [...row]));
 		this.timelineIndex++;
 	}
 
 	timelinePrev() {
-		this.#grid = this.timeline[this.timelineIndex>0?this.timelineIndex-1:this.timelineIndex];
+		this.#grid =
+			this.timeline[
+				this.timelineIndex > 0 ? this.timelineIndex - 1 : this.timelineIndex
+			];
 		if (this.timelineIndex > 0) {
 			this.timelineIndex--;
 		}
@@ -184,9 +187,7 @@ class Grid {
 		p.pop();
 	}
 
-	static direccion(): CellType{
-
-	}
+	static direccion(): CellType {}
 }
 class Button {
 	static PADDING = 12;
@@ -352,15 +353,15 @@ class Game {
 		toRow: number,
 		toCol: number,
 	): boolean {
-	const targetCell = this.grid.get(toRow, toCol);
-	const fromCell = this.grid.get(fromRow, fromCol);
+		const targetCell = this.grid.get(toRow, toCol);
+		const fromCell = this.grid.get(fromRow, fromCol);
 		if (
 			Math.abs(fromRow - toRow) + Math.abs(fromCol - toCol) !== 1 ||
 			toRow < 0 ||
 			toRow >= this.grid.size ||
 			toCol < 0 ||
-			toCol >= this.grid.size||
-			fromCell.type != CellType.Empty
+			toCol >= this.grid.size ||
+			fromCell.type !== CellType.Empty
 		) {
 			return false;
 		}
@@ -401,8 +402,17 @@ class Game {
 		return this.grid;
 	}
 
-	draw(p: p5, container: Rectangle) {
-		this.grid.draw(p, container);
+	draw(p: p5) {
+		this.grid.draw(p, this.container(p));
+	}
+
+	container(p: p5) {
+		return {
+			bottom: p.height - 40,
+			top: 0,
+			left: 0,
+			right: p.width,
+		};
 	}
 }
 
@@ -428,13 +438,13 @@ class GamePage extends Page {
 		}
 
 		p.clear();
-		game.draw(p, this.container(p));
+		game.draw(p);
 
 		this.undoButton.y = p.height - 20;
-		this.undoButton.x = (p.width / 2)-100;
+		this.undoButton.x = p.width / 2 - 100;
 		this.undoButton.draw(p);
 		this.redoButton.y = p.height - 20;
-		this.redoButton.x = (p.width / 2)+100;
+		this.redoButton.x = p.width / 2 + 100;
 		this.redoButton.draw(p);
 	}
 	setup(p: p5) {
@@ -459,15 +469,6 @@ class GamePage extends Page {
 			}
 		}
 		this.lastPosition = [target.row, target.col];
-	}
-
-	container(p: p5) {
-		return {
-			bottom: p.height - 40,
-			top: 0,
-			left: 0,
-			right: p.width,
-		};
 	}
 }
 
