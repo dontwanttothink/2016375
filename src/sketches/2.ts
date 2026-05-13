@@ -310,43 +310,32 @@ let game = new Game(5);
 
 class GamePage extends Page {
 	isDragging = false;
-	lastCell: FlowCell | null = null;
-	row1 = 0;
-	col1 = 0;
-	row2 = 0;
-	col2 = 0;
+	lastPosition: [number, number] | null = null;
 	draw(p: p5) {
 		p.clear();
 		game.draw(p);
 	}
+	setup(p : p5){
+		game.setEndpoint(0,0,4,4,randomThemeColor());
+	}
 
-	mousePressed(p : p5) {
+	mouseDragged(p : p5) {
 		const target = game.getCellFromMouse(p.mouseX, p.mouseY, p.width, p.height);
-			if (!target) return;
+		if (!target) return;
+		console.debug("target existe")
+
+		if(this.lastPosition){
+			console.log("quizá movimiento")
 			const { row, col } = target;
-		this.isDragging = true;
-		this.row1 = row;
-		this.col1 = col;
-	}
-	mouseReleased(p : p5) {
-		const target = game.getCellFromMouse(p.mouseX, p.mouseY, p.width, p.height);
-			if (!target) return;
-			const { row, col } = target;
-		this.isDragging = false;
-		this.row2 = row;
-		this.col2 = col;
-	}
-	mouseMoved(p : p5) {
-		if(this.isDragging){
-			const target = game.getCellFromMouse(p.mouseX, p.mouseY, p.width, p.height);
-			if (!target) return;
-			const { row, col } = target;
-			const cell = game.getGrid().get(row, col);
-			if(cell !== this.lastCell){
-				game.moveTo(this.row1, this.col1,this.row2,this.col2);
-				this.lastCell = cell;
+
+			const [lastRow, lastCol] = this.lastPosition;
+
+			if(lastRow !== row || lastCol !== col){
+				console.log("movimiento")
+				game.moveTo(lastRow, lastCol,row,col);
 			}
 		}
+		this.lastPosition = [target.row, target.col];
 	}
 }
 
