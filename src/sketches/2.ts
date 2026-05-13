@@ -107,14 +107,14 @@ class Grid {
 	}
 
 	saveTimeline() {
-		this.timeline.splice(this.timelineIndex);
+		this.timeline.slice(this.timelineIndex+1);
 		this.timeline.push(this.#grid.map((row) => [...row]));
 		this.timelineIndex++;
 	}
 
 	timelinePrev() {
-		this.#grid = this.timeline[this.timelineIndex];
-		if (this.timelineIndex >= 0) {
+		this.#grid = this.timeline[this.timelineIndex>0?this.timelineIndex-1:this.timelineIndex];
+		if (this.timelineIndex > 0) {
 			this.timelineIndex--;
 		}
 	}
