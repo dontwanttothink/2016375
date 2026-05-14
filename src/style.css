@@ -129,8 +129,8 @@ nav {
 .error-notification {
 	background: linear-gradient(
 		to bottom,
-		oklch(87% 25% 18deg),
-		oklch(95% 10% 18deg)
+		light-dark(oklch(87% 25% 18deg), oklch(60% 25% 18deg)),
+		light-dark(oklch(95% 10% 18deg), oklch(50% 25% 18deg))
 	);
 	margin: auto auto;
 	border: none;
@@ -141,6 +141,7 @@ nav {
 
 	h1 {
 		font-size: 2rem;
+		text-align: center;
 	}
 	p {
 		text-align: start;
