@@ -343,7 +343,6 @@ class Grid {
 	}
 }
 
-
 class Button {
 	static PADDING = 12;
 	static TEXT_SIZE = 20;
@@ -1207,7 +1206,7 @@ new p5((p) => {
 	p.setup = () => setup(p);
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
-	p.mouseClicked = () => mouseClicked(p);
+	p.mouseClicked = (e) => e && mouseClicked(p, e);
 	p.keyPressed = () => keyPressed(p);
 
 	registerHMR(p);
