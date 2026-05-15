@@ -15,7 +15,7 @@ function isDark() {
 }
 
 function randomThemeColor(): ThemeColor {
-	// Crea un color aleatoriamente
+	// Elegir un color aleatoriamente
 	const hue = Math.floor(Math.random() * 360);
 	return themeColor(hue);
 }
@@ -198,7 +198,7 @@ enum CellDirection {
 }
 
 //clase para representar cada celda del tablero
-class FlowCell {
+class Cell {
 	constructor(
 		public readonly type: CellType,
 		public readonly color: ThemeColor,
@@ -275,7 +275,7 @@ class FlowCell {
 	 */
 
 	withDirection(direction: CellDirection | null) {
-		return new FlowCell(this.type, this.color, direction, this.isFrozen);
+		return new Cell(this.type, this.color, direction, this.isFrozen);
 	}
 
 	asSealed() {
@@ -284,11 +284,11 @@ class FlowCell {
 				"Solo los puntos finales pueden denotarse como sellados.",
 			);
 		}
-		return new FlowCell(CellType.SealedEndpoint, this.color, this.direction);
+		return new Cell(CellType.SealedEndpoint, this.color, this.direction);
 	}
 }
 
-type CellRow = (FlowCell | null)[];
+type CellRow = (Cell | null)[];
 type CellMatrix = CellRow[];
 
 class Grid {
@@ -328,8 +328,8 @@ class Grid {
 		}
 
 		for (const { row0, col0, row1, col1, color } of level.endpoints) {
-			this.#grid[row0][col0] = new FlowCell(CellType.Endpoint, color);
-			this.#grid[row1][col1] = new FlowCell(CellType.Endpoint, color);
+			this.#grid[row0][col0] = new Cell(CellType.Endpoint, color);
+			this.#grid[row1][col1] = new Cell(CellType.Endpoint, color);
 		}
 		this.saveTimeline();
 	}
@@ -348,7 +348,7 @@ class Grid {
 		return this.#grid[row][col];
 	}
 
-	set(row: number, col: number, cell: FlowCell) {
+	set(row: number, col: number, cell: Cell) {
 		if (!this.withinBounds(row, col)) {
 			throw new Error(
 				`Las coordenadas ${row} ${col} exceden las dimensiones de la matriz.`,
@@ -484,8 +484,8 @@ class Game {
 		col2: number,
 		color: ThemeColor,
 	) {
-		this.grid.set(row, col, new FlowCell(CellType.Endpoint, color));
-		this.grid.set(row2, col2, new FlowCell(CellType.Endpoint, color));
+		this.grid.set(row, col, new Cell(CellType.Endpoint, color));
+		this.grid.set(row2, col2, new Cell(CellType.Endpoint, color));
 	}
 
 	getCellFromMouse(p: p5): [number, number] | null {
@@ -543,9 +543,7 @@ class Game {
 			this.grid.set(
 				fromRow,
 				fromCol,
-				fromCell.withDirection(
-					FlowCell.delta([fromRow, fromCol], [toRow, toCol]),
-				),
+				fromCell.withDirection(Cell.delta([fromRow, fromCol], [toRow, toCol])),
 			);
 
 			if (
@@ -561,11 +559,7 @@ class Game {
 				this.grid.saveTimeline();
 			} else {
 				// Establecemos un nodo intermedio
-				this.grid.set(
-					toRow,
-					toCol,
-					new FlowCell(CellType.Path, fromCell.color),
-				);
+				this.grid.set(toRow, toCol, new Cell(CellType.Path, fromCell.color));
 			}
 		}
 	}
