@@ -199,15 +199,45 @@ enum CellDirection {
 
 //clase para representar cada celda del tablero
 class Cell {
+	static ANIMATION_DURATION = 150;
+
+	isDisappearing: boolean = false;
+	#animatingSince = currentTime();
+
+	get opacity() {
+		const progress = Math.max(
+			0,
+			Math.min(
+				1,
+				(currentTime() - this.#animatingSince) / Cell.ANIMATION_DURATION,
+			),
+		);
+
+		if (this.isDisappearing) {
+			return 1 - progress;
+		} else {
+			return progress;
+		}
+	}
+
+	get isStale() {
+		return this.isDisappearing && this.opacity === 0;
+	}
+
 	constructor(
 		public readonly type: CellType,
 		public readonly color: ThemeColor,
 		public readonly direction: CellDirection | null = null,
 	) {}
 
+	animate() {
+		this.#animatingSince = currentTime();
+	}
+
 	draw(p: p5, cellLength: number) {
 		p.push();
 		const color = this.color(p);
+		color.setAlpha(this.opacity * 255);
 
 		p.noStroke();
 		p.fill(color);
@@ -283,7 +313,9 @@ class Cell {
 	 */
 
 	withDirection(direction: CellDirection | null) {
-		return new Cell(this.type, this.color, direction);
+		const out = new Cell(this.type, this.color, direction);
+		out.#animatingSince = this.#animatingSince;
+		return out;
 	}
 
 	asSealed() {
@@ -292,7 +324,9 @@ class Cell {
 				"Solo los puntos finales pueden denotarse como sellados.",
 			);
 		}
-		return new Cell(CellType.SealedEndpoint, this.color, this.direction);
+		const out = new Cell(CellType.SealedEndpoint, this.color, this.direction);
+		out.#animatingSince = this.#animatingSince;
+		return out;
 	}
 }
 
@@ -357,6 +391,18 @@ class Grid {
 		this.#matrix[row][col] = cell;
 	}
 
+	count(test: (cell: Cell | null) => boolean) {
+		let out = 0;
+		for (const row of this.#matrix) {
+			for (const cell of row) {
+				if (test(cell)) {
+					++out;
+				}
+			}
+		}
+		return out;
+	}
+
 	properties(container: Rectangle) {
 		const containerWidth = container.right - container.left;
 		const containerHeight = container.bottom - container.top;
@@ -389,40 +435,19 @@ class Grid {
 		return [row, col];
 	}
 
-	draw(p: p5, paths: Map<[number, number], Path>, container: Rectangle) {
+	drawOverlays(
+		p: p5,
+		container: Rectangle,
+		paths: Map<[number, number], Path>,
+		phantoms: Map<[number, number], Cell>,
+	) {
 		p.push();
-		const { vertexLength, cellLength, originX, originY } =
-			this.properties(container);
-
-		p.noFill();
-		p.stroke(themeColors.subtler(p));
-		for (let i = 1; i < this.size; ++i) {
-			const y = originY + cellLength * i;
-			p.line(originX, y, originX + vertexLength, y);
-
-			const x = originX + cellLength * i;
-			p.line(x, originY, x, originY + vertexLength);
-		}
-		p.square(originX, originY, vertexLength, 10);
-
-		for (const [i, row] of this.#matrix.entries()) {
-			for (const [j, cell] of row.entries()) {
-				const cellY = originY + cellLength * (i + 0.5);
-				const cellX = originX + cellLength * (j + 0.5);
-
-				p.push();
-				p.translate(cellX, cellY);
-				cell?.draw(p, cellLength);
-				p.pop();
-			}
-		}
+		const { cellLength, originX, originY } = this.properties(container);
 
 		for (const [[rootRow, rootCol], path] of paths.entries()) {
-			path.tick();
-
 			const current: [number, number] = [rootRow, rootCol];
 
-			const grid = path.grid ?? this;
+			const grid = path.externalGrid ?? this;
 			let currentCell = grid.get(...current);
 
 			for (let i = 0; !currentCell || currentCell.direction !== null; ++i) {
@@ -456,6 +481,47 @@ class Grid {
 			}
 		}
 
+		for (const [phantom, phantomCell] of phantoms.entries()) {
+			const cellY = originY + cellLength * (phantom[0] + 0.5);
+			const cellX = originX + cellLength * (phantom[1] + 0.5);
+
+			p.push();
+			p.translate(cellX, cellY);
+			phantomCell.draw(p, cellLength);
+			p.pop();
+		}
+
+		p.pop();
+	}
+
+	draw(p: p5, container: Rectangle) {
+		p.push();
+		const { vertexLength, cellLength, originX, originY } =
+			this.properties(container);
+
+		p.noFill();
+		p.stroke(themeColors.subtler(p));
+		for (let i = 1; i < this.size; ++i) {
+			const y = originY + cellLength * i;
+			p.line(originX, y, originX + vertexLength, y);
+
+			const x = originX + cellLength * i;
+			p.line(x, originY, x, originY + vertexLength);
+		}
+		p.square(originX, originY, vertexLength, 10);
+
+		for (const [i, row] of this.#matrix.entries()) {
+			for (const [j, cell] of row.entries()) {
+				const cellY = originY + cellLength * (i + 0.5);
+				const cellX = originX + cellLength * (j + 0.5);
+
+				p.push();
+				p.translate(cellX, cellY);
+				cell?.draw(p, cellLength);
+				p.pop();
+			}
+		}
+
 		p.pop();
 	}
 }
@@ -470,7 +536,7 @@ class Path {
 	 * Opcionalmente, una matriz que asociar con este camino. Si esta propiedad
 	 * no está establecida, se usará el estado de la matriz actual.
 	 */
-	grid: Grid | null;
+	externalGrid: Grid | null;
 	target: number;
 
 	progress: number = 0;
@@ -481,12 +547,15 @@ class Path {
 
 	constructor(length: number, grid: Grid | null = null) {
 		this.target = length;
-		this.grid = grid;
+		this.externalGrid = grid;
 	}
 
 	tick() {
 		this.progress += this.#velocity;
 		this.progress = Math.max(0, this.progress);
+
+		const isStale = this.progress === 0 && !!this.externalGrid;
+		return isStale;
 	}
 }
 
@@ -507,6 +576,18 @@ interface PullingState {
  * Representa una partida individual del juego.
  */
 class Game {
+	#hasWon: boolean = false;
+	get hasWon() {
+		return this.#hasWon;
+	}
+
+	/**
+	 * Celdas que se han eliminado.
+	 *
+	 * Esto se usa para darles una animación a las celdas cuando se eliminan.
+	 */
+	#phantoms: Map<[number, number], Cell> = new Map();
+
 	/**
 	 * Indica si hay cambios sin guardar.
 	 */
@@ -515,6 +596,7 @@ class Game {
 	#timeline: TimelineItem[] = [];
 	#timelineIndex: number = -1;
 
+	#endpointCount: number;
 	/**
 	 * Asocia raíces con datos sobre los caminos de los que hacen parte.
 	 */
@@ -528,11 +610,8 @@ class Game {
 
 	container: (p: p5) => Rectangle;
 
-	constructor(
-		level: LevelData,
-		container: (p: p5) => Rectangle,
-		onWin: () => unknown,
-	) {
+	constructor(level: LevelData, container: (p: p5) => Rectangle) {
+		this.#endpointCount = level.endpoints.length;
 		this.#grid = new Grid(level);
 		this.container = container;
 		this.#checkpoint();
@@ -556,6 +635,14 @@ class Game {
 			p.mouseY,
 			this.container(p),
 		);
+	}
+
+	#updateWinningState() {
+		this.#hasWon =
+			this.#grid.count(
+				(cell) => !!cell && cell.type === CellType.SealedEndpoint,
+			) === this.#endpointCount &&
+			this.#grid.count((cell) => cell === null) === 0;
 	}
 
 	isInteractive([row, col]: [number, number]): boolean {
@@ -682,6 +769,10 @@ class Game {
 
 				// Sellamos la hoja.
 				this.#grid.set(toRow, toCol, toCell.asSealed());
+
+				// Como el usuario acaba de terminar un camino nuevo, vale
+				// la pena revisar si ganó.
+				this.#updateWinningState();
 			} else {
 				// Establecemos un nodo intermedio
 				this.#grid.set(toRow, toCol, new Cell(CellType.Path, fromCell.color));
@@ -701,12 +792,34 @@ class Game {
 		}
 
 		if (this.#dirty) {
-			pullingPath.grid = this.#grid.clone();
+			pullingPath.externalGrid = this.#grid.clone();
 			pullingPath.target = 0;
 			this.clean();
 		}
 
 		this.#pulling = null;
+	}
+
+	#applyGrid(grid: Grid) {
+		const currentGrid = this.#grid.clone();
+		const newGrid = grid.clone();
+		for (let i = 0; i < newGrid.size; ++i) {
+			for (let j = 0; j < newGrid.size; ++j) {
+				if (this.#grid.withinBounds(i, j)) {
+					const newCell = grid.get(i, j);
+					const currentCell = currentGrid.get(i, j);
+					if (newCell === null && currentCell !== null) {
+						currentCell.animate();
+						currentCell.isDisappearing = true;
+						this.#phantoms.set([i, j], currentCell);
+					}
+					if (newCell !== null && currentCell === null) {
+						newCell.animate();
+					}
+				}
+			}
+		}
+		this.#grid = newGrid;
 	}
 
 	#checkpoint(path: TimelineItem["addedPath"] = null) {
@@ -720,7 +833,7 @@ class Game {
 	 * Eliminar los cambios sin guardar.
 	 */
 	clean() {
-		this.#grid = this.#timeline[this.#timelineIndex].grid.clone();
+		this.#applyGrid(this.#timeline[this.#timelineIndex].grid);
 		this.#dirty = false;
 	}
 
@@ -739,13 +852,13 @@ class Game {
 					`Se intentó deshacer un cambio que no estaba reflejado en el estado actual. En particular, no hay registro de un camino con una raíz en ${addedPath.root}.`,
 				);
 			}
-			path.grid = this.#grid.clone();
+			path.externalGrid = this.#grid.clone();
 			path.target = 0;
 		}
 
 		this.#timelineIndex = Math.max(0, this.#timelineIndex - 1);
 		const { grid } = this.#timeline[this.#timelineIndex];
-		this.#grid = grid.clone();
+		this.#applyGrid(grid);
 	}
 
 	redo() {
@@ -761,7 +874,7 @@ class Game {
 
 		const { grid, addedPath } = this.#timeline[this.#timelineIndex];
 
-		this.#grid = grid.clone();
+		this.#applyGrid(grid);
 
 		if (addedPath) {
 			this.#paths.set(addedPath.root, new Path(addedPath.length));
@@ -769,7 +882,21 @@ class Game {
 	}
 
 	draw(p: p5) {
-		this.#grid.draw(p, this.#paths, this.container(p));
+		for (const [root, path] of this.#paths.entries()) {
+			const isStale = path.tick();
+			if (isStale) {
+				this.#paths.delete(root);
+			}
+		}
+
+		for (const [phantom, phantomCell] of this.#phantoms.entries()) {
+			if (phantomCell.isStale) {
+				this.#phantoms.delete(phantom);
+			}
+		}
+
+		this.#grid.draw(p, this.container(p));
+		this.#grid.drawOverlays(p, this.container(p), this.#paths, this.#phantoms);
 	}
 }
 
@@ -803,11 +930,7 @@ class GamePage extends Page {
 	setup(p: p5) {
 		p.textFont("system-ui");
 
-		this.game = new Game(
-			levels[0],
-			GamePage.GameContainer,
-			this.onWin.bind(this),
-		);
+		this.game = new Game(levels[0], GamePage.GameContainer);
 
 		this.undoButton = new Button(p);
 		this.undoButton.setLabel(p, "Deshacer");
@@ -876,12 +999,18 @@ class GamePage extends Page {
 			const [row, col] = target;
 			const [lastRow, lastCol] = this.lastPosition;
 			this.game.pull(lastRow, lastCol, row, col);
+
+			if (this.game.hasWon) {
+				this.onWin(p);
+			}
 		}
 
 		this.lastPosition = target;
 	}
 
-	onWin() {}
+	onWin(p: p5) {
+		this.navigator.switchPage(p, WelcomePage);
+	}
 }
 
 class WelcomePage extends Page {
