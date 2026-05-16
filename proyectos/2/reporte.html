@@ -5,21 +5,490 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/src/style.css">
 		<link rel="icon" href="/favicon.png" type="image/png">
-		<title>Proyecto 2: Informe</title>
+		<title>Proyecto 1: Informe</title>
 	</head>
 	<body>
 		<main>
-			<h1>Conexión de puntos</h1>
+			<h1>Simón dice</h1>
+			<nav style="opacity: 80%">
+				<p><a href="/">Ir al inicio</a></p>
+				<p><a href=".">Ver proyecto</a></p>
+			</nav>
 			<article>
 				<h2>Informe</h2>
 				<p>
-					Este documento corto documenta los objetivos del proyecto, las
+					Este documento corto describe los objetivos del proyecto, las
 					decisiones técnicas que se tomaron mientras se desarrolló, los
 					resultados (incluyendo sus limitaciones) y los materiales
 					referenciados.
 				</p>
+
+				<p>Los integrantes del equipo fueron:</p>
+
+				<ul class="preserve-case">
+					<li>Andrés Felipe Toscano Sierra</li>
+					<li>Belcar Santiago Cuentas Zavala Infante</li>
+					<li>Santiago Rodríguez Ortega</li>
+					<li>Sergio Andrés Acosta Rodríguez</li>
+				</ul>
+
 				<h3>Objetivos</h3>
-				<p>Quisimos implementar un juego de conexión de puntos.</p>
+				<p>
+					Quisimos implementar un juego tipo 
+					<i>Flow Free</i>
+					: una cuadricula con pares de puntos de colores que el usuario debe conectar arrastrando el raton, llenando completamente el talbero sin que los caminos se crucen.
+				</p>
+				<p>
+					La implementación debía usar técnicas de la clase de programación
+					orientada a objetos y tener ciertas características funcionales. En
+					particular, nos propusimos:
+				</p>
+
+				<ul>
+					<li>usar la librería <i>p5.js</i></li>
+					<li>
+						Definir niveles con distribucion fijas y con solucion garantizada
+					</li>
+					<li>
+						Permitir al usuario dibujar con el raton caminos para unir puntos del mismo color
+					<li>
+						Verificar si el tablero esta correctamente completado
+					</li>
+					<li>Ofrecer multiples niveles de dificultad</li>
+					<li>Implementar un historial de acciones con funcionalidad de deshacer y rehacer</li>
+				</ul>
+
+				<p>
+					Se uso una paleta de colores definida (OKLCH) para lograr consistencia cisual y compatibilidad con temas claros y oscuros.
+				</p>
+
+				<h3>Decisiones arquitecturales o de diseño técnico</h3>
+
+				<h4 class="preserve-case">GitLab, Vite y el modo instancia</h4>
+
+				<p>
+					Como en el primer proyecto, seguimos utilizando Gitlab como nuestro repositorio central, recordemos que como GitLab Pages es una pagina generada con Vite, solo podemos utilizar 
+					<i>p5.js</i> en modo instancia y no el modo global, de el porque nuestras funciones tipicamente tienen un parametro p que permite acceder a las rutinas de dibujo como
+					<code>p.rect(...)</code>, por ejemplo.
+				</p>
+
+				<h4>Sistema de paginas</h4>
+
+				<p>
+					Se reutilizo el sistema de paginas del proyecto anterior. Cada pagina define metodos para dibujar un fotograma y reaccionar a las interacciones del usuario. El navegador recibe las llamadas de 
+					<i>p5.js</i>
+					 y las delega a la pagina activa.
+					
+				</p>
+				<h4>Celdas e historial</h4>
+				<p>
+					Las instancias de 
+					<i>Cell</i>
+					 son inmutables: en lugar de modificarlas directamente, se crean copias con nuevos valores usando metodos como 
+					<code>withDirection</code>. Esto simplifica la gestion del historial de acciones que tenemos. La clase Grid mantiene el timeline que es un arreglo de matrices, guardando el estado completo del tablero despues de cada movimiento.
+
+				</p>
+
+				<h4>Dibujo</h4>
+
+				<p>
+					El lienzo se dibuja jerarquicamente. <i>GamePage</i> llama al metodo <i>draw</i> del <i>Game</i>, que a su vez llama al <i>draw</i> del <i>Grid</i>, que llama al <i>draw</i> del <i>Cell</i>. Cada celda dibuja un circulo y, si tiene una direccion asignada, una linea apunta hacia la celda del siguiente camino.
+				</p>
+
+				<p>
+					Las animaciones que implementamos fueron a los botones, funcionan por medio de un estado interno, este almacena un progreso de animacion que avanza o retrocede con cada fotograma dependiendo si el raton esta encima o no.
+				</p>
+
+				<h4>Interactividad</h4>
+
+				<p>
+					La principal interactividad ocurre arrastrando el raton. En cada fotograma del arrastre se consulta en que celda esta el puntero actualmente, luego se intenta conectar la celda anterior con la actual mediante 
+					<code>canConnect</code>.
+				</p>
+
+				<p>
+					Los botones de deshacer y rehacer detectan los clics del usuario usando
+					<code>intersectsWith</code>, que compara la posicion del clic con el centro y dimensiones del boton.
+				</p>
+
+				<p>
+					El cursor cambia a mano <code>p.HAND</code> cuando el raton esta dobre una celda interactuable o sobre un boton.
+				</p>
+
+				<h4>Lógica</h4>
+
+				<p>El juego se divide en cuatro fases:</p>
+
+				<ul>
+					<li>la fase en que se reproduce el patrón</li>
+					<li>la fase en que el usuario debe repetir el patrón</li>
+					<li>
+						la fase entre patrones después de que el usuario haya acabado un
+						patrón
+					</li>
+					<li>la fase después de que el usuario acaba con todas sus vidas</li>
+				</ul>
+
+				<p>
+					Estas fases se representan internamente y controlan, por ejemplo, si
+					se ignoran los clics o si se muestra un mensaje de retroalimentación
+					(como «¡bien!» o «ups»).
+				</p>
+
+				<p>
+					La generación de los patrones es aleatoria. La única condición
+					adicional es que una misma celda no puede aparecer dos veces seguidas.
+				</p>
+
+				<p>
+					Para verificar si un patrón introducido por el usuario es correcto,
+					simplemente se comparan las coordenadas una a la vez con el patrón que
+					se generó.
+				</p>
+
+				<h3>Resultados y líneas futuras de trabajo</h3>
+
+				<p>
+					El resultado es un juego interactivo que cumple con los objetivos
+					básicos propuestos. Se puede elegir entre tres opciones básicas de
+					dificultad: «Fácil», «Medio» y «Difícil». La dificultad afecta el
+					tamaño de la cuadrícula, la longitud de los patrones y el número de
+					vidas iniciales.
+				</p>
+
+				<p>
+					Se usan animaciones ampliamente y hay varios elementos decorativos.
+				</p>
+
+				<p>
+					La implementación está profundamente orientada a objetos. Hubo un
+					esfuerzo de diseñar y escribir los sistemas de la forma más limpia
+					posible. El resultado está documentado con comentarios detallados. Sin
+					embargo, con el tiempo, la complejidad se fue incrementando. A futuro,
+					es posible hacer cambios para mejorar la elegancia y simplicidad.
+				</p>
+
+				<h4>Código muerto</h4>
+
+				<p>
+					Mientras se estaba escribiendo el programa, se introdujeron funciones
+					que terminaron sin usarse. Por ejemplo, al principio consideramos
+					poner elementos a los lados de la cuadrícula del juego, como texto o
+					botones. Por eso, la implementación de la cuadrícula tiene la
+					habilidad de guardar márgenes a la izquierda y la derecha. Esta
+					habilidad no se usa.
+				</p>
+
+				<p>
+					Otro ejemplo es la función <code>async preload()</code> definida en la
+					clase abstracta <code>Page</code>. El objetivo de esa función era
+					permitir la carga de imágenes asincrónicamente, lo cual no puede
+					hacerse correctamente dentro de los <code>setup</code> o
+					<code>draw</code>
+					sincrónicos. Al final, no usamos imágenes.
+				</p>
+
+				<p>
+					Para mejorar el proyecto y simplificarlo, estas funciones deberían
+					eliminarse a futuro.
+				</p>
+
+				<h4>Accesibilidad</h4>
+
+				<p>
+					La única forma de interacción con el juego es visual. No es posible
+					usar audio, por ejemplo, para recibir el patrón a memorizar o para
+					percibir los elementos de interfaz. En particular, las tecnologías de
+					asistencia no pueden entender el juego porque se dibuja manualmente en
+					un lienzo HTML; no se usan elementos semánticos. En parte, la librería
+					<i>p5.js</i>
+					conduce a este resultado porque está diseñada para proyectos visuales.
+					Sin embargo, también ofrece
+					<a
+						href="https://p5js.org/tutorials/writing-accessible-canvas-descriptions/"
+						>varias funciones de accesibilidad</a
+					>, y es enteramente posible combinarlas con las capacidades nativas
+					del DOM para ayudar a que más personas puedan cómodamente jugar.
+				</p>
+
+				<p>
+					Además, la interfaz no respeta las preferencias visuales del
+					navegador, como la reducción de movimiento, el aumento de contraste o
+					el modo oscuro. Notablemente, en modo oscuro, hay una diferencia
+					brusca entre el fondo blanco del lienzo y el fondo oscuro de la página
+					en sí.
+				</p>
+
+				<p>
+					Es posible ajustar el tamaño del texto del juego a través de la
+					interfaz del navegador.
+				</p>
+
+				<h4>Jugabilidad</h4>
+
+				<p>
+					Hemos visto que varias personas se divierten con el juego y se sienten
+					motivadas a intentar lograr más niveles.
+				</p>
+
+				<p>
+					Actualmente, todos los modos muestran la secuencia de celdas a la
+					misma velocidad. Algunas personas encuentran esa velocidad demasiado
+					rápida al principio. Podríamos mejorar esto haciendo que el patrón se
+					muestre más pausadamente al principio y aumente su velocidad con el
+					tiempo, sobre todo en el modo fácil.
+				</p>
+
+				<p>
+					Dentro de un mismo modo de dificultad, todos los <i>niveles</i> son
+					idénticos, y no hay progresión. Esto se podría cambiar para hacer el
+					juego algo más emocionante.
+				</p>
+
+				<p>
+					Finalmente, quisiéramos explorar en el futuro la posibilidad de un
+					modo multijugador que permita a los usuarios competir entre sí.
+					Podríamos, también, recordar los niveles más altos logrados por cada
+					usuario e incluso publicarlos para fomentar la competencia entre
+					amigos.
+				</p>
+
+				<h3>Uso de modelos de lenguaje</h3>
+
+				<p>
+					En general, no se usaron modelos de lenguaje para escribir porciones
+					significativas del código. Sin embargo, sí se usaron para recordar
+					cómo usar APIs de JavaScript. También se usaron para obtener ideas,
+					explicaciones, e incluso ocasionalmente para ver ejemplos de
+					implementación de funciones o clases.
+				</p>
+
+				<p>Este uso varió entre los distintos miembros del equipo.</p>
+
+				<h4 class="preserve-case">Andrés</h4>
+
+				<h5>Herramientas usadas</h5>
+
+				<p>
+					Usé dos herramientas de IA. La primera fue ChatGPT, debido a que he
+					trabajado mucho más con esta IA que con otras. También usé GitHub
+					Copilot, que a menudo me facilitó un poco más lo que buscaba realizar
+					y que se encuentra en Visual Studio Code.
+				</p>
+
+				<h5>Razón por la que se usó</h5>
+
+				<p>
+					Al principio del proyecto, usé estas herramientas para poder entender
+					un poco más acerca de este tipo de programación. Esto se debe
+					principalmente a que nunca había tenido un acercamiento a la
+					programación en JavaScript. En la carrera que estudio, la programación
+					no se enseña de manera tan continua como en otras carreras.
+				</p>
+
+				<p>
+					También llegué a usar los modelos de IA tanto para ayudarme a entender
+					qué hacían mis compañeros como para mejorar lo que estaba haciendo de
+					mi parte. Sin embargo, no fue una escritura total del código; quería
+					que me enseñara cómo trabajar en ello, y a partir de esto, usaría lo
+					que consideraba más útil e importante. Yo trabajo mucho mejor a partir
+					de ejemplos.
+				</p>
+
+				<h5>Alcance</h5>
+
+				<p>Moderado.</p>
+
+				<p>
+					A pesar de mi uso de este tipo de herramientas, también busqué ayuda
+					de mis compañeros, ya que ellos conocían más de la materia. Realmente,
+					me parece más fácil y cómoda la explicación de una persona que la de
+					una IA.
+				</p>
+
+				<h5>Validación</h5>
+
+				<p>
+					Comprobé varias veces cuidadosamente si el resultado al correr el
+					código reflajaba tanto mi interpretación de él como lo que me decían
+					las herramientas.
+				</p>
+
+				<h4 class="preserve-case">Belcar Santiago</h4>
+
+				<h5>Herramientas usadas</h5>
+
+				<ul class="preserve-case">
+					<li>
+						sugerencias predictivas en <a href="https://zed.dev">Zed</a> usando
+						el modelo
+						<a href="https://www.inceptionlabs.ai/models"
+							>Mercury Coder de Inception Labs</a
+						>
+					</li>
+					<li>Claude Sonnet 4.6</li>
+				</ul>
+
+				<h5>Razón por la que se usó</h5>
+
+				<p>
+					Brevemente usé sugerencias predictivas dentro de mi editor. Las
+					sugerencias fueron líneas triviales de código que se ajustaban a la
+					idea de lo que estaba escribiendo. Activé esta función porque tenía
+					curiosidad por los modelos de difusión de Inception Labs. Poco tiempo
+					después, lo desactivé porque sentí que me distraía más de lo que me
+					ayudaba.
+				</p>
+
+				<p>
+					Usé el chat web de Claude para hacer preguntas abiertas sobre APIs Web
+					y de JavaScript. También lo usé para aclarar dudas relacionadas con
+					sistema de tipos de TypeScript.
+				</p>
+
+				<h5>Alcance</h5>
+
+				<p>
+					Mínimo. Usé a Claude para responder preguntas generales, que no
+					estaban directamente relacionadas con código. Usé las sugerencias
+					predictivas por un tiempo limitado, y solo acepté sugerencias
+					triviales.
+				</p>
+
+				<h5>Validación</h5>
+
+				<p>
+					En general, validé mi código repasando la lógica y probando los
+					resultados en el navegador. También usamos
+					<a href="https://biomejs.dev">Biome</a>
+					y
+					<a href="https://typescriptlang.org">TypeScript</a>
+					dentro de Visual Studio Code para obtener funciones de análisis
+					estático y detectar problemas.
+				</p>
+
+				<h4 class="preserve-case">Santiago Rodríguez</h4>
+
+				<h5>Herramientas usadas</h5>
+
+				<p>
+					Usé principalmente dos herramientas de IA para este proyecto. La
+					primera fue Gemini, y la segunda fue GitHub Copilot, la cual utilicé
+					directamente dentro de Visual Studio Code para agilizar el proceso de
+					desarrollo.
+				</p>
+
+				<h5>Razón por la que se usó</h5>
+
+				<p>
+					Inicialmente, ambas herramientas me ayudaron a representar de manera
+					rápida los algoritmos que ya había planteado. Adicionalmente, utilicé
+					Gemini específicamente para buscar, entender y ver representados
+					diversos ejemplos de funciones de <i>p5.js</i> que no conocía a fondo.
+				</p>
+
+				<h5>Alcance</h5>
+
+				<p>
+					Usé las dos herramientas para investigar y representar mis propias
+					ideas de una forma más eficiente. Su alcance fue únicamente como un
+					complemento para el flujo de trabajo o como un recurso para aprender
+					conceptos nuevos.
+				</p>
+
+				<h5>Validación</h5>
+
+				<p>
+					Las ideas representadas por las herramientas no fueron copiadas
+					directamente; primero fueron comprendidas, luego adaptadas a las
+					necesidades del proyecto y finalmente transcritas por mi cuenta para
+					asegurar su buen funcionamiento dentro del código general.
+				</p>
+
+				<h4 class="preserve-case">Sergio</h4>
+
+				<h5>Herramientas usadas</h5>
+
+				<p>
+					Usé Claude, debido a que la considero una muy buena IA para explicar
+					códigos.
+				</p>
+
+				<h5>Razón por la que se usó</h5>
+
+				<p>
+					Buscaba entender un poco más los cambios que algunos de mis compañeros
+					agregaban al proyecto, ya que algunos métodos no los entendía del todo
+					bien a la primera y quería lograr entenderlos, porque me tocaba
+					trabajar en base a ese código. También lo usé para adquirir ideas de
+					cómo podíamos hacer la pagina más llamativa a la vista del usuario.
+				</p>
+
+				<h5>Alcance</h5>
+
+				<p>
+					Mínimo. Solo usé a Claude para recibir sugerencias de mejora y para
+					responder preguntas acerca de GitLab Pages y el código de mis
+					compañeros.
+				</p>
+
+				<h5>Validación</h5>
+
+				<p>
+					En aspectos generales, validé las explicaciones de Claude revisando la
+					lógica por mi cuenta y probando cambiar diferentes aspectos para
+					verificar mi entendimiento de la función.
+				</p>
+
+				<h3>Materiales referenciados</h3>
+
+				<ul class="preserve-case">
+					<li>
+						Charalambos, Jean Pierre. (2026).
+						<cite>Grid-Based Game Programming</cite>
+						[Materiales privados de clase].
+					</li>
+					<li>
+						Contribuidores de Mozilla. (2026).
+						<cite
+							><a href="https://developer.mozilla.org/">MDN Web Docs</a></cite
+						>
+						[Documentación].
+					</li>
+					<li>
+						Contribuidores de p5.js. (2026).
+						<cite
+							><a href="https://beta.p5js.org/reference/"
+								>p5.js Reference</a
+							></cite
+						>
+						[Documentación].
+					</li>
+					<li>
+						C. G., Héctor. (marzo, 2021).
+						<cite
+							><a
+								href="https://hektorprofe.github.io/academia/javascript/biblioteca-p5js/"
+								>Introducción a la biblioteca p5.js</a
+							></cite
+						>
+						[Guía]
+					</li>
+					<li>
+						Contribuidores de Rolldown. (enero, 2026).
+						<cite>
+							<a href="https://rolldown.rs/reference/OutputOptions.postBanner"
+								>postBanner</a
+							>
+						</cite>
+						[Documentación].
+					</li>
+					<li>
+						Contribuidores de Vite. (marzo, 2026).
+						<cite> <a href="https://vite.dev/guide/api-hmr">HMR API</a> </cite>
+						[Documentación].
+					</li>
+				</ul>
 			</article>
 		</main>
 	</body>
