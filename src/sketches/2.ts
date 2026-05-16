@@ -203,7 +203,6 @@ class Cell {
 		public readonly type: CellType,
 		public readonly color: ThemeColor,
 		public readonly direction: CellDirection | null = null,
-		public readonly isFrozen: boolean = false,
 	) {}
 
 	draw(p: p5, cellLength: number) {
@@ -216,21 +215,30 @@ class Cell {
 		const diameter = cellLength * 0.7;
 		p.circle(0, 0, diameter);
 
+		p.pop();
+	}
+
+	drawConnector(p: p5, cellLength: number, progress: number) {
+		p.push();
+		const color = this.color(p);
+		const length = cellLength * progress;
+
+		console.assert(length <= cellLength);
+
 		p.stroke(color);
-		p.strokeWeight(diameter * 0.5);
+		p.strokeWeight(cellLength * 0.5);
 		if (this.direction === CellDirection.Right) {
-			p.line(0, 0, cellLength, 0);
+			p.line(0, 0, length, 0);
 		}
 		if (this.direction === CellDirection.Left) {
-			p.line(0, 0, -cellLength, 0);
+			p.line(0, 0, -length, 0);
 		}
 		if (this.direction === CellDirection.Up) {
-			p.line(0, 0, 0, -cellLength);
+			p.line(0, 0, 0, -length);
 		}
 		if (this.direction === CellDirection.Down) {
-			p.line(0, 0, 0, cellLength);
+			p.line(0, 0, 0, length);
 		}
-
 		p.pop();
 	}
 
@@ -275,7 +283,7 @@ class Cell {
 	 */
 
 	withDirection(direction: CellDirection | null) {
-		return new Cell(this.type, this.color, direction, this.isFrozen);
+		return new Cell(this.type, this.color, direction);
 	}
 
 	asSealed() {
@@ -408,6 +416,46 @@ class Grid {
 				p.pop();
 			}
 		}
+
+		for (const [[rootRow, rootCol], path] of paths.entries()) {
+			path.tick();
+
+			const current: [number, number] = [rootRow, rootCol];
+
+			const grid = path.grid ?? this;
+			let currentCell = grid.get(...current);
+
+			for (let i = 0; !currentCell || currentCell.direction !== null; ++i) {
+				if (!currentCell) {
+					throw new TypeError("El camino incluye una celda vacía.");
+				}
+
+				const cellY = originY + cellLength * (current[0] + 0.5);
+				const cellX = originX + cellLength * (current[1] + 0.5);
+
+				p.push();
+				p.translate(cellX, cellY);
+
+				if (path.progress - i > 0) {
+					const connectorProgress = Math.min(1, path.progress - i);
+					currentCell?.drawConnector(p, cellLength, connectorProgress);
+				}
+
+				p.pop();
+
+				if (currentCell.direction === CellDirection.Right) {
+					++current[1];
+				} else if (currentCell.direction === CellDirection.Left) {
+					--current[1];
+				} else if (currentCell.direction === CellDirection.Up) {
+					--current[0];
+				} else if (currentCell.direction === CellDirection.Down) {
+					++current[0];
+				}
+				currentCell = grid.get(...current);
+			}
+		}
+
 		p.pop();
 	}
 }
@@ -418,29 +466,40 @@ interface TimelineItem {
 }
 
 class Path {
-	length: number;
+	/**
+	 * Opcionalmente, una matriz que asociar con este camino. Si esta propiedad
+	 * no está establecida, se usará el estado de la matriz actual.
+	 */
+	grid: Grid | null;
+	target: number;
 
 	progress: number = 0;
-	velocity: number = 0;
 
-	get acceleration() {
-		return (this.length - this.progress) / this.length;
+	get #velocity() {
+		return (this.target - this.progress) / 10;
 	}
 
-	constructor(length: number) {
-		this.length = length;
+	constructor(length: number, grid: Grid | null = null) {
+		this.target = length;
+		this.grid = grid;
 	}
 
-	tick() {}
+	tick() {
+		this.progress += this.#velocity;
+		this.progress = Math.max(0, this.progress);
+	}
 }
 
-interface PullState {
+interface PullingState {
 	/**
 	 * La raíz del camino
 	 */
-	from: [number, number];
+	root: [number, number];
 
-	length: number;
+	/**
+	 * La cabeza actual del camino
+	 */
+	head: [number, number];
 }
 
 //clase para recibir endpoints y manejar la lógica del juego
@@ -462,7 +521,7 @@ class Game {
 	#paths: Map<[number, number], Path> = new Map();
 	#grid: Grid;
 
-	#pulling: PullState | null = null;
+	#pulling: PullingState | null = null;
 	get pulling() {
 		return !!this.#pulling;
 	}
@@ -501,13 +560,13 @@ class Game {
 
 	isInteractive([row, col]: [number, number]): boolean {
 		const cell = this.#grid.get(row, col);
-		const pullColor = (
-			this.#pulling?.from && this.#grid.get(...this.#pulling.from)
-		)?.color;
+		const pullColor = (this.#pulling && this.#grid.get(...this.#pulling.root))
+			?.color;
 
 		return (
 			!!cell &&
-			cell.direction !== null &&
+			cell.direction === null &&
+			cell.type !== CellType.SealedEndpoint &&
 			(!pullColor || pullColor === cell.color)
 		);
 	}
@@ -523,15 +582,20 @@ class Game {
 			return false;
 		}
 
+		const [headRow, headCol] = this.#pulling.head;
+
+		if (headRow !== fromRow || headCol !== fromCol) {
+			return false;
+		}
+
 		const targetCell = this.#grid.get(toRow, toCol);
 		const fromCell = this.#grid.get(fromRow, fromCol);
-		const rootCell = this.#grid.get(...this.#pulling.from);
 
 		if (
 			fromCell === null ||
-			rootCell === null ||
 			fromCell.type === CellType.SealedEndpoint ||
-			fromCell.color !== rootCell.color
+			fromCell.direction !== null || // solo se permiten caminos simples
+			(targetCell && targetCell.direction !== null) // ditto
 		) {
 			return false;
 		}
@@ -553,7 +617,20 @@ class Game {
 	}
 
 	startPulling(root: [number, number]) {
-		this.#pulling = { from: root, length: 0 };
+		if (this.#pulling) {
+			throw new Error(
+				"No se puede empezar a jalar si nunca se terminó de jalar.",
+			);
+		}
+
+		if (!this.isInteractive(root)) {
+			throw new Error(
+				"No se puede empezar a jalar desde una celda no-interactiva.",
+			);
+		}
+
+		this.#pulling = { root, head: root };
+		this.#paths.set(root, new Path(0));
 	}
 
 	pull(fromRow: number, fromCol: number, toRow: number, toCol: number) {
@@ -573,12 +650,14 @@ class Game {
 		const fromCell = this.#grid.get(fromRow, fromCol);
 		const toCell = this.#grid.get(toRow, toCol);
 
-		if (
-			fromCell !== null &&
-			fromCell.direction === null && // solo se permiten caminos simples
-			!(toCell && toCell.direction !== null) && // ditto
-			this.#canPull(fromRow, fromCol, toRow, toCol)
-		) {
+		const pullingPath = this.#paths.get(this.#pulling.root);
+		if (!pullingPath) {
+			throw new TypeError();
+		}
+
+		if (fromCell && this.#canPull(fromRow, fromCol, toRow, toCol)) {
+			this.#dirty = true;
+
 			// anotar que toRow, toCol es el hijo de fromRow, fromCol
 			this.#grid.set(
 				fromRow,
@@ -586,20 +665,23 @@ class Game {
 				fromCell.withDirection(Cell.delta([fromRow, fromCol], [toRow, toCol])),
 			);
 
+			++pullingPath.target;
+			this.#pulling.head = [toRow, toCol];
+
 			if (
 				toCell &&
 				toCell.type === CellType.Endpoint &&
 				toCell.color === fromCell.color
 			) {
-				// Indicamos el fin de este camino
-				this.#grid.set(toRow, toCol, toCell.asSealed());
-
 				// Guardamos el estado del tablero cada vez que el jugador
 				// completa un movimiento.
 				this.#checkpoint({
-					root: this.#pulling.from,
-					length: this.#pulling.length,
+					root: this.#pulling.root,
+					length: pullingPath.target,
 				});
+
+				// Sellamos la hoja.
+				this.#grid.set(toRow, toCol, toCell.asSealed());
 			} else {
 				// Establecemos un nodo intermedio
 				this.#grid.set(toRow, toCol, new Cell(CellType.Path, fromCell.color));
@@ -608,10 +690,27 @@ class Game {
 	}
 
 	stopPulling() {
+		if (!this.#pulling) {
+			throw new Error("No se puede dejar de jalar si no se empezó a jalar.");
+		}
+
+		const pullingPath = this.#paths.get(this.#pulling.root);
+
+		if (!pullingPath) {
+			throw new TypeError();
+		}
+
+		if (this.#dirty) {
+			pullingPath.grid = this.#grid.clone();
+			pullingPath.target = 0;
+			this.clean();
+		}
+
 		this.#pulling = null;
 	}
 
 	#checkpoint(path: TimelineItem["addedPath"] = null) {
+		this.#dirty = false;
 		this.#timeline.splice(this.#timelineIndex + 1);
 		this.#timeline.push({ addedPath: path, grid: this.#grid.clone() });
 		++this.#timelineIndex;
@@ -622,6 +721,7 @@ class Game {
 	 */
 	clean() {
 		this.#grid = this.#timeline[this.#timelineIndex].grid.clone();
+		this.#dirty = false;
 	}
 
 	undo() {
@@ -630,11 +730,7 @@ class Game {
 			return;
 		}
 
-		this.#timelineIndex = Math.max(0, this.#timelineIndex - 1);
-
-		const { grid, addedPath } = this.#timeline[this.#timelineIndex];
-
-		this.#grid = grid.clone();
+		const { addedPath } = this.#timeline[this.#timelineIndex];
 
 		if (addedPath) {
 			const path = this.#paths.get(addedPath.root);
@@ -643,8 +739,13 @@ class Game {
 					`Se intentó deshacer un cambio que no estaba reflejado en el estado actual. En particular, no hay registro de un camino con una raíz en ${addedPath.root}.`,
 				);
 			}
-			path.length = 0;
+			path.grid = this.#grid.clone();
+			path.target = 0;
 		}
+
+		this.#timelineIndex = Math.max(0, this.#timelineIndex - 1);
+		const { grid } = this.#timeline[this.#timelineIndex];
+		this.#grid = grid.clone();
 	}
 
 	redo() {
@@ -652,10 +753,11 @@ class Game {
 			return;
 		}
 
-		this.#timelineIndex = Math.min(
-			this.#timeline.length - 1,
-			this.#timelineIndex + 1,
-		);
+		if (this.#timelineIndex === this.#timeline.length - 1) {
+			return;
+		}
+
+		++this.#timelineIndex;
 
 		const { grid, addedPath } = this.#timeline[this.#timelineIndex];
 
@@ -752,23 +854,26 @@ class GamePage extends Page {
 		}
 	}
 
-	mouseReleased(_: p5) {
+	mouseReleased() {
 		if (this.game.pulling) {
 			this.game.stopPulling();
-			this.game.clean();
 		}
 	}
 
 	mouseDragged(p: p5) {
 		const target = this.game.getCellFromMouse(p);
 		if (!target) return;
-		const [row, col] = target;
 
 		if (!this.game.pulling) {
+			if (!this.game.isInteractive(target)) {
+				return;
+			}
+
 			this.game.startPulling(target);
 		}
 
 		if (this.lastPosition) {
+			const [row, col] = target;
 			const [lastRow, lastCol] = this.lastPosition;
 			this.game.pull(lastRow, lastCol, row, col);
 		}
