@@ -222,10 +222,11 @@ export class Navigator {
 	 * Permite cambiar la página actual sin aislar el
 	 * estado de dibujo. Solo debe ser usado para el desarrollo.
 	 */
-	overridePage(name: string) {
+	overridePage(name: string, args?: PageArgs) {
 		const result = this.#pages.entries().find(([c]) => c.name === name);
 		if (result) {
 			const [_Page, page] = result;
+			page.receive(args);
 			this.#currentPage = page;
 		}
 	}

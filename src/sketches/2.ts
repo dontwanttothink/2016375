@@ -1176,7 +1176,7 @@ if (import.meta.hot) {
 
 	if (previousPageID) {
 		try {
-			navigator.overridePage(previousPageID);
+			navigator.overridePage(previousPageID, { level: levels[3] });
 		} catch {}
 	}
 
