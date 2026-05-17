@@ -228,11 +228,11 @@ class Button {
 
 	#height: number = 0;
 	get height() {
-		return this.#height;
+		return Math.max(this.#height, this.minHeight);
 	}
 	#width: number = 0;
 	get width() {
-		return this.#width;
+		return Math.max(this.#width, this.minWidth);
 	}
 
 	#label: string = "Oprímeme";
@@ -265,15 +265,13 @@ class Button {
 		const contentHeight =
 			p.textAscent(this.#label) + p.textDescent(this.#label);
 		const targetHeight = contentHeight + Button.PADDING * 1.7;
-		const height = Math.max(targetHeight, this.minHeight);
 
 		const contentWidth = p.textWidth(this.#label);
 		const targetWidth = contentWidth + Button.PADDING * 2;
-		const width = Math.max(targetWidth, this.minWidth);
 		p.pop();
 
-		this.#height = height;
-		this.#width = width;
+		this.#height = targetHeight;
+		this.#width = targetWidth;
 	}
 
 	draw(p: p5) {
@@ -1455,19 +1453,74 @@ class WonPage extends Page<{ levelIndex: number; wasProcedural: boolean }> {
  * La página de bienvenida; es decir, la que siempre aparece primero.
  */
 class WelcomePage extends Page {
+	handMadeLevelsButton!: Button;
+	proceduralLevelsButton!: Button;
+
+	setup(p: p5) {
+		p.textFont("system-ui");
+
+		this.handMadeLevelsButton = new Button(p);
+		this.handMadeLevelsButton.setLabel(p, "Niveles de Andrés");
+
+		this.proceduralLevelsButton = new Button(p);
+		this.proceduralLevelsButton.setLabel(p, "Modo infinito");
+
+		const maxWidth = Math.max(
+			this.handMadeLevelsButton.width,
+			this.proceduralLevelsButton.width,
+		);
+
+		this.handMadeLevelsButton.minWidth = maxWidth;
+		this.proceduralLevelsButton.minWidth = maxWidth;
+	}
+
 	draw(p: p5) {
-		p.cursor(p.HAND);
 		p.clear();
 		p.fill(themeColors.foreground(p));
-		p.text("haz click lol", p.width / 2, p.height / 2);
+
+		const MARGIN = 50;
+
+		const totalHeight =
+			this.handMadeLevelsButton.height + this.proceduralLevelsButton.height;
+		const startY =
+			(p.height - totalHeight + this.handMadeLevelsButton.height) / 2;
+
+		this.handMadeLevelsButton.x = p.width / 2;
+		this.handMadeLevelsButton.y = startY;
+		this.handMadeLevelsButton.draw(p);
+
+		this.proceduralLevelsButton.x = p.width / 2;
+		this.proceduralLevelsButton.y =
+			startY + MARGIN + this.handMadeLevelsButton.height / 2;
+		this.proceduralLevelsButton.draw(p);
+
+		if (
+			[this.handMadeLevelsButton, this.proceduralLevelsButton].some((button) =>
+				button.intersectsWith(p.mouseX, p.mouseY),
+			)
+		) {
+			p.cursor(p.HAND);
+		} else {
+			p.cursor(p.ARROW);
+		}
 	}
 
 	mouseClicked(p: p5) {
-		this.navigator.switchPage(p, GamePage, {
-			level: levels[0],
-			index: 0,
-			isProcedural: false,
-		});
+		if (this.handMadeLevelsButton.intersectsWith(p.mouseX, p.mouseY)) {
+			this.navigator.switchPage(p, GamePage, {
+				level: levels[0],
+				index: 0,
+				isProcedural: false,
+			});
+		}
+
+		if (this.proceduralLevelsButton.intersectsWith(p.mouseX, p.mouseY)) {
+			this.navigator.switchPage(p, GamePage, {
+				level: levels[0],
+				index: 0,
+				isProcedural: false,
+			});
+		}
 	}
 }
 
