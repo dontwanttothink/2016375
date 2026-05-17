@@ -31,7 +31,7 @@ function randomThemeColor(): ThemeColor {
 }
 
 function themeColor(hue: number): ThemeColor {
-	// Constantes escogidas usando https://oklch.com/ :)
+
 	const lightness = 0.65;
 	const chroma = 0.212;
 
