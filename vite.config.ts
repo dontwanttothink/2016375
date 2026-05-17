@@ -14,6 +14,7 @@ async function inputs(root: string) {
 		})
 	)
 		.filter((f) => f.isFile())
+		.filter((f) => !f.name.startsWith("."))
 		.map((f) => resolve(f.parentPath, f.name));
 }
 
