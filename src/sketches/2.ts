@@ -677,7 +677,11 @@ class Game {
 	#timeline: TimelineItem[] = [];
 	#timelineIndex: number = -1;
 
+	/**
+	 * El número de parejas de puntos finales en este nivel.
+	 */
 	#endpointCount: number;
+
 	/**
 	 * Asocia raíces con datos sobre los caminos de los que hacen parte.
 	 */
