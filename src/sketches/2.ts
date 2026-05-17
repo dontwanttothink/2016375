@@ -3,25 +3,32 @@ import "p5.quadrille";
 import "../displayErrors";
 import { Navigator, Page } from "../pages";
 
+/**
+ * El tiempo transcurrido desde algún punto constante arbitrario en
+ * milisegundos.
+ */
 function currentTime(): number {
 	return Number(document.timeline.currentTime);
 }
 
 type ThemeColor = (p: p5) => p5.Color;
 
+/**
+ * @returns Si el usuario prefiere el modo oscuro.
+ */
 function isDark() {
-	// mira si el usuario utiliza el tema oscuro
 	return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
+/**
+ * @returns Un color elegido aleatoriamente.
+ */
 function randomThemeColor(): ThemeColor {
-	// Elegir un color aleatoriamente
 	const hue = Math.floor(Math.random() * 360);
 	return themeColor(hue);
 }
 
 function themeColor(hue: number): ThemeColor {
-	//Les coloca especificaciones al color
 	// Constantes escogidas usando https://oklch.com/ :)
 	const lightness = 0.65;
 	const chroma = 0.212;
@@ -29,8 +36,10 @@ function themeColor(hue: number): ThemeColor {
 	return (p: p5) => p.color(`oklch(${lightness} ${chroma} ${hue})`);
 }
 
+/**
+ * Algunos colores reutilizables.
+ */
 const themeColors = {
-	// Define colores
 	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(105)),
 	subtler: (p: p5) => (isDark() ? p.color(150) : p.color(155)),
 	red: themeColor(0),
@@ -40,16 +49,18 @@ const themeColors = {
 	orange: themeColor(63),
 } satisfies Record<string, ThemeColor>;
 
+/**
+ * Un rectángulo. Esto se usa para representar áreas.
+ */
 interface Rectangle {
-	//constructor de rectangulo
 	top: number;
 	bottom: number;
 	left: number;
 	right: number;
 }
 
-/**
- * Interacción del usuario
+/*
+ * Sección: Interacción del usuario
  */
 
 class Button {
@@ -183,7 +194,9 @@ class Button {
  * Lógica
  */
 
-//tipos de estados para las celdas
+/**
+ * Una enumeración para distinguir los tres tipos posibles de celda.
+ */
 enum CellType {
 	Endpoint,
 	SealedEndpoint,
@@ -197,9 +210,11 @@ enum CellDirection {
 	Down,
 }
 
-//clase para representar cada celda del tablero
+/**
+ * Una celda de la matriz.
+ */
 class Cell {
-	static ANIMATION_DURATION = 150;
+	static ANIMATION_DURATION = 100;
 
 	get opacity() {
 		const progress = Math.max(
@@ -356,6 +371,9 @@ class Cell {
 type CellRow = (Cell | null)[];
 type CellMatrix = CellRow[];
 
+/**
+ * Una matriz.
+ */
 class Grid {
 	#matrix: CellMatrix;
 	get size() {
@@ -414,6 +432,9 @@ class Grid {
 		this.#matrix[row][col] = cell;
 	}
 
+	/**
+	 * @returns La cantidad de celdas que satisfacen el predicado.
+	 */
 	count(test: (cell: Cell | null) => boolean) {
 		let out = 0;
 		for (const row of this.#matrix) {
@@ -549,11 +570,28 @@ class Grid {
 	}
 }
 
+/**
+ * Un elemento del historial.
+ */
 interface TimelineItem {
 	grid: Grid;
 	addedPath: { root: [number, number]; length: number } | null;
 }
 
+/**
+ * Datos relacionados a un camino.
+ *
+ * Un `Path`, en sí, no incluye la secuencia de elementos que forman el
+ * camino. En cambio, registra la raíz y algunos datos de animación.
+ *
+ * Si el camino pertenece a una versión de la matriz distinta a la matriz
+ * actual, se establece la propiedad `externalGrid`. De esa forma, se puede
+ * recuperar la secuencia de celdas que correspondan a un camino que se ha
+ * eliminado. Esto es importante visualmente: la desaparición de los caminos
+ * está animada.
+ *
+ * Para avanzar el estado de la animación, se llama `.tick()`.
+ */
 class Path {
 	/**
 	 * Opcionalmente, una matriz que asociar con este camino. Si esta propiedad
@@ -573,6 +611,12 @@ class Path {
 		this.externalGrid = grid;
 	}
 
+	/**
+	 * Avanzar el estado de la animación.
+	 * @returns Si este camino está añejo; es decir, si se puede eliminar
+	 * (porque no es visible y corresponde a un punto de guardado distinto al
+	 * actual).
+	 */
 	tick() {
 		this.progress += this.#velocity;
 		this.progress = Math.max(0, this.progress);
@@ -582,6 +626,9 @@ class Path {
 	}
 }
 
+/**
+ * Datos sobre una sesión durante la que el usuario determina algún camino.
+ */
 interface PullingState {
 	/**
 	 * La raíz del camino
@@ -594,7 +641,6 @@ interface PullingState {
 	head: [number, number];
 }
 
-//clase para recibir endpoints y manejar la lógica del juego
 /**
  * Representa una partida individual del juego.
  */
@@ -685,7 +731,9 @@ class Game {
 		);
 	}
 
-	// verifica si se pueden conectar dos celdas adyacentes
+	/**
+	 * Indica si dos celdas se pueden conectar.
+	 */
 	#canPull(
 		fromRow: number,
 		fromCol: number,
@@ -730,6 +778,9 @@ class Game {
 		return targetCell === null;
 	}
 
+	/**
+	 * Iniciar una 'sesión' durante la que se determina algún camino.
+	 */
 	startPulling(root: [number, number]) {
 		if (this.#pulling) {
 			throw new Error(
@@ -772,7 +823,7 @@ class Game {
 		if (fromCell && this.#canPull(fromRow, fromCol, toRow, toCol)) {
 			this.#dirty = true;
 
-			// anotar que toRow, toCol es el hijo de fromRow, fromCol
+			// Anotar que toRow, toCol es el hijo de fromRow, fromCol
 			this.#grid.set(
 				fromRow,
 				fromCol,
@@ -827,6 +878,10 @@ class Game {
 		this.#pulling = null;
 	}
 
+	/**
+	 * Reemplaza la matriz actual con una copia de `grid`. Se actualizan los
+	 * fantasmas (`this.phantoms`) y los puntos de inicio de animación.
+	 */
 	#applyGrid(grid: Grid) {
 		const currentGrid = this.#grid.clone();
 		const newGrid = grid.clone();
@@ -850,6 +905,9 @@ class Game {
 		this.#grid = newGrid;
 	}
 
+	/**
+	 * Agrega el estado actual al historial.
+	 */
 	#checkpoint(path: TimelineItem["addedPath"] = null) {
 		this.#dirty = false;
 		this.#timeline.splice(this.#timelineIndex + 1);
@@ -858,7 +916,7 @@ class Game {
 	}
 
 	/**
-	 * Eliminar los cambios sin guardar.
+	 * Elimina los cambios sin guardar.
 	 */
 	clean() {
 		this.#applyGrid(this.#timeline[this.#timelineIndex].grid);
@@ -928,7 +986,7 @@ class Game {
 	}
 }
 
-/**
+/*
  * Transiciones
  *
  * Esta sección se encarga de la lógica entre partidas. Por ejemplo, iniciar
@@ -948,13 +1006,22 @@ class GamePage extends Page<{ level: LevelData }> {
 		};
 	}
 
+	/**
+	 * La posición anterior durante una interacción de arrastrar.
+	 */
 	lastPosition: [number, number] | null = null;
 
 	undoButton!: Button;
 	redoButton!: Button;
 
+	/**
+	 * La partida individual actual.
+	 */
 	game!: Game;
 
+	/**
+	 * Los datos del nivel son enviados por la página precedente.
+	 */
 	receive({ level }: { level: LevelData }): void {
 		this.game = new Game(level, GamePage.GameContainer);
 	}
@@ -1046,8 +1113,12 @@ class GamePage extends Page<{ level: LevelData }> {
 	}
 }
 
+/**
+ * La página de bienvenida; es decir, la que siempre aparece primero.
+ */
 class WelcomePage extends Page {
 	draw(p: p5) {
+		p.cursor(p.HAND);
 		p.clear();
 		p.fill(themeColors.foreground(p));
 		p.text("haz click lol", p.width / 2, p.height / 2);
@@ -1059,8 +1130,10 @@ class WelcomePage extends Page {
 }
 
 const navigator = new Navigator(WelcomePage, [GamePage]);
-//Niveles arreglados (Esto entendi)
 
+/**
+ * Una pareja de puntos iniciales/finales.
+ */
 interface EndpointConfig {
 	row0: number;
 	col0: number;
@@ -1069,11 +1142,17 @@ interface EndpointConfig {
 	color: ThemeColor;
 }
 
+/**
+ * Un nivel individual.
+ */
 interface LevelData {
 	size: number;
 	endpoints: EndpointConfig[];
 }
 
+/**
+ * Los niveles creados por Andrés.
+ */
 const levels: LevelData[] = [
 	{
 		size: 4,
