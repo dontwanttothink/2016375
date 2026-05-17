@@ -1185,6 +1185,12 @@ class WelcomePage extends Page {
 	}
 }
 
+/**
+ * El 'navegador' gestiona las transiciones entre 'páginas'.
+ *
+ * En este contexto, tanto el navegador como las páginas se refieren a
+ * conceptos originales. No se refieren al navegador web o a páginas web.
+ */
 const navigator = new Navigator(WelcomePage, [GamePage]);
 
 // Level Manager
