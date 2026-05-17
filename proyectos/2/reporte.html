@@ -5,11 +5,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link rel="stylesheet" href="/src/style.css">
 		<link rel="icon" href="/favicon.png" type="image/png">
-		<title>Proyecto 1: Informe</title>
+		<title>Proyecto 2: Informe</title>
 	</head>
 	<body>
 		<main>
-			<h1>Simón dice</h1>
+			<h1>Flow Free</h1>
 			<nav style="opacity: 80%">
 				<p><a href="/">Ir al inicio</a></p>
 				<p><a href=".">Ver proyecto</a></p>
@@ -51,13 +51,7 @@
 					</li>
 					<li>
 						Permitir al usuario dibujar con el raton caminos para unir puntos del mismo color
-					<li>
-						Verificar si el tablero esta correctamente completado
-					</li>
-					<li>Ofrecer multiples niveles de dificultad</li>
-					<li>Implementar un historial de acciones con funcionalidad de deshacer y rehacer</li>
-				</ul>
-
+						</li>
 				<p>
 					Se uso una paleta de colores definida (OKLCH) para lograr consistencia cisual y compatibilidad con temas claros y oscuros.
 				</p>
@@ -117,142 +111,144 @@
 
 				<h4>Lógica</h4>
 
-				<p>El juego se divide en cuatro fases:</p>
+				<p>El juego se divide en distintos momentos de interacción:</p>
 
 				<ul>
-					<li>la fase en que se reproduce el patrón</li>
-					<li>la fase en que el usuario debe repetir el patrón</li>
+					<li>el momento en que el jugador selecciona un punto inicial</li>
+					<li>el momento en que el jugador arrastra un camino por la cuadrícula</li>
+					<li>el momento en que el juego valida si el movimiento realizado es correcto</li>
+					<li>el momento en que un camino se completa y queda guardado</li>
 					<li>
-						la fase entre patrones después de que el usuario haya acabado un
-						patrón
+						el momento en que un camino inválido desaparece y el tablero se
+						restaura
 					</li>
-					<li>la fase después de que el usuario acaba con todas sus vidas</li>
+					<li>el momento en que el jugador completa el nivel</li>
 				</ul>
 
 				<p>
-					Estas fases se representan internamente y controlan, por ejemplo, si
-					se ignoran los clics o si se muestra un mensaje de retroalimentación
-					(como «¡bien!» o «ups»).
+					Estos momentos se representan internamente mediante estados como
+					<code>pulling</code>, <code>dirty</code>, <code>wonAt</code> y el
+					historial (<code>timeline</code>). Estos estados controlan, por ejemplo,
+					si el jugador puede seguir extendiendo un camino, si el tablero debe
+					regresar al último punto guardado o si debe mostrarse la pantalla de
+					“nivel completado”.
 				</p>
 
 				<p>
-					La generación de los patrones es aleatoria. La única condición
-					adicional es que una misma celda no puede aparecer dos veces seguidas.
+					Los niveles no se generan aleatoriamente. Cada nivel está definido
+					manualmente mediante el tamaño de la cuadrícula, la posición de los
+					puntos iniciales y finales, y el color correspondiente de cada pareja.
 				</p>
 
 				<p>
-					Para verificar si un patrón introducido por el usuario es correcto,
-					simplemente se comparan las coordenadas una a la vez con el patrón que
-					se generó.
+					Para verificar si un movimiento es válido, el juego comprueba varias
+					condiciones: que la celda destino sea adyacente, que no exista movimiento
+					diagonal, que la celda no pertenezca ya a otro camino, que no se
+					atraviesen caminos existentes y que el camino solo pueda cerrarse con un
+					punto final del mismo color.
+				</p>
+
+				<p>
+					Cuando un camino conecta correctamente dos puntos del mismo color, el
+					punto final se sella, el estado del tablero se guarda automáticamente y
+					el juego revisa si todas las celdas ya fueron llenadas.
+				</p>
+
+				<p>
+					Si el jugador suelta el mouse antes de completar correctamente un camino,
+					el tablero se restaura automáticamente al último estado válido guardado.
+				</p>
+
+				<p>
+					La victoria ocurre cuando todos los pares de puntos están conectados y no
+					queda ninguna celda vacía en la cuadrícula.
 				</p>
 
 				<h3>Resultados y líneas futuras de trabajo</h3>
 
 				<p>
-					El resultado es un juego interactivo que cumple con los objetivos
-					básicos propuestos. Se puede elegir entre tres opciones básicas de
-					dificultad: «Fácil», «Medio» y «Difícil». La dificultad afecta el
-					tamaño de la cuadrícula, la longitud de los patrones y el número de
-					vidas iniciales.
+					El resultado es un juego interactivo basado en la conexión de caminos
+					dentro de una cuadrícula. El jugador debe unir pares de puntos del mismo
+					color sin cruzar caminos y ocupando todas las celdas disponibles.
 				</p>
 
 				<p>
-					Se usan animaciones ampliamente y hay varios elementos decorativos.
+					Se usan animaciones ampliamente para mostrar la aparición, desaparición y
+					transición de los caminos. Además, el sistema incluye efectos visuales
+					como conexiones animadas y celdas fantasma al eliminar rutas.
 				</p>
 
 				<p>
-					La implementación está profundamente orientada a objetos. Hubo un
-					esfuerzo de diseñar y escribir los sistemas de la forma más limpia
-					posible. El resultado está documentado con comentarios detallados. Sin
-					embargo, con el tiempo, la complejidad se fue incrementando. A futuro,
-					es posible hacer cambios para mejorar la elegancia y simplicidad.
+					La implementación está profundamente orientada a objetos. El proyecto se
+					divide en múltiples clases encargadas de distintos sistemas, como la
+					cuadrícula, las celdas, los caminos, el historial de movimientos y la
+					navegación entre páginas. El resultado está documentado con comentarios
+					detallados y utiliza estructuras que facilitan la expansión futura del
+					juego. Sin embargo, con el tiempo, la complejidad del manejo de estados y
+					animaciones fue aumentando. A futuro, es posible mejorar la organización
+					interna y simplificar algunos sistemas.
 				</p>
 
 				<h4>Código muerto</h4>
 
 				<p>
-					Mientras se estaba escribiendo el programa, se introdujeron funciones
-					que terminaron sin usarse. Por ejemplo, al principio consideramos
-					poner elementos a los lados de la cuadrícula del juego, como texto o
-					botones. Por eso, la implementación de la cuadrícula tiene la
-					habilidad de guardar márgenes a la izquierda y la derecha. Esta
-					habilidad no se usa.
+					Mientras se estaba desarrollando el juego, se implementaron funciones
+					y características que finalmente no fueron utilizadas en la versión
+					final. Por ejemplo, se creó la función <code>randomThemeColor()</code>
+					con la intención de usarla en un posible modo infinito que generaría
+					colores aleatorios para los caminos. Sin embargo, este modo nunca fue
+					implementado. También se definieron algunos colores dentro de
+					<code>themeColors</code>, como <code>purple</code>, que no aparecen
+					en ninguno de los niveles actuales. Además, quedaron estructuras y
+					comentarios preparados para futuras expansiones del sistema de niveles
+					y de navegación entre páginas, aunque actualmente no tengan un uso
+					directo dentro de la jugabilidad.
 				</p>
 
-				<p>
-					Otro ejemplo es la función <code>async preload()</code> definida en la
-					clase abstracta <code>Page</code>. El objetivo de esa función era
-					permitir la carga de imágenes asincrónicamente, lo cual no puede
-					hacerse correctamente dentro de los <code>setup</code> o
-					<code>draw</code>
-					sincrónicos. Al final, no usamos imágenes.
-				</p>
-
-				<p>
-					Para mejorar el proyecto y simplificarlo, estas funciones deberían
-					eliminarse a futuro.
-				</p>
 
 				<h4>Accesibilidad</h4>
 
 				<p>
-					La única forma de interacción con el juego es visual. No es posible
-					usar audio, por ejemplo, para recibir el patrón a memorizar o para
-					percibir los elementos de interfaz. En particular, las tecnologías de
-					asistencia no pueden entender el juego porque se dibuja manualmente en
-					un lienzo HTML; no se usan elementos semánticos. En parte, la librería
-					<i>p5.js</i>
-					conduce a este resultado porque está diseñada para proyectos visuales.
-					Sin embargo, también ofrece
-					<a
-						href="https://p5js.org/tutorials/writing-accessible-canvas-descriptions/"
-						>varias funciones de accesibilidad</a
-					>, y es enteramente posible combinarlas con las capacidades nativas
-					del DOM para ayudar a que más personas puedan cómodamente jugar.
+					El juego depende principalmente de elementos visuales y del uso del
+					mouse. Esto se debe a que la interfaz está dibujada manualmente sobre un
+					<code>canvas</code> usando <i>p5.js</i>, sin elementos semánticos del
+					DOM.
 				</p>
 
 				<p>
-					Además, la interfaz no respeta las preferencias visuales del
-					navegador, como la reducción de movimiento, el aumento de contraste o
-					el modo oscuro. Notablemente, en modo oscuro, hay una diferencia
-					brusca entre el fondo blanco del lienzo y el fondo oscuro de la página
-					en sí.
+					Aunque el código detecta si el usuario usa modo oscuro mediante la
+					función <code>isDark()</code>, la interfaz no adapta completamente sus
+					colores ni respeta otras preferencias de accesibilidad, como la reducción
+					de movimiento o el alto contraste.
 				</p>
 
 				<p>
-					Es posible ajustar el tamaño del texto del juego a través de la
-					interfaz del navegador.
+					Sin embargo, la interfaz sí se ajusta parcialmente a distintos tamaños de
+					pantalla y utiliza fuentes del sistema, lo que permite cierta adaptación
+					visual desde el navegador.
 				</p>
-
 				<h4>Jugabilidad</h4>
 
 				<p>
-					Hemos visto que varias personas se divierten con el juego y se sienten
-					motivadas a intentar lograr más niveles.
+					El juego resulta entretenido porque el jugador debe conectar correctamente
+					los puntos de colores sin dejar espacios vacíos en la cuadrícula, esto 
+					dependiendodel nivel puede ser todo un reto. Además, la inclusión de varios 
+					niveles con distintos tamaños permite que la dificultad aumente progresivamente.
 				</p>
 
 				<p>
-					Actualmente, todos los modos muestran la secuencia de celdas a la
-					misma velocidad. Algunas personas encuentran esa velocidad demasiado
-					rápida al principio. Podríamos mejorar esto haciendo que el patrón se
-					muestre más pausadamente al principio y aumente su velocidad con el
-					tiempo, sobre todo en el modo fácil.
+					Actualmente, la interacción depende únicamente del mouse, lo que puede
+					hacer algunos movimientos incómodos o imprecisos. También sería posible
+					mejorar la experiencia añadiendo más tipos de niveles, modos de juego o
+					un sistema de progreso más amplio.
 				</p>
 
 				<p>
-					Dentro de un mismo modo de dificultad, todos los <i>niveles</i> son
-					idénticos, y no hay progresión. Esto se podría cambiar para hacer el
-					juego algo más emocionante.
+					En el futuro, podrían agregarse características como temporizadores,
+					estadísticas, generación aleatoria de niveles o incluso un modo infinito,
+					idea para la cual ya existen algunas funciones preparadas dentro del
+					código.
 				</p>
-
-				<p>
-					Finalmente, quisiéramos explorar en el futuro la posibilidad de un
-					modo multijugador que permita a los usuarios competir entre sí.
-					Podríamos, también, recordar los niveles más altos logrados por cada
-					usuario e incluso publicarlos para fomentar la competencia entre
-					amigos.
-				</p>
-
 				<h3>Uso de modelos de lenguaje</h3>
 
 				<p>
