@@ -63,10 +63,10 @@ function themeColor(hue: number): ThemeColor {
  * Algunos colores reutilizables.
  */
 const themeColors = {
-	foreground: (p: p5) => (isDark() ? p.color(200 / 255) : p.color(70 / 255)),
+	foreground: (p: p5) => (isDark() ? p.color(220 / 255) : p.color(70 / 255)),
 	subtler: (p: p5) => (isDark() ? p.color(150 / 255) : p.color(155 / 255)),
 	subtlest: (p: p5) => (isDark() ? p.color(70 / 255) : p.color(240 / 255)),
-	overlay: (p: p5) => (isDark() ? p.color(50 / 255) : p.color(250 / 255)),
+	overlay: (p: p5) => (isDark() ? p.color(60 / 255) : p.color(250 / 255)),
 	red: themeColor(0),
 	yellow: themeColor(100),
 	blue: themeColor(230),
@@ -249,8 +249,12 @@ class Button {
 	constructor(p: p5) {
 		this.#refreshDimensions(p);
 		this.baseColor = () => p.color("oklch(0.20 0 230)");
-		this.highlightColor = () => p.color("oklch(0.70 0.17 230)");
-		this.textFill = () => p.color("oklch(1 0 230)");
+		this.highlightColor = () =>
+			isDark()
+				? p.color("oklch(0.45 0.17 230)")
+				: p.color("oklch(0.70 0.17 230)");
+		this.textFill = () =>
+			isDark() ? p.color("oklch(0.85 0 230)") : p.color("oklch(1 0 230)");
 		this.x = p.width / 2;
 		this.y = p.height / 2;
 	}
@@ -1157,7 +1161,11 @@ class Game {
 /**
  * La página de una partida.
  */
-class GamePage extends Page<{ level: LevelData; index?: number }> {
+class GamePage extends Page<{
+	level: LevelData;
+	index: number;
+	isProcedural: boolean;
+}> {
 	static GameContainer(p: p5) {
 		return {
 			bottom: p.height - 40,
@@ -1168,9 +1176,9 @@ class GamePage extends Page<{ level: LevelData; index?: number }> {
 	}
 
 	static highlightColor: ThemeColor = (p: p5) =>
-		isDark() ? p.color("oklch(0.2 0.1 230)") : p.color("oklch(0.9 0.05 230)");
+		isDark() ? p.color("oklch(0.35 0.1 230)") : p.color("oklch(0.9 0.05 230)");
 	static baseColor: ThemeColor = (p: p5) =>
-		isDark() ? p.color("oklch(0.1 0 230)") : p.color("oklch(0.96 0 230)");
+		isDark() ? p.color("oklch(0.22 0 230)") : p.color("oklch(0.96 0 230)");
 
 	/**
 	 * La posición anterior durante una interacción de arrastrar.
@@ -1187,14 +1195,28 @@ class GamePage extends Page<{ level: LevelData; index?: number }> {
 	/**
 	 * El índice correspondiendo a este nivel, si existe.
 	 */
-	levelIndex?: number;
+	levelIndex!: number;
+
+	/**
+	 * Indica si el nivel fue generado.
+	 */
+	isProcedural!: boolean;
 
 	/**
 	 * Los datos del nivel son enviados por la página precedente.
 	 */
-	receive({ level, index }: { level: LevelData; index?: number }): void {
+	receive({
+		level,
+		index,
+		isProcedural,
+	}: {
+		level: LevelData;
+		index: number;
+		isProcedural: boolean;
+	}): void {
 		this.game = new Game(level, GamePage.GameContainer);
 		this.levelIndex = index;
+		this.isProcedural = isProcedural;
 	}
 
 	setup(p: p5) {
@@ -1269,6 +1291,7 @@ class GamePage extends Page<{ level: LevelData; index?: number }> {
 		if (elapsed > ANIMATION_DURATION) {
 			this.navigator.switchPage(p, WonPage, {
 				levelIndex: this.levelIndex,
+				wasProcedural: this.isProcedural,
 			});
 		}
 	}
@@ -1310,14 +1333,26 @@ class GamePage extends Page<{ level: LevelData; index?: number }> {
 	}
 }
 
-class WonPage extends Page<{ levelIndex?: number }> {
+class WonPage extends Page<{ levelIndex: number; wasProcedural: boolean }> {
+	levelIndex!: number;
+	wasProcedural!: boolean;
+
+	/**
+	 * El momento en el tiempo en que se empezó a mostrar esta página.
+	 */
 	appearedAt!: number;
-	levelIndex?: number;
 
 	button!: Button;
 
-	receive({ levelIndex }: { levelIndex: number }) {
+	receive({
+		levelIndex,
+		wasProcedural,
+	}: {
+		levelIndex: number;
+		wasProcedural: boolean;
+	}) {
 		this.levelIndex = levelIndex;
+		this.wasProcedural = wasProcedural;
 	}
 
 	setup(p: p5) {
@@ -1402,16 +1437,15 @@ class WonPage extends Page<{ levelIndex?: number }> {
 
 	mouseClicked(p: p5) {
 		if (this.button.intersectsWith(p.mouseX, p.mouseY)) {
-			if (this.levelIndex !== undefined) {
-				const index = this.levelIndex + 1;
-				if (index >= levels.length) {
-					this.navigator.switchPage(p, WelcomePage);
-				} else {
-					this.navigator.switchPage(p, GamePage, {
-						level: levels[index],
-						index,
-					});
-				}
+			const index = this.levelIndex + 1;
+			if (index >= levels.length) {
+				this.navigator.switchPage(p, WelcomePage);
+			} else {
+				this.navigator.switchPage(p, GamePage, {
+					level: levels[index],
+					index,
+					isProcedural: false,
+				});
 			}
 		}
 	}
@@ -1429,7 +1463,11 @@ class WelcomePage extends Page {
 	}
 
 	mouseClicked(p: p5) {
-		this.navigator.switchPage(p, GamePage, { level: levels[0], index: 0 });
+		this.navigator.switchPage(p, GamePage, {
+			level: levels[0],
+			index: 0,
+			isProcedural: false,
+		});
 	}
 }
 
