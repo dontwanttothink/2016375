@@ -199,16 +199,40 @@ enum CellDirection {
 
 //clase para representar cada celda del tablero
 class Cell {
+	static ANIMATION_DURATION = 150;
+
+	get opacity() {
+		const progress = Math.max(
+			0,
+			Math.min(
+				1,
+				(currentTime() - this.animatingSince) / Cell.ANIMATION_DURATION,
+			),
+		);
+
+		if (this.isDisappearing) {
+			return 1 - progress;
+		} else {
+			return progress;
+		}
+	}
+
+	get isStale() {
+		return this.isDisappearing && this.opacity === 0;
+	}
+
 	constructor(
 		public readonly type: CellType,
 		public readonly color: ThemeColor,
 		public readonly direction: CellDirection | null = null,
-		public readonly isFrozen: boolean = false,
+		public readonly isDisappearing: boolean = false,
+		public readonly animatingSince = currentTime(),
 	) {}
 
 	draw(p: p5, cellLength: number) {
 		p.push();
 		const color = this.color(p);
+		color.setAlpha(this.opacity * 255);
 
 		p.noStroke();
 		p.fill(color);
@@ -216,21 +240,30 @@ class Cell {
 		const diameter = cellLength * 0.7;
 		p.circle(0, 0, diameter);
 
+		p.pop();
+	}
+
+	drawConnector(p: p5, cellLength: number, progress: number) {
+		p.push();
+		const color = this.color(p);
+		const length = cellLength * progress;
+
+		console.assert(length <= cellLength);
+
 		p.stroke(color);
-		p.strokeWeight(diameter * 0.5);
+		p.strokeWeight(cellLength * 0.5);
 		if (this.direction === CellDirection.Right) {
-			p.line(0, 0, cellLength, 0);
+			p.line(0, 0, length, 0);
 		}
 		if (this.direction === CellDirection.Left) {
-			p.line(0, 0, -cellLength, 0);
+			p.line(0, 0, -length, 0);
 		}
 		if (this.direction === CellDirection.Up) {
-			p.line(0, 0, 0, -cellLength);
+			p.line(0, 0, 0, -length);
 		}
 		if (this.direction === CellDirection.Down) {
-			p.line(0, 0, 0, cellLength);
+			p.line(0, 0, 0, length);
 		}
-
 		p.pop();
 	}
 
@@ -275,7 +308,13 @@ class Cell {
 	 */
 
 	withDirection(direction: CellDirection | null) {
-		return new Cell(this.type, this.color, direction, this.isFrozen);
+		return new Cell(
+			this.type,
+			this.color,
+			direction,
+			this.isDisappearing,
+			this.animatingSince,
+		);
 	}
 
 	asSealed() {
@@ -284,7 +323,33 @@ class Cell {
 				"Solo los puntos finales pueden denotarse como sellados.",
 			);
 		}
-		return new Cell(CellType.SealedEndpoint, this.color, this.direction);
+		return new Cell(
+			CellType.SealedEndpoint,
+			this.color,
+			this.direction,
+			this.isDisappearing,
+			this.animatingSince,
+		);
+	}
+
+	asDisappearing() {
+		return new Cell(
+			this.type,
+			this.color,
+			this.direction,
+			true,
+			this.animatingSince,
+		);
+	}
+
+	asAnimating() {
+		return new Cell(
+			this.type,
+			this.color,
+			this.direction,
+			this.isDisappearing,
+			currentTime(),
+		);
 	}
 }
 
@@ -292,50 +357,41 @@ type CellRow = (Cell | null)[];
 type CellMatrix = CellRow[];
 
 class Grid {
-	#grid: CellMatrix;
+	#matrix: CellMatrix;
+	get size() {
+		return this.#matrix.length;
+	}
 
-	/**
-	 * El punto en el tiempo en que cada celda se cambió por última vez.
-	 */
-	#lastChanged: number[][];
-
-	size: number;
-
-	timeline: CellMatrix[] = [];
-	timelineIndex = -1;
-	dirty = false;
-
-	constructor(level: LevelData) {
-		this.size = level.size;
-
-		this.#lastChanged = [];
-		for (let r = 0; r < this.size; ++r) {
-			const row = [];
-			for (let c = 0; c < this.size; ++c) {
-				row.push(Number.MIN_VALUE);
-			}
-			this.#lastChanged.push(row);
+	constructor(level?: LevelData) {
+		if (!level) {
+			this.#matrix = [];
+			return;
 		}
 
 		//inicializa la matriz con celdas vacías
-		this.#grid = [];
-		for (let r = 0; r < this.size; ++r) {
+		this.#matrix = [];
+		for (let r = 0; r < level.size; ++r) {
 			const row: CellRow = [];
-			for (let c = 0; c < this.size; ++c) {
+			for (let c = 0; c < level.size; ++c) {
 				row.push(null);
 			}
-			this.#grid.push(row);
+			this.#matrix.push(row);
 		}
 
 		for (const { row0, col0, row1, col1, color } of level.endpoints) {
-			this.#grid[row0][col0] = new Cell(CellType.Endpoint, color);
-			this.#grid[row1][col1] = new Cell(CellType.Endpoint, color);
+			this.#matrix[row0][col0] = new Cell(CellType.Endpoint, color);
+			this.#matrix[row1][col1] = new Cell(CellType.Endpoint, color);
 		}
-		this.saveTimeline();
 	}
 
 	withinBounds(row: number, col: number): boolean {
 		return row >= 0 && row < this.size && col >= 0 && col < this.size;
+	}
+
+	clone(): Grid {
+		const grid = new Grid();
+		grid.#matrix = this.#matrix.map((row) => [...row]);
+		return grid;
 	}
 
 	get(row: number, col: number) {
@@ -345,7 +401,7 @@ class Grid {
 			);
 		}
 
-		return this.#grid[row][col];
+		return this.#matrix[row][col];
 	}
 
 	set(row: number, col: number, cell: Cell) {
@@ -355,43 +411,19 @@ class Grid {
 			);
 		}
 
-		this.dirty = true;
-		this.#grid[row][col] = cell;
-		this.#lastChanged[row][col] = currentTime();
+		this.#matrix[row][col] = cell;
 	}
 
-	saveTimeline() {
-		this.timeline.splice(this.timelineIndex + 1);
-		this.timeline.push(this.#grid.map((row) => [...row]));
-		++this.timelineIndex;
-		this.dirty = false;
-	}
-
-	timelineClean() {
-		this.#grid = this.timeline[this.timelineIndex].map((row) => [...row]);
-		this.dirty = false;
-	}
-
-	timelinePrev() {
-		if (this.dirty) {
-			this.timelineClean();
-			return;
+	count(test: (cell: Cell | null) => boolean) {
+		let out = 0;
+		for (const row of this.#matrix) {
+			for (const cell of row) {
+				if (test(cell)) {
+					++out;
+				}
+			}
 		}
-
-		this.timelineIndex = Math.max(0, this.timelineIndex - 1);
-		this.#grid = this.timeline[this.timelineIndex].map((row) => [...row]);
-	}
-
-	timelinePost() {
-		if (this.dirty) {
-			return;
-		}
-
-		this.timelineIndex = Math.min(
-			this.timeline.length - 1,
-			this.timelineIndex + 1,
-		);
-		this.#grid = this.timeline[this.timelineIndex].map((row) => [...row]);
+		return out;
 	}
 
 	properties(container: Rectangle) {
@@ -426,6 +458,65 @@ class Grid {
 		return [row, col];
 	}
 
+	drawOverlays(
+		p: p5,
+		container: Rectangle,
+		paths: Map<[number, number], Path>,
+		phantoms: Map<[number, number], Cell>,
+	) {
+		p.push();
+		const { cellLength, originX, originY } = this.properties(container);
+
+		for (const [[rootRow, rootCol], path] of paths.entries()) {
+			const current: [number, number] = [rootRow, rootCol];
+
+			const grid = path.externalGrid ?? this;
+			let currentCell = grid.get(...current);
+
+			for (let i = 0; !currentCell || currentCell.direction !== null; ++i) {
+				if (!currentCell) {
+					throw new TypeError("El camino incluye una celda vacía.");
+				}
+
+				const cellY = originY + cellLength * (current[0] + 0.5);
+				const cellX = originX + cellLength * (current[1] + 0.5);
+
+				p.push();
+				p.translate(cellX, cellY);
+
+				if (path.progress - i > 0) {
+					const connectorProgress = Math.min(1, path.progress - i);
+					currentCell?.drawConnector(p, cellLength, connectorProgress);
+				}
+
+				p.pop();
+
+				if (currentCell.direction === CellDirection.Right) {
+					++current[1];
+				} else if (currentCell.direction === CellDirection.Left) {
+					--current[1];
+				} else if (currentCell.direction === CellDirection.Up) {
+					--current[0];
+				} else if (currentCell.direction === CellDirection.Down) {
+					++current[0];
+				}
+				currentCell = grid.get(...current);
+			}
+		}
+
+		for (const [phantom, phantomCell] of phantoms.entries()) {
+			const cellY = originY + cellLength * (phantom[0] + 0.5);
+			const cellX = originX + cellLength * (phantom[1] + 0.5);
+
+			p.push();
+			p.translate(cellX, cellY);
+			phantomCell.draw(p, cellLength);
+			p.pop();
+		}
+
+		p.pop();
+	}
+
 	draw(p: p5, container: Rectangle) {
 		p.push();
 		const { vertexLength, cellLength, originX, originY } =
@@ -442,7 +533,7 @@ class Grid {
 		}
 		p.square(originX, originY, vertexLength, 10);
 
-		for (const [i, row] of this.#grid.entries()) {
+		for (const [i, row] of this.#matrix.entries()) {
 			for (const [j, cell] of row.entries()) {
 				const cellY = originY + cellLength * (i + 0.5);
 				const cellX = originX + cellLength * (j + 0.5);
@@ -453,8 +544,54 @@ class Grid {
 				p.pop();
 			}
 		}
+
 		p.pop();
 	}
+}
+
+interface TimelineItem {
+	grid: Grid;
+	addedPath: { root: [number, number]; length: number } | null;
+}
+
+class Path {
+	/**
+	 * Opcionalmente, una matriz que asociar con este camino. Si esta propiedad
+	 * no está establecida, se usará el estado de la matriz actual.
+	 */
+	externalGrid: Grid | null;
+	target: number;
+
+	progress: number = 0;
+
+	get #velocity() {
+		return (this.target - this.progress) / 10;
+	}
+
+	constructor(length: number, grid: Grid | null = null) {
+		this.target = length;
+		this.externalGrid = grid;
+	}
+
+	tick() {
+		this.progress += this.#velocity;
+		this.progress = Math.max(0, this.progress);
+
+		const isStale = this.progress === 0 && !!this.externalGrid;
+		return isStale;
+	}
+}
+
+interface PullingState {
+	/**
+	 * La raíz del camino
+	 */
+	root: [number, number];
+
+	/**
+	 * La cabeza actual del camino
+	 */
+	head: [number, number];
 }
 
 //clase para recibir endpoints y manejar la lógica del juego
@@ -462,18 +599,45 @@ class Grid {
  * Representa una partida individual del juego.
  */
 class Game {
-	grid: Grid;
-	container: (p: p5) => Rectangle;
-	onWin: () => unknown;
+	#wonAt: number | null = null;
+	get wonAt() {
+		return this.#wonAt;
+	}
 
-	constructor(
-		level: LevelData,
-		container: (p: p5) => Rectangle,
-		onWin: () => unknown,
-	) {
-		this.grid = new Grid(level);
+	/**
+	 * Celdas que se han eliminado.
+	 *
+	 * Esto se usa para darles una animación a las celdas cuando se eliminan.
+	 */
+	#phantoms: Map<[number, number], Cell> = new Map();
+
+	/**
+	 * Indica si hay cambios sin guardar.
+	 */
+	#dirty: boolean = false;
+
+	#timeline: TimelineItem[] = [];
+	#timelineIndex: number = -1;
+
+	#endpointCount: number;
+	/**
+	 * Asocia raíces con datos sobre los caminos de los que hacen parte.
+	 */
+	#paths: Map<[number, number], Path> = new Map();
+	#grid: Grid;
+
+	#pulling: PullingState | null = null;
+	get pulling() {
+		return !!this.#pulling;
+	}
+
+	container: (p: p5) => Rectangle;
+
+	constructor(level: LevelData, container: (p: p5) => Rectangle) {
+		this.#endpointCount = level.endpoints.length;
+		this.#grid = new Grid(level);
 		this.container = container;
-		this.onWin = onWin;
+		this.#checkpoint();
 	}
 
 	//para añadir los puntos de colores de cada nivel
@@ -484,25 +648,69 @@ class Game {
 		col2: number,
 		color: ThemeColor,
 	) {
-		this.grid.set(row, col, new Cell(CellType.Endpoint, color));
-		this.grid.set(row2, col2, new Cell(CellType.Endpoint, color));
+		this.#grid.set(row, col, new Cell(CellType.Endpoint, color));
+		this.#grid.set(row2, col2, new Cell(CellType.Endpoint, color));
 	}
 
 	getCellFromMouse(p: p5): [number, number] | null {
-		return this.grid.getCellFromPosition(p.mouseX, p.mouseY, this.container(p));
+		return this.#grid.getCellFromPosition(
+			p.mouseX,
+			p.mouseY,
+			this.container(p),
+		);
 	}
 
-	// verifica si se puede conectar dos celdas adyacentes
-	canConnect(
+	#updateWinningState() {
+		const hasWon =
+			this.#grid.count(
+				(cell) => !!cell && cell.type === CellType.SealedEndpoint,
+			) === this.#endpointCount &&
+			this.#grid.count((cell) => cell === null) === 0;
+
+		if (hasWon) {
+			this.#wonAt = currentTime();
+		}
+	}
+
+	isInteractive([row, col]: [number, number]): boolean {
+		const cell = this.#grid.get(row, col);
+		const pullColor = (this.#pulling && this.#grid.get(...this.#pulling.root))
+			?.color;
+
+		return (
+			!!cell &&
+			cell.direction === null &&
+			cell.type !== CellType.SealedEndpoint &&
+			(!pullColor || pullColor === cell.color)
+		);
+	}
+
+	// verifica si se pueden conectar dos celdas adyacentes
+	#canPull(
 		fromRow: number,
 		fromCol: number,
 		toRow: number,
 		toCol: number,
 	): boolean {
-		const targetCell = this.grid.get(toRow, toCol);
-		const fromCell = this.grid.get(fromRow, fromCol);
+		if (!this.#pulling) {
+			return false;
+		}
 
-		if (fromCell === null || fromCell.type === CellType.SealedEndpoint) {
+		const [headRow, headCol] = this.#pulling.head;
+
+		if (headRow !== fromRow || headCol !== fromCol) {
+			return false;
+		}
+
+		const targetCell = this.#grid.get(toRow, toCol);
+		const fromCell = this.#grid.get(fromRow, fromCol);
+
+		if (
+			fromCell === null ||
+			fromCell.type === CellType.SealedEndpoint ||
+			fromCell.direction !== null || // solo se permiten caminos simples
+			(targetCell && targetCell.direction !== null) // ditto
+		) {
 			return false;
 		}
 
@@ -522,65 +730,201 @@ class Game {
 		return targetCell === null;
 	}
 
-	moveTo(fromRow: number, fromCol: number, toRow: number, toCol: number) {
+	startPulling(root: [number, number]) {
+		if (this.#pulling) {
+			throw new Error(
+				"No se puede empezar a jalar si nunca se terminó de jalar.",
+			);
+		}
+
+		if (!this.isInteractive(root)) {
+			throw new Error(
+				"No se puede empezar a jalar desde una celda no-interactiva.",
+			);
+		}
+
+		this.#pulling = { root, head: root };
+		this.#paths.set(root, new Path(0));
+	}
+
+	pull(fromRow: number, fromCol: number, toRow: number, toCol: number) {
+		if (!this.#pulling) {
+			throw new Error(
+				"No se puede jalar un camino sin haber empezado a jalar.",
+			);
+		}
+
 		if (
-			!this.grid.withinBounds(fromRow, fromCol) ||
-			!this.grid.withinBounds(toRow, toCol)
+			!this.#grid.withinBounds(fromRow, fromCol) ||
+			!this.#grid.withinBounds(toRow, toCol)
 		) {
 			return;
 		}
 
-		const fromCell = this.grid.get(fromRow, fromCol);
-		const toCell = this.grid.get(toRow, toCol);
+		const fromCell = this.#grid.get(fromRow, fromCol);
+		const toCell = this.#grid.get(toRow, toCol);
 
-		if (
-			fromCell !== null &&
-			fromCell.direction === null && // solo se permiten caminos simples
-			!(toCell && toCell.direction !== null) && // ditto
-			this.canConnect(fromRow, fromCol, toRow, toCol)
-		) {
+		const pullingPath = this.#paths.get(this.#pulling.root);
+		if (!pullingPath) {
+			throw new TypeError();
+		}
+
+		if (fromCell && this.#canPull(fromRow, fromCol, toRow, toCol)) {
+			this.#dirty = true;
+
 			// anotar que toRow, toCol es el hijo de fromRow, fromCol
-			this.grid.set(
+			this.#grid.set(
 				fromRow,
 				fromCol,
 				fromCell.withDirection(Cell.delta([fromRow, fromCol], [toRow, toCol])),
 			);
+
+			++pullingPath.target;
+			this.#pulling.head = [toRow, toCol];
 
 			if (
 				toCell &&
 				toCell.type === CellType.Endpoint &&
 				toCell.color === fromCell.color
 			) {
-				// Indicamos el fin de este camino
-				this.grid.set(toRow, toCol, toCell.asSealed());
+				// Sellamos la hoja.
+				this.#grid.set(toRow, toCol, toCell.asSealed());
 
 				// Guardamos el estado del tablero cada vez que el jugador
 				// completa un movimiento.
-				this.grid.saveTimeline();
+				this.#checkpoint({
+					root: this.#pulling.root,
+					length: pullingPath.target,
+				});
+
+				// Como el usuario acaba de terminar un camino nuevo, vale
+				// la pena revisar si ganó.
+				this.#updateWinningState();
 			} else {
 				// Establecemos un nodo intermedio
-				this.grid.set(toRow, toCol, new Cell(CellType.Path, fromCell.color));
+				this.#grid.set(toRow, toCol, new Cell(CellType.Path, fromCell.color));
 			}
 		}
+	}
+
+	stopPulling() {
+		if (!this.#pulling) {
+			throw new Error("No se puede dejar de jalar si no se empezó a jalar.");
+		}
+
+		const pullingPath = this.#paths.get(this.#pulling.root);
+
+		if (!pullingPath) {
+			throw new TypeError();
+		}
+
+		if (this.#dirty) {
+			pullingPath.externalGrid = this.#grid.clone();
+			pullingPath.target = 0;
+			this.clean();
+		}
+
+		this.#pulling = null;
+	}
+
+	#applyGrid(grid: Grid) {
+		const currentGrid = this.#grid.clone();
+		const newGrid = grid.clone();
+		for (let i = 0; i < newGrid.size; ++i) {
+			for (let j = 0; j < newGrid.size; ++j) {
+				if (this.#grid.withinBounds(i, j)) {
+					const newCell = grid.get(i, j);
+					const currentCell = currentGrid.get(i, j);
+					if (newCell === null && currentCell !== null) {
+						this.#phantoms.set(
+							[i, j],
+							currentCell.asAnimating().asDisappearing(),
+						);
+					}
+					if (newCell !== null && currentCell === null) {
+						newGrid.set(i, j, newCell.asAnimating());
+					}
+				}
+			}
+		}
+		this.#grid = newGrid;
+	}
+
+	#checkpoint(path: TimelineItem["addedPath"] = null) {
+		this.#dirty = false;
+		this.#timeline.splice(this.#timelineIndex + 1);
+		this.#timeline.push({ addedPath: path, grid: this.#grid.clone() });
+		++this.#timelineIndex;
 	}
 
 	/**
 	 * Eliminar los cambios sin guardar.
 	 */
 	clean() {
-		this.grid.timelineClean();
+		this.#applyGrid(this.#timeline[this.#timelineIndex].grid);
+		this.#dirty = false;
 	}
 
 	undo() {
-		this.grid.timelinePrev();
+		if (this.#dirty) {
+			this.clean();
+			return;
+		}
+
+		const { addedPath } = this.#timeline[this.#timelineIndex];
+
+		if (addedPath) {
+			const path = this.#paths.get(addedPath.root);
+			if (!path) {
+				throw new TypeError(
+					`Se intentó deshacer un cambio que no estaba reflejado en el estado actual. En particular, no hay registro de un camino con una raíz en ${addedPath.root}.`,
+				);
+			}
+			path.externalGrid = this.#grid.clone();
+			path.target = 0;
+		}
+
+		this.#timelineIndex = Math.max(0, this.#timelineIndex - 1);
+		const { grid } = this.#timeline[this.#timelineIndex];
+		this.#applyGrid(grid);
 	}
 
 	redo() {
-		this.grid.timelinePost();
+		if (this.#dirty) {
+			return;
+		}
+
+		if (this.#timelineIndex === this.#timeline.length - 1) {
+			return;
+		}
+
+		++this.#timelineIndex;
+
+		const { grid, addedPath } = this.#timeline[this.#timelineIndex];
+
+		this.#applyGrid(grid);
+
+		if (addedPath) {
+			this.#paths.set(addedPath.root, new Path(addedPath.length));
+		}
 	}
 
 	draw(p: p5) {
-		this.grid.draw(p, this.container(p));
+		for (const [root, path] of this.#paths.entries()) {
+			const isStale = path.tick();
+			if (isStale) {
+				this.#paths.delete(root);
+			}
+		}
+
+		for (const [phantom, phantomCell] of this.#phantoms.entries()) {
+			if (phantomCell.isStale) {
+				this.#phantoms.delete(phantom);
+			}
+		}
+
+		this.#grid.draw(p, this.container(p));
+		this.#grid.drawOverlays(p, this.container(p), this.#paths, this.#phantoms);
 	}
 }
 
@@ -594,7 +938,7 @@ class Game {
 /**
  * Una partida.
  */
-class GamePage extends Page {
+class GamePage extends Page<{ level: LevelData }> {
 	static GameContainer(p: p5) {
 		return {
 			bottom: p.height - 40,
@@ -611,14 +955,12 @@ class GamePage extends Page {
 
 	game!: Game;
 
+	receive({ level }: { level: LevelData }): void {
+		this.game = new Game(level, GamePage.GameContainer);
+	}
+
 	setup(p: p5) {
 		p.textFont("system-ui");
-
-		this.game = new Game(
-			levels[0],
-			GamePage.GameContainer,
-			this.onWin.bind(this),
-		);
 
 		this.undoButton = new Button(p);
 		this.undoButton.setLabel(p, "Deshacer");
@@ -644,15 +986,8 @@ class GamePage extends Page {
 		p.cursor(p.ARROW);
 
 		const target = this.game.getCellFromMouse(p);
-		if (target) {
-			const cell = this.game.grid.get(...target);
-			if (
-				cell &&
-				cell.type !== CellType.SealedEndpoint &&
-				cell.direction === null
-			) {
-				p.cursor(p.HAND);
-			}
+		if (target && this.game.isInteractive(target)) {
+			p.cursor(p.HAND);
 		}
 
 		if (
@@ -660,6 +995,17 @@ class GamePage extends Page {
 			this.redoButton.intersectsWith(p.mouseX, p.mouseY)
 		) {
 			p.cursor(p.HAND);
+		}
+
+		if (this.game.wonAt) {
+			p.text(
+				`Ganasta hace ${(currentTime() - this.game.wonAt) / 1000} segundos.`,
+				p.width / 2,
+				p.height / 2,
+			);
+			if (currentTime() - this.game.wonAt > 6_000) {
+				this.navigator.switchPage(p, WelcomePage);
+			}
 		}
 	}
 
@@ -672,24 +1018,32 @@ class GamePage extends Page {
 		}
 	}
 
-	mouseReleased(_: p5) {
-		this.game.clean();
+	mouseReleased() {
+		if (this.game.pulling) {
+			this.game.stopPulling();
+		}
 	}
 
 	mouseDragged(p: p5) {
 		const target = this.game.getCellFromMouse(p);
 		if (!target) return;
-		const [row, col] = target;
+
+		if (!this.game.pulling) {
+			if (!this.game.isInteractive(target)) {
+				return;
+			}
+
+			this.game.startPulling(target);
+		}
 
 		if (this.lastPosition) {
+			const [row, col] = target;
 			const [lastRow, lastCol] = this.lastPosition;
-
-			this.game.moveTo(lastRow, lastCol, row, col);
+			this.game.pull(lastRow, lastCol, row, col);
 		}
-		this.lastPosition = [row, col];
-	}
 
-	onWin() {}
+		this.lastPosition = target;
+	}
 }
 
 class WelcomePage extends Page {
@@ -700,7 +1054,7 @@ class WelcomePage extends Page {
 	}
 
 	mouseClicked(p: p5) {
-		this.navigator.switchPage(p, GamePage);
+		this.navigator.switchPage(p, GamePage, { level: levels[0] });
 	}
 }
 
