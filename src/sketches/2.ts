@@ -31,7 +31,7 @@ function randomThemeColor(): ThemeColor {
 }
 
 function themeColor(hue: number): ThemeColor {
-
+	// Constantes elegidas usando oklch.com :)
 	const lightness = 0.65;
 	const chroma = 0.212;
 
@@ -52,7 +52,6 @@ const themeColors = {
 	purple: themeColor(290),
 	cyan: themeColor(200),
 	pink: themeColor(330),
-
 } satisfies Record<string, ThemeColor>;
 
 /**
