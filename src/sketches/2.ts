@@ -1301,7 +1301,6 @@ const levels: LevelData[] = [
 			{ row0: 1, col0: 3, row1: 3, col1: 3, color: themeColors.red },
 		],
 	},
-
 	{
 		size: 4,
 		endpoints: [
@@ -1321,7 +1320,6 @@ const levels: LevelData[] = [
 			{ row0: 1, col0: 3, row1: 1, col1: 4, color: themeColors.green },
 		],
 	},
-
 	{
 		size: 5,
 		endpoints: [
@@ -1331,7 +1329,6 @@ const levels: LevelData[] = [
 			{ row0: 0, col0: 2, row1: 0, col1: 4, color: themeColors.green },
 		],
 	},
-
 	{
 		size: 5,
 		endpoints: [
@@ -1342,7 +1339,6 @@ const levels: LevelData[] = [
 			{ row0: 4, col0: 2, row1: 3, col1: 4, color: themeColors.cyan },
 		],
 	},
-
 	{
 		size: 6,
 		endpoints: [
@@ -1353,7 +1349,6 @@ const levels: LevelData[] = [
 			{ row0: 1, col0: 4, row1: 3, col1: 5, color: themeColors.orange },
 		],
 	},
-
 	{
 		size: 6,
 		endpoints: [
@@ -1364,7 +1359,6 @@ const levels: LevelData[] = [
 			{ row0: 2, col0: 3, row1: 4, col1: 4, color: themeColors.orange },
 		],
 	},
-
 	{
 		size: 6,
 		endpoints: [
