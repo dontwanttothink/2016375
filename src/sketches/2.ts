@@ -693,6 +693,9 @@ class Game {
 		return !!this.#pulling;
 	}
 
+	/**
+	 * @returns El contenedor dentro del que se dibujará la cuadrícula.
+	 */
 	container: (p: p5) => Rectangle;
 
 	constructor(level: LevelData, container: (p: p5) => Rectangle) {
