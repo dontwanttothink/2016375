@@ -193,7 +193,7 @@ class Button {
 	}
 }
 
-/**
+/*
  * Lógica
  */
 
