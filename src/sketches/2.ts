@@ -49,6 +49,10 @@ const themeColors = {
 	blue: themeColor(230),
 	green: themeColor(140),
 	orange: themeColor(63),
+	purple: themeColor(290),
+	cyan: themeColor(200),
+	pink: themeColor(330),
+
 } satisfies Record<string, ThemeColor>;
 
 /**
