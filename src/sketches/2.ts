@@ -88,6 +88,121 @@ interface Rectangle {
 }
 
 /*
+ * Niveles
+ */
+
+/**
+ * Una pareja de puntos iniciales/finales.
+ */
+interface EndpointConfig {
+	row0: number;
+	col0: number;
+	row1: number;
+	col1: number;
+	color: ThemeColor;
+}
+
+/**
+ * Un nivel individual.
+ */
+interface LevelData {
+	size: number;
+	endpoints: EndpointConfig[];
+}
+
+/**
+ * Los niveles creados por Andrés.
+ */
+const levels: LevelData[] = [
+	{
+		size: 4,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 3, col1: 3, color: themeColors.green },
+			{ row0: 1, col0: 1, row1: 0, col1: 3, color: themeColors.blue },
+			{ row0: 0, col0: 1, row1: 1, col1: 2, color: themeColors.red },
+		],
+	},
+
+	{
+		size: 4,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 2, col1: 1, color: themeColors.green },
+			{ row0: 1, col0: 0, row1: 3, col1: 2, color: themeColors.blue },
+			{ row0: 1, col0: 3, row1: 3, col1: 3, color: themeColors.red },
+		],
+	},
+	{
+		size: 4,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 2, col1: 1, color: themeColors.green },
+			{ row0: 1, col0: 0, row1: 3, col1: 2, color: themeColors.blue },
+			{ row0: 0, col0: 3, row1: 3, col1: 3, color: themeColors.red },
+			{ row0: 0, col0: 2, row1: 2, col1: 2, color: themeColors.yellow },
+		],
+	},
+
+	{
+		size: 5,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 3, col1: 1, color: themeColors.blue },
+			{ row0: 0, col0: 4, row1: 4, col1: 4, color: themeColors.yellow },
+			{ row0: 1, col0: 0, row1: 4, col1: 3, color: themeColors.red },
+			{ row0: 1, col0: 3, row1: 1, col1: 4, color: themeColors.green },
+		],
+	},
+	{
+		size: 5,
+		endpoints: [
+			{ row0: 0, col0: 1, row1: 4, col1: 4, color: themeColors.blue },
+			{ row0: 1, col0: 1, row1: 2, col1: 3, color: themeColors.yellow },
+			{ row0: 3, col0: 1, row1: 1, col1: 4, color: themeColors.red },
+			{ row0: 0, col0: 2, row1: 0, col1: 4, color: themeColors.green },
+		],
+	},
+	{
+		size: 5,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 1, col1: 3, color: themeColors.blue },
+			{ row0: 0, col0: 4, row1: 1, col1: 1, color: themeColors.yellow },
+			{ row0: 1, col0: 0, row1: 3, col1: 1, color: themeColors.red },
+			{ row0: 3, col0: 0, row1: 4, col1: 1, color: themeColors.green },
+			{ row0: 4, col0: 2, row1: 3, col1: 4, color: themeColors.cyan },
+		],
+	},
+	{
+		size: 6,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 5, col1: 2, color: themeColors.red },
+			{ row0: 0, col0: 5, row1: 5, col1: 5, color: themeColors.blue },
+			{ row0: 0, col0: 1, row1: 4, col1: 2, color: themeColors.green },
+			{ row0: 1, col0: 3, row1: 4, col1: 5, color: themeColors.yellow },
+			{ row0: 1, col0: 4, row1: 3, col1: 5, color: themeColors.orange },
+		],
+	},
+	{
+		size: 6,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 4, col1: 3, color: themeColors.red },
+			{ row0: 0, col0: 5, row1: 5, col1: 2, color: themeColors.blue },
+			{ row0: 0, col0: 3, row1: 3, col1: 3, color: themeColors.green },
+			{ row0: 0, col0: 4, row1: 2, col1: 2, color: themeColors.yellow },
+			{ row0: 2, col0: 3, row1: 4, col1: 4, color: themeColors.orange },
+		],
+	},
+	{
+		size: 6,
+		endpoints: [
+			{ row0: 0, col0: 2, row1: 4, col1: 1, color: themeColors.red },
+			{ row0: 1, col0: 1, row1: 4, col1: 3, color: themeColors.blue },
+			{ row0: 1, col0: 2, row1: 3, col1: 3, color: themeColors.green },
+			{ row0: 5, col0: 2, row1: 5, col1: 5, color: themeColors.yellow },
+			{ row0: 2, col0: 4, row1: 1, col1: 5, color: themeColors.orange },
+			{ row0: 3, col0: 4, row1: 2, col1: 5, color: themeColors.pink },
+		],
+	},
+];
+
+/*
  * Interacción del usuario
  */
 
@@ -1325,137 +1440,6 @@ class WelcomePage extends Page {
  * conceptos originales. No se refieren al navegador web o a páginas web.
  */
 const navigator = new Navigator(WelcomePage, [GamePage, WonPage]);
-
-// Level Manager
-
-let currentLevelIndex = 0;
-
-function currentLevel(): LevelData {
-	return levels[currentLevelIndex];
-}
-
-function hasNextLevel(): boolean {
-	return currentLevelIndex < levels.length - 1;
-}
-
-function goToNextLevel() {
-	if (hasNextLevel()) {
-		++currentLevelIndex;
-	} else {
-		currentLevelIndex = 0;
-	}
-}
-
-/**
- * Una pareja de puntos iniciales/finales.
- */
-interface EndpointConfig {
-	row0: number;
-	col0: number;
-	row1: number;
-	col1: number;
-	color: ThemeColor;
-}
-
-/**
- * Un nivel individual.
- */
-interface LevelData {
-	size: number;
-	endpoints: EndpointConfig[];
-}
-
-/**
- * Los niveles creados por Andrés.
- */
-const levels: LevelData[] = [
-	{
-		size: 4,
-		endpoints: [
-			{ row0: 0, col0: 0, row1: 3, col1: 3, color: themeColors.green },
-			{ row0: 1, col0: 1, row1: 0, col1: 3, color: themeColors.blue },
-			{ row0: 0, col0: 1, row1: 1, col1: 2, color: themeColors.red },
-		],
-	},
-
-	{
-		size: 4,
-		endpoints: [
-			{ row0: 0, col0: 0, row1: 2, col1: 1, color: themeColors.green },
-			{ row0: 1, col0: 0, row1: 3, col1: 2, color: themeColors.blue },
-			{ row0: 1, col0: 3, row1: 3, col1: 3, color: themeColors.red },
-		],
-	},
-	{
-		size: 4,
-		endpoints: [
-			{ row0: 0, col0: 0, row1: 2, col1: 1, color: themeColors.green },
-			{ row0: 1, col0: 0, row1: 3, col1: 2, color: themeColors.blue },
-			{ row0: 0, col0: 3, row1: 3, col1: 3, color: themeColors.red },
-			{ row0: 0, col0: 2, row1: 2, col1: 2, color: themeColors.yellow },
-		],
-	},
-
-	{
-		size: 5,
-		endpoints: [
-			{ row0: 0, col0: 0, row1: 3, col1: 1, color: themeColors.blue },
-			{ row0: 0, col0: 4, row1: 4, col1: 4, color: themeColors.yellow },
-			{ row0: 1, col0: 0, row1: 4, col1: 3, color: themeColors.red },
-			{ row0: 1, col0: 3, row1: 1, col1: 4, color: themeColors.green },
-		],
-	},
-	{
-		size: 5,
-		endpoints: [
-			{ row0: 0, col0: 1, row1: 4, col1: 4, color: themeColors.blue },
-			{ row0: 1, col0: 1, row1: 2, col1: 3, color: themeColors.yellow },
-			{ row0: 3, col0: 1, row1: 1, col1: 4, color: themeColors.red },
-			{ row0: 0, col0: 2, row1: 0, col1: 4, color: themeColors.green },
-		],
-	},
-	{
-		size: 5,
-		endpoints: [
-			{ row0: 0, col0: 0, row1: 1, col1: 3, color: themeColors.blue },
-			{ row0: 0, col0: 4, row1: 1, col1: 1, color: themeColors.yellow },
-			{ row0: 1, col0: 0, row1: 3, col1: 1, color: themeColors.red },
-			{ row0: 3, col0: 0, row1: 4, col1: 1, color: themeColors.green },
-			{ row0: 4, col0: 2, row1: 3, col1: 4, color: themeColors.cyan },
-		],
-	},
-	{
-		size: 6,
-		endpoints: [
-			{ row0: 0, col0: 0, row1: 5, col1: 2, color: themeColors.red },
-			{ row0: 0, col0: 5, row1: 5, col1: 5, color: themeColors.blue },
-			{ row0: 0, col0: 1, row1: 4, col1: 2, color: themeColors.green },
-			{ row0: 1, col0: 3, row1: 4, col1: 5, color: themeColors.yellow },
-			{ row0: 1, col0: 4, row1: 3, col1: 5, color: themeColors.orange },
-		],
-	},
-	{
-		size: 6,
-		endpoints: [
-			{ row0: 0, col0: 0, row1: 4, col1: 3, color: themeColors.red },
-			{ row0: 0, col0: 5, row1: 5, col1: 2, color: themeColors.blue },
-			{ row0: 0, col0: 3, row1: 3, col1: 3, color: themeColors.green },
-			{ row0: 0, col0: 4, row1: 2, col1: 2, color: themeColors.yellow },
-			{ row0: 2, col0: 3, row1: 4, col1: 4, color: themeColors.orange },
-		],
-	},
-	{
-		size: 6,
-		endpoints: [
-			{ row0: 0, col0: 2, row1: 4, col1: 1, color: themeColors.red },
-			{ row0: 1, col0: 1, row1: 4, col1: 3, color: themeColors.blue },
-			{ row0: 1, col0: 2, row1: 3, col1: 3, color: themeColors.green },
-			{ row0: 5, col0: 2, row1: 5, col1: 5, color: themeColors.yellow },
-			{ row0: 2, col0: 4, row1: 1, col1: 5, color: themeColors.orange },
-			{ row0: 3, col0: 4, row1: 2, col1: 5, color: themeColors.pink },
-		],
-	},
-];
 
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
