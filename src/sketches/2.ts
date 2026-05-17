@@ -934,7 +934,7 @@ class Game {
 /**
  * Una partida.
  */
-class GamePage extends Page {
+class GamePage extends Page<{ level: LevelData }> {
 	static GameContainer(p: p5) {
 		return {
 			bottom: p.height - 40,
@@ -951,10 +951,12 @@ class GamePage extends Page {
 
 	game!: Game;
 
+	receive({ level }: { level: LevelData }): void {
+		this.game = new Game(level, GamePage.GameContainer);
+	}
+
 	setup(p: p5) {
 		p.textFont("system-ui");
-
-		this.game = new Game(levels[0], GamePage.GameContainer);
 
 		this.undoButton = new Button(p);
 		this.undoButton.setLabel(p, "Deshacer");
@@ -1045,7 +1047,7 @@ class WelcomePage extends Page {
 	}
 
 	mouseClicked(p: p5) {
-		this.navigator.switchPage(p, GamePage);
+		this.navigator.switchPage(p, GamePage, { level: levels[0] });
 	}
 }
 
