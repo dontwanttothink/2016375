@@ -787,15 +787,15 @@ class Game {
 				toCell.type === CellType.Endpoint &&
 				toCell.color === fromCell.color
 			) {
+				// Sellamos la hoja.
+				this.#grid.set(toRow, toCol, toCell.asSealed());
+
 				// Guardamos el estado del tablero cada vez que el jugador
 				// completa un movimiento.
 				this.#checkpoint({
 					root: this.#pulling.root,
 					length: pullingPath.target,
 				});
-
-				// Sellamos la hoja.
-				this.#grid.set(toRow, toCol, toCell.asSealed());
 
 				// Como el usuario acaba de terminar un camino nuevo, vale
 				// la pena revisar si ganó.
