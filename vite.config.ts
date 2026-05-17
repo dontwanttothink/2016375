@@ -41,5 +41,6 @@ export default defineConfig({
 				postBanner: `/* Consulta la información de derechos de autor de las dependencias incluidas aquí: ${hostname}/licencias.md\nObtén más información sobre el código fuente y las licencias GPL y LGPL en la página principal: ${hostname} */`,
 			},
 		},
+		chunkSizeWarningLimit: 1200, // p5.js es grande :(
 	},
 });
