@@ -1465,23 +1465,31 @@ class WelcomePage extends Page {
 		this.proceduralLevelsButton = new Button(p);
 		this.proceduralLevelsButton.setLabel(p, "Modo infinito");
 
-		const maxWidth = Math.max(
-			this.handMadeLevelsButton.width,
-			this.proceduralLevelsButton.width,
-		);
+		const width =
+			Math.max(
+				this.handMadeLevelsButton.width,
+				this.proceduralLevelsButton.width,
+			) + 40;
 
-		this.handMadeLevelsButton.minWidth = maxWidth;
-		this.proceduralLevelsButton.minWidth = maxWidth;
+		const height = 40;
+
+		this.handMadeLevelsButton.minWidth = width;
+		this.proceduralLevelsButton.minWidth = width;
+
+		this.handMadeLevelsButton.minHeight = height;
+		this.proceduralLevelsButton.minHeight = height;
 	}
 
 	draw(p: p5) {
 		p.clear();
 		p.fill(themeColors.foreground(p));
 
-		const MARGIN = 50;
+		const MARGIN = 60;
 
 		const totalHeight =
-			this.handMadeLevelsButton.height + this.proceduralLevelsButton.height;
+			this.handMadeLevelsButton.height +
+			this.proceduralLevelsButton.height +
+			MARGIN;
 		const startY =
 			(p.height - totalHeight + this.handMadeLevelsButton.height) / 2;
 
