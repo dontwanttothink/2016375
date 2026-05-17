@@ -4,6 +4,27 @@ import "../displayErrors";
 import { Navigator, Page } from "../pages";
 
 /**
+ * Una función que acelera y decelera naturalmente.
+ * @param x Un número en el intervalo [0, 1].
+ * @returns Un número dentro del mismo intervalo.
+ */
+function ease(x: number) {
+	return Math.sin(x * (Math.PI / 2));
+}
+
+/**
+ * @returns La longitud de la ascensión de la tipofaz actual, dado un
+ * tamaño.
+ */
+function ascent(p: p5, size: number) {
+	p.push();
+	p.textSize(size);
+	const out = p.textAscent();
+	p.pop();
+	return out;
+}
+
+/**
  * El tiempo transcurrido desde algún punto constante arbitrario en
  * milisegundos.
  */
@@ -42,8 +63,9 @@ function themeColor(hue: number): ThemeColor {
  * Algunos colores reutilizables.
  */
 const themeColors = {
-	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(105)),
+	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(70)),
 	subtler: (p: p5) => (isDark() ? p.color(150) : p.color(155)),
+	overlay: (p: p5) => (isDark() ? p.color(50) : p.color(250)),
 	red: themeColor(0),
 	yellow: themeColor(100),
 	blue: themeColor(230),
@@ -1019,7 +1041,7 @@ class Game {
 /**
  * La página de una partida.
  */
-class GamePage extends Page<{ level: LevelData }> {
+class GamePage extends Page<{ level: LevelData; index?: number }> {
 	static GameContainer(p: p5) {
 		return {
 			bottom: p.height - 40,
@@ -1036,18 +1058,22 @@ class GamePage extends Page<{ level: LevelData }> {
 
 	undoButton!: Button;
 	redoButton!: Button;
-	nextLevelButton!: Button;
 
 	/**
 	 * La partida individual actual.
 	 */
 	game!: Game;
+	/**
+	 * El índice correspondiendo a este nivel, si existe.
+	 */
+	levelIndex?: number;
 
 	/**
 	 * Los datos del nivel son enviados por la página precedente.
 	 */
-	receive({ level }: { level: LevelData }): void {
+	receive({ level, index }: { level: LevelData; index?: number }): void {
 		this.game = new Game(level, GamePage.GameContainer);
+		this.levelIndex = index;
 	}
 
 	setup(p: p5) {
@@ -1057,16 +1083,6 @@ class GamePage extends Page<{ level: LevelData }> {
 		this.undoButton.setLabel(p, "Deshacer");
 		this.redoButton = new Button(p);
 		this.redoButton.setLabel(p, "Rehacer");
-		//Boton de siguiente nivel
-		this.nextLevelButton = new Button(p);
-		this.nextLevelButton.setLabel(p, "Siguiente nivel");
-
-		this.nextLevelButton.baseColor = p.color(140, 190, 255);
-		this.nextLevelButton.highlightColor = p.color(100, 160, 255);
-		this.nextLevelButton.textFill = p.color(20);
-
-		this.nextLevelButton.minWidth = 220;
-		this.nextLevelButton.minHeight = 60;
 	}
 
 	draw(p: p5) {
@@ -1099,68 +1115,32 @@ class GamePage extends Page<{ level: LevelData }> {
 		}
 
 		if (this.game.wonAt) {
-			const elapsed = currentTime() - this.game.wonAt;
+			this.drawWin(p, this.game.wonAt);
+		}
+	}
 
-			// Pantalla de transición
-			p.push();
+	/**
+	 * Una función que se llama cada fotograma mientras que el jugador ha
+	 * ganado.
+	 */
+	drawWin(p: p5, at: number): void {
+		const DELAY = 200;
+		const ANIMATION_DURATION = 300;
+		const elapsed = currentTime() - at - DELAY;
+		const t = ease(p.constrain(elapsed / ANIMATION_DURATION, 0, 1));
 
-			p.noStroke();
-			p.fill(255, 230);
-			p.rect(0, 0, p.width, p.height);
+		p.push();
+		const c = themeColors.overlay(p);
+		c.setAlpha(t * 255);
+		p.noStroke();
+		p.fill(c);
+		p.rect(0, 0, p.width, p.height);
+		p.pop();
 
-			// Texto principal
-			p.fill(20);
-			p.textAlign(p.CENTER, p.CENTER);
-
-			p.textSize(42);
-
-			// TODO!!!!!!!!!!!!!!! mover esto a su propia página
-			if (hasNextLevel()) {
-				p.text("¡Nivel completado!", p.width / 2, p.height / 2 - 80);
-
-				p.textSize(20);
-
-				p.text(
-					"Puedes avanzar al siguiente nivel.",
-					p.width / 2,
-					p.height / 2 - 35,
-				);
-
-				// Botón siguiente nivel
-				this.nextLevelButton.x = p.width / 2;
-				this.nextLevelButton.y = p.height / 2 + 40;
-
-				this.nextLevelButton.draw(p);
-
-				// Cambio automático tras 5 segundos
-				if (elapsed > 5_000) {
-					goToNextLevel();
-
-					this.navigator.switchPage(p, GamePage, { level: currentLevel() });
-				}
-			} else {
-				p.text("¡Has completado el juego!", p.width / 2, p.height / 2 - 80);
-
-				p.textSize(20);
-
-				p.text("No quedan más niveles.", p.width / 2, p.height / 2 - 35);
-
-				this.nextLevelButton.setLabel(p, "Volver al inicio");
-
-				this.nextLevelButton.x = p.width / 2;
-				this.nextLevelButton.y = p.height / 2 + 40;
-
-				this.nextLevelButton.draw(p);
-
-				// Reinicio automático tras 10 segundos
-				if (elapsed > 10_000) {
-					currentLevelIndex = 0;
-
-					this.navigator.switchPage(p, GamePage, { level: currentLevel() });
-				}
-			}
-
-			p.pop();
+		if (elapsed > ANIMATION_DURATION) {
+			this.navigator.switchPage(p, WonPage, {
+				levelIndex: this.levelIndex,
+			});
 		}
 	}
 
@@ -1170,22 +1150,6 @@ class GamePage extends Page<{ level: LevelData }> {
 		}
 		if (this.redoButton.intersectsWith(p.mouseX, p.mouseY)) {
 			this.game.redo();
-		}
-
-		//Boton de Siguiente nivel
-		if (
-			this.game.wonAt &&
-			this.nextLevelButton.intersectsWith(p.mouseX, p.mouseY)
-		) {
-			if (hasNextLevel()) {
-				goToNextLevel();
-
-				this.navigator.switchPage(p, GamePage, { level: currentLevel() });
-			} else {
-				currentLevelIndex = 0;
-
-				this.navigator.switchPage(p, GamePage, { level: currentLevel() });
-			}
 		}
 	}
 
@@ -1217,6 +1181,112 @@ class GamePage extends Page<{ level: LevelData }> {
 	}
 }
 
+class WonPage extends Page<{ levelIndex?: number }> {
+	appearedAt!: number;
+	levelIndex?: number;
+
+	button!: Button;
+
+	receive({ levelIndex }: { levelIndex: number }) {
+		this.levelIndex = levelIndex;
+	}
+
+	setup(p: p5) {
+		p.textFont("system-ui");
+		this.appearedAt = currentTime();
+		this.button = new Button(p);
+	}
+
+	draw(p: p5) {
+		const ANIMATION_DURATION = 300;
+		const SECONDARY_DELAY = 270;
+
+		const elapsed_0 = currentTime() - this.appearedAt;
+		const elapsed_1 = currentTime() - this.appearedAt - SECONDARY_DELAY;
+		const t_0 = p.constrain(elapsed_0 / ANIMATION_DURATION, 0, 1);
+		const t_1 = p.constrain(elapsed_1 / ANIMATION_DURATION, 0, 1);
+
+		const PRIMARY_SIZE = 34;
+		const SECONDARY_SIZE = 20;
+		const MARGIN = 30;
+
+		let primaryMessage: string;
+		let secondaryMessage: string;
+
+		if (this.levelIndex && this.levelIndex + 1 === levels.length) {
+			primaryMessage = "¡Has completado el juego!";
+			secondaryMessage = "No quedan más niveles.";
+			this.button.setLabel(p, "Regresar al inicio");
+		} else {
+			primaryMessage = "¡Nivel completado!";
+			secondaryMessage = "Puedes avanzar al siguiente nivel.";
+			this.button.setLabel(p, "Siguiente nivel");
+		}
+
+		const totalHeight =
+			this.button.height +
+			ascent(p, PRIMARY_SIZE) +
+			ascent(p, SECONDARY_SIZE) +
+			MARGIN * 2.5;
+		const primaryY = (p.height - totalHeight + ascent(p, PRIMARY_SIZE)) / 2;
+		const secondaryY =
+			primaryY +
+			MARGIN +
+			ascent(p, PRIMARY_SIZE) / 2 +
+			ascent(p, SECONDARY_SIZE) / 2;
+		const buttonY =
+			secondaryY +
+			MARGIN * 1.5 +
+			ascent(p, SECONDARY_SIZE) / 2 +
+			this.button.height / 2;
+
+		p.background(themeColors.overlay(p));
+
+		// mensaje principal
+		p.noStroke();
+		p.textAlign(p.CENTER, p.CENTER);
+		const c = themeColors.foreground(p);
+		c.setAlpha(t_0 * 255);
+		p.fill(c);
+		p.textSize(PRIMARY_SIZE);
+		p.text(primaryMessage, p.width / 2, primaryY);
+
+		// mensaje secundario
+		c.setAlpha(t_1 * 255);
+		p.fill(c);
+		p.textSize(SECONDARY_SIZE);
+		p.text(secondaryMessage, p.width / 2, secondaryY);
+
+		// botón
+		this.button.alpha = t_1 * 255;
+		this.button.x = p.width / 2;
+		this.button.y = buttonY;
+		this.button.draw(p);
+
+		if (this.button.intersectsWith(p.mouseX, p.mouseY)) {
+			p.cursor(p.HAND);
+		} else {
+			p.cursor(p.ARROW);
+		}
+	}
+
+	mouseClicked(p: p5) {
+		if (this.button.intersectsWith(p.mouseX, p.mouseY)) {
+			if (this.levelIndex !== undefined) {
+				const index = this.levelIndex + 1;
+				if (index >= levels.length) {
+					this.navigator.switchPage(p, WelcomePage);
+				} else {
+					this.navigator.switchPage(p, GamePage, {
+						level: levels[index],
+						index,
+					});
+				}
+			}
+		}
+	}
+}
+
 /**
  * La página de bienvenida; es decir, la que siempre aparece primero.
  */
@@ -1229,7 +1299,7 @@ class WelcomePage extends Page {
 	}
 
 	mouseClicked(p: p5) {
-		this.navigator.switchPage(p, GamePage, { level: levels[0] });
+		this.navigator.switchPage(p, GamePage, { level: levels[0], index: 0 });
 	}
 }
 
@@ -1239,7 +1309,7 @@ class WelcomePage extends Page {
  * En este contexto, tanto el navegador como las páginas se refieren a
  * conceptos originales. No se refieren al navegador web o a páginas web.
  */
-const navigator = new Navigator(WelcomePage, [GamePage]);
+const navigator = new Navigator(WelcomePage, [GamePage, WonPage]);
 
 // Level Manager
 
