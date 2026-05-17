@@ -44,9 +44,7 @@ type PageConstructor<
  */
 export abstract class Page<TArgs extends PageArgs = undefined> {
 	/**
-	 * Cambia la página actual. Esta función recibe un identificador.
-	 * El programa se encarga de mostrar la página con el identificador
-	 * suministrado en el siguiente fotograma.
+	 * Un objeto que se puede usar para cambiar la página actual.
 	 */
 	navigator: Navigator;
 
