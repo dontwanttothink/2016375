@@ -222,7 +222,7 @@ enum CellDirection {
  * Una celda de la matriz.
  */
 class Cell {
-	static ANIMATION_DURATION = 100;
+	static ANIMATION_DURATION = 80;
 
 	get opacity() {
 		const progress = Math.max(
