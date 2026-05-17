@@ -110,9 +110,9 @@ export class Navigator {
 		p: p5,
 		Constructor: PageConstructor<undefined, P>,
 	): void;
-	switchPage<T extends Record<string, unknown>, P extends Page<T>>(
+	switchPage<T extends Record<string, unknown>>(
 		p: p5,
-		Constructor: PageConstructor<T, P>,
+		Constructor: PageConstructor<T>,
 		args: T,
 	): void;
 
