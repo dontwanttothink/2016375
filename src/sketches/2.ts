@@ -705,18 +705,6 @@ class Game {
 		this.#checkpoint();
 	}
 
-	//para añadir los puntos de colores de cada nivel
-	setEndpoint(
-		row: number,
-		col: number,
-		row2: number,
-		col2: number,
-		color: ThemeColor,
-	) {
-		this.#grid.set(row, col, new Cell(CellType.Endpoint, color));
-		this.#grid.set(row2, col2, new Cell(CellType.Endpoint, color));
-	}
-
 	getCellFromMouse(p: p5): [number, number] | null {
 		return this.#grid.getCellFromPosition(
 			p.mouseX,
