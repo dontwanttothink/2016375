@@ -656,7 +656,16 @@ class Game {
 	/**
 	 * Celdas que se han eliminado.
 	 *
-	 * Esto se usa para darles una animación a las celdas cuando se eliminan.
+	 * Esto se necesita para darles una animación a las celdas cuando se
+	 * eliminan.
+	 *
+	 * Funciona más o menos como una matriz superpuesta. En este caso, la matriz
+	 * es dispersa: se anticipa que la gran mayoría de los elementos sean nulos.
+	 * Un mapa permite solo almacenar las celdas no nulas.
+	 *
+	 * Dado que las matrices del juego son muy pequeñas, esta representación de
+	 * una matriz dispersa no ofrece beneficios de rendimiento. Sin embargo, es
+	 * quizá un poco más cómoda de usar.
 	 */
 	#phantoms: Map<[number, number], Cell> = new Map();
 
