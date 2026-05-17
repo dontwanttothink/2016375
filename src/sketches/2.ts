@@ -63,9 +63,10 @@ function themeColor(hue: number): ThemeColor {
  * Algunos colores reutilizables.
  */
 const themeColors = {
-	foreground: (p: p5) => (isDark() ? p.color(200) : p.color(70)),
-	subtler: (p: p5) => (isDark() ? p.color(150) : p.color(155)),
-	overlay: (p: p5) => (isDark() ? p.color(50) : p.color(250)),
+	foreground: (p: p5) => (isDark() ? p.color(200 / 255) : p.color(70 / 255)),
+	subtler: (p: p5) => (isDark() ? p.color(150 / 255) : p.color(155 / 255)),
+	subtlest: (p: p5) => (isDark() ? p.color(70 / 255) : p.color(240 / 255)),
+	overlay: (p: p5) => (isDark() ? p.color(50 / 255) : p.color(250 / 255)),
 	red: themeColor(0),
 	yellow: themeColor(100),
 	blue: themeColor(230),
@@ -100,12 +101,12 @@ class Button {
 
 	#animationProgress = 0;
 
-	baseColor: p5.Color;
-	highlightColor: p5.Color;
+	baseColor: ThemeColor;
+	highlightColor: ThemeColor;
 
 	alpha: number = 255;
 
-	textFill: p5.Color;
+	textFill: ThemeColor;
 
 	minWidth: number = 70;
 	minHeight: number = 30;
@@ -132,9 +133,9 @@ class Button {
 	y: number;
 	constructor(p: p5) {
 		this.#refreshDimensions(p);
-		this.baseColor = p.color(50);
-		this.highlightColor = p.color(0, 150, 255);
-		this.textFill = p.color(255);
+		this.baseColor = () => p.color("oklch(0.20 0 230)");
+		this.highlightColor = () => p.color("oklch(0.70 0.17 230)");
+		this.textFill = () => p.color("oklch(1 0 230)");
 		this.x = p.width / 2;
 		this.y = p.height / 2;
 	}
@@ -173,8 +174,8 @@ class Button {
 		// Calcular color intermedio
 		p.colorMode(p.OKLCH);
 		const currentColor = p.lerpColor(
-			this.baseColor,
-			this.highlightColor,
+			this.baseColor(p),
+			this.highlightColor(p),
 			this.#animationProgress,
 		);
 		currentColor.setAlpha(this.alpha);
@@ -188,7 +189,7 @@ class Button {
 		p.rect(x, y, this.width, this.height, 10);
 
 		// Dibujar el texto
-		const textFill = p.color(this.textFill);
+		const textFill = p.color(this.textFill(p));
 		textFill.setAlpha(this.alpha);
 
 		p.fill(textFill);
@@ -1051,6 +1052,11 @@ class GamePage extends Page<{ level: LevelData; index?: number }> {
 		};
 	}
 
+	static highlightColor: ThemeColor = (p: p5) =>
+		isDark() ? p.color("oklch(0.2 0.1 230)") : p.color("oklch(0.9 0.05 230)");
+	static baseColor: ThemeColor = (p: p5) =>
+		isDark() ? p.color("oklch(0.1 0 230)") : p.color("oklch(0.96 0 230)");
+
 	/**
 	 * La posición anterior durante una interacción de arrastrar.
 	 */
@@ -1078,11 +1084,19 @@ class GamePage extends Page<{ level: LevelData; index?: number }> {
 
 	setup(p: p5) {
 		p.textFont("system-ui");
+		p.colorMode(p.OKLCH); // necesario debido a https://github.com/processing/p5.js/issues/8806
 
 		this.undoButton = new Button(p);
 		this.undoButton.setLabel(p, "Deshacer");
+		this.undoButton.baseColor = GamePage.baseColor;
+		this.undoButton.highlightColor = GamePage.highlightColor;
+		this.undoButton.textFill = themeColors.foreground;
+
 		this.redoButton = new Button(p);
 		this.redoButton.setLabel(p, "Rehacer");
+		this.redoButton.baseColor = GamePage.baseColor;
+		this.redoButton.highlightColor = GamePage.highlightColor;
+		this.redoButton.textFill = themeColors.foreground;
 	}
 
 	draw(p: p5) {
@@ -1192,6 +1206,7 @@ class WonPage extends Page<{ levelIndex?: number }> {
 	}
 
 	setup(p: p5) {
+		p.colorMode(p.OKLCH); // necesario debido a https://github.com/processing/p5.js/issues/8806
 		p.textFont("system-ui");
 		this.appearedAt = currentTime();
 		this.button = new Button(p);
