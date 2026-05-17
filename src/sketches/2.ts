@@ -1111,6 +1111,7 @@ class GamePage extends Page<{ level: LevelData }> {
 
 			p.textSize(42);
 
+			// TODO!!!!!!!!!!!!!!! mover esto a su propia página
 			if (hasNextLevel()) {
 				p.text("¡Nivel completado!", p.width / 2, p.height / 2 - 80);
 
