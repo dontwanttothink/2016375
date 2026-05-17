@@ -798,6 +798,11 @@ class Game {
 		this.#paths.set(root, new Path(0));
 	}
 
+	/**
+	 * Si es apropiado, unir una celda con otra. Esta función actualiza
+	 * internamente los estados relevantes al juego, como, por ejemplo, si se
+	 * completó un camino.
+	 */
 	pull(fromRow: number, fromCol: number, toRow: number, toCol: number) {
 		if (!this.#pulling) {
 			throw new Error(
@@ -858,6 +863,12 @@ class Game {
 		}
 	}
 
+	/**
+	 * Terminar una sesión durante la que el usuario determinó un camino.
+	 *
+	 * Si el camino no se terminó, la matriz se restaura a su punto de guardado
+	 * anterior más reciente.
+	 */
 	stopPulling() {
 		if (!this.#pulling) {
 			throw new Error("No se puede dejar de jalar si no se empezó a jalar.");
@@ -994,7 +1005,7 @@ class Game {
  */
 
 /**
- * Una partida.
+ * La página de una partida.
  */
 class GamePage extends Page<{ level: LevelData }> {
 	static GameContainer(p: p5) {
