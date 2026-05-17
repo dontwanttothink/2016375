@@ -201,15 +201,12 @@ enum CellDirection {
 class Cell {
 	static ANIMATION_DURATION = 150;
 
-	isDisappearing: boolean = false;
-	#animatingSince = currentTime();
-
 	get opacity() {
 		const progress = Math.max(
 			0,
 			Math.min(
 				1,
-				(currentTime() - this.#animatingSince) / Cell.ANIMATION_DURATION,
+				(currentTime() - this.animatingSince) / Cell.ANIMATION_DURATION,
 			),
 		);
 
@@ -228,11 +225,9 @@ class Cell {
 		public readonly type: CellType,
 		public readonly color: ThemeColor,
 		public readonly direction: CellDirection | null = null,
+		public readonly isDisappearing: boolean = false,
+		public readonly animatingSince = currentTime(),
 	) {}
-
-	animate() {
-		this.#animatingSince = currentTime();
-	}
 
 	draw(p: p5, cellLength: number) {
 		p.push();
@@ -313,9 +308,13 @@ class Cell {
 	 */
 
 	withDirection(direction: CellDirection | null) {
-		const out = new Cell(this.type, this.color, direction);
-		out.#animatingSince = this.#animatingSince;
-		return out;
+		return new Cell(
+			this.type,
+			this.color,
+			direction,
+			this.isDisappearing,
+			this.animatingSince,
+		);
 	}
 
 	asSealed() {
@@ -324,9 +323,33 @@ class Cell {
 				"Solo los puntos finales pueden denotarse como sellados.",
 			);
 		}
-		const out = new Cell(CellType.SealedEndpoint, this.color, this.direction);
-		out.#animatingSince = this.#animatingSince;
-		return out;
+		return new Cell(
+			CellType.SealedEndpoint,
+			this.color,
+			this.direction,
+			this.isDisappearing,
+			this.animatingSince,
+		);
+	}
+
+	asDisappearing() {
+		return new Cell(
+			this.type,
+			this.color,
+			this.direction,
+			true,
+			this.animatingSince,
+		);
+	}
+
+	asAnimating() {
+		return new Cell(
+			this.type,
+			this.color,
+			this.direction,
+			this.isDisappearing,
+			currentTime(),
+		);
 	}
 }
 
@@ -809,12 +832,13 @@ class Game {
 					const newCell = grid.get(i, j);
 					const currentCell = currentGrid.get(i, j);
 					if (newCell === null && currentCell !== null) {
-						currentCell.animate();
-						currentCell.isDisappearing = true;
-						this.#phantoms.set([i, j], currentCell);
+						this.#phantoms.set(
+							[i, j],
+							currentCell.asAnimating().asDisappearing(),
+						);
 					}
 					if (newCell !== null && currentCell === null) {
-						newCell.animate();
+						newGrid.set(i, j, newCell.asAnimating());
 					}
 				}
 			}
