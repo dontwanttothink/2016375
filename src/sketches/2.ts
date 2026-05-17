@@ -608,7 +608,7 @@ class Path {
 	progress: number = 0;
 
 	get #velocity() {
-		return (this.target - this.progress) / 10;
+		return (this.target - this.progress) / 9;
 	}
 
 	constructor(length: number, grid: Grid | null = null) {
