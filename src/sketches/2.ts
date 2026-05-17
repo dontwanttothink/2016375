@@ -599,9 +599,9 @@ interface PullingState {
  * Representa una partida individual del juego.
  */
 class Game {
-	#hasWon: boolean = false;
-	get hasWon() {
-		return this.#hasWon;
+	#wonAt: number | null = null;
+	get wonAt() {
+		return this.#wonAt;
 	}
 
 	/**
@@ -661,11 +661,15 @@ class Game {
 	}
 
 	#updateWinningState() {
-		this.#hasWon =
+		const hasWon =
 			this.#grid.count(
 				(cell) => !!cell && cell.type === CellType.SealedEndpoint,
 			) === this.#endpointCount &&
 			this.#grid.count((cell) => cell === null) === 0;
+
+		if (hasWon) {
+			this.#wonAt = currentTime();
+		}
 	}
 
 	isInteractive([row, col]: [number, number]): boolean {
@@ -992,6 +996,17 @@ class GamePage extends Page<{ level: LevelData }> {
 		) {
 			p.cursor(p.HAND);
 		}
+
+		if (this.game.wonAt) {
+			p.text(
+				`Ganasta hace ${(currentTime() - this.game.wonAt) / 1000} segundos.`,
+				p.width / 2,
+				p.height / 2,
+			);
+			if (currentTime() - this.game.wonAt > 6_000) {
+				this.navigator.switchPage(p, WelcomePage);
+			}
+		}
 	}
 
 	mouseClicked(p: p5) {
@@ -1025,17 +1040,9 @@ class GamePage extends Page<{ level: LevelData }> {
 			const [row, col] = target;
 			const [lastRow, lastCol] = this.lastPosition;
 			this.game.pull(lastRow, lastCol, row, col);
-
-			if (this.game.hasWon) {
-				this.onWin(p);
-			}
 		}
 
 		this.lastPosition = target;
-	}
-
-	onWin(p: p5) {
-		this.navigator.switchPage(p, WelcomePage);
 	}
 }
 
