@@ -22,6 +22,8 @@ function isDark() {
 
 /**
  * @returns Un color elegido aleatoriamente.
+ *
+ * Esta función se usa(rá) en el modo infinito.
  */
 function randomThemeColor(): ThemeColor {
 	const hue = Math.floor(Math.random() * 360);
@@ -1092,7 +1094,7 @@ class GamePage extends Page<{ level: LevelData }> {
 		) {
 			p.cursor(p.HAND);
 		}
-		
+
 		if (this.game.wonAt) {
 			const elapsed = currentTime() - this.game.wonAt;
 
@@ -1110,11 +1112,7 @@ class GamePage extends Page<{ level: LevelData }> {
 			p.textSize(42);
 
 			if (hasNextLevel()) {
-				p.text(
-					"¡Nivel completado!",
-					p.width / 2,
-					p.height / 2 - 80,
-				);
+				p.text("¡Nivel completado!", p.width / 2, p.height / 2 - 80);
 
 				p.textSize(20);
 
@@ -1134,26 +1132,14 @@ class GamePage extends Page<{ level: LevelData }> {
 				if (elapsed > 5_000) {
 					goToNextLevel();
 
-					this.navigator.switchPage(
-						p,
-						GamePage,
-						{ level: currentLevel() },
-					);
+					this.navigator.switchPage(p, GamePage, { level: currentLevel() });
 				}
 			} else {
-				p.text(
-					"¡Has completado el juego!",
-					p.width / 2,
-					p.height / 2 - 80,
-				);
+				p.text("¡Has completado el juego!", p.width / 2, p.height / 2 - 80);
 
 				p.textSize(20);
 
-				p.text(
-					"No quedan más niveles.",
-					p.width / 2,
-					p.height / 2 - 35,
-				);
+				p.text("No quedan más niveles.", p.width / 2, p.height / 2 - 35);
 
 				this.nextLevelButton.setLabel(p, "Volver al inicio");
 
@@ -1166,20 +1152,12 @@ class GamePage extends Page<{ level: LevelData }> {
 				if (elapsed > 10_000) {
 					currentLevelIndex = 0;
 
-					this.navigator.switchPage(
-						p,
-						GamePage,
-						{ level: currentLevel() },
-					);
+					this.navigator.switchPage(p, GamePage, { level: currentLevel() });
 				}
 			}
 
 			p.pop();
 		}
-
-		
-
-
 	}
 
 	mouseClicked(p: p5) {
@@ -1189,30 +1167,22 @@ class GamePage extends Page<{ level: LevelData }> {
 		if (this.redoButton.intersectsWith(p.mouseX, p.mouseY)) {
 			this.game.redo();
 		}
-		
+
 		//Boton de Siguiente nivel
 		if (
-		this.game.wonAt &&
-		this.nextLevelButton.intersectsWith(p.mouseX, p.mouseY)
-	) {
-		if (hasNextLevel()) {
-			goToNextLevel();
+			this.game.wonAt &&
+			this.nextLevelButton.intersectsWith(p.mouseX, p.mouseY)
+		) {
+			if (hasNextLevel()) {
+				goToNextLevel();
 
-			this.navigator.switchPage(
-				p,
-				GamePage,
-				{ level: currentLevel() },
-			);
-		} else {
-			currentLevelIndex = 0;
+				this.navigator.switchPage(p, GamePage, { level: currentLevel() });
+			} else {
+				currentLevelIndex = 0;
 
-			this.navigator.switchPage(
-				p,
-				GamePage,
-				{ level: currentLevel() },
-			);
+				this.navigator.switchPage(p, GamePage, { level: currentLevel() });
+			}
 		}
-	}
 	}
 
 	mouseReleased() {
