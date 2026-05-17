@@ -60,9 +60,12 @@ interface Rectangle {
 }
 
 /*
- * Sección: Interacción del usuario
+ * Interacción del usuario
  */
 
+/**
+ * Un botón. Reutilizamos esto del primer proyecto.
+ */
 class Button {
 	static PADDING = 12;
 	static TEXT_SIZE = 20;
