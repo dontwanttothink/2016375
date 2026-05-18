@@ -221,6 +221,29 @@ const levels: LevelData[] = [
 			{ row0: 6, col0: 5, row1: 6, col1: 6, color: themeColors.orange },
 		],
 	},
+	{
+		size: 8,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 1, col1: 3, color: themeColors.red },
+			{ row0: 2, col0: 3, row1: 2, col1: 7, color: themeColors.blue },
+			{ row0: 3, col0: 0, row1: 3, col1: 5, color: themeColors.green },
+			{ row0: 3, col0: 6, row1: 4, col1: 7, color: themeColors.yellow },
+			{ row0: 4, col0: 2, row1: 7, col1: 0, color: themeColors.orange },
+			{ row0: 4, col0: 3, row1: 5, col1: 5, color: themeColors.cyan },
+			{ row0: 5, col0: 3, row1: 7, col1: 7, color: themeColors.purple },
+		],
+	},
+	{
+		size: 8,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 7, col1: 7, color: themeColors.red },
+			{ row0: 0, col0: 7, row1: 6, col1: 1, color: themeColors.blue },
+			{ row0: 1, col0: 2, row1: 3, col1: 7, color: themeColors.green },
+			{ row0: 6, col0: 4, row1: 4, col1: 7, color: themeColors.yellow },
+			{ row0: 6, col0: 3, row1: 2, col1: 2, color: themeColors.orange },
+		],
+	},
+
 ];
 
 /*
