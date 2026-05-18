@@ -9,7 +9,7 @@
 	</head>
 	<body>
 		<main>
-			<h1>Flow Free</h1>
+			<h1>Conexión de puntos</h1>
 			<nav style="opacity: 80%">
 				<p><a href="/">Ir al inicio</a></p>
 				<p><a href=".">Ver proyecto</a></p>
@@ -34,9 +34,11 @@
 
 				<h3>Objetivos</h3>
 				<p>
-					Quisimos implementar un juego tipo 
+					Quisimos implementar un juego tipo
 					<i>Flow Free</i>
-					: una cuadricula con pares de puntos de colores que el usuario debe conectar arrastrando el raton, llenando completamente el talbero sin que los caminos se crucen.
+					: una cuadricula con pares de puntos de colores que el usuario debe
+					conectar arrastrando el raton, llenando completamente el talbero sin
+					que los caminos se crucen.
 				</p>
 				<p>
 					La implementación debía usar técnicas de la clase de programación
@@ -50,10 +52,13 @@
 						Definir niveles con distribucion fijas y con solucion garantizada
 					</li>
 					<li>
-						Permitir al usuario dibujar con el raton caminos para unir puntos del mismo color
-						</li>
+						Permitir al usuario dibujar con el raton caminos para unir puntos
+						del mismo color
+					</li>
+				</ul>
 				<p>
-					Se uso una paleta de colores definida (OKLCH) para lograr consistencia cisual y compatibilidad con temas claros y oscuros.
+					Se uso una paleta de colores definida (OKLCH) para lograr consistencia
+					cisual y compatibilidad con temas claros y oscuros.
 				</p>
 
 				<h3>Decisiones arquitecturales o de diseño técnico</h3>
@@ -61,52 +66,74 @@
 				<h4 class="preserve-case">GitLab, Vite y el modo instancia</h4>
 
 				<p>
-					Como en el primer proyecto, seguimos utilizando Gitlab como nuestro repositorio central, recordemos que como GitLab Pages es una pagina generada con Vite, solo podemos utilizar 
-					<i>p5.js</i> en modo instancia y no el modo global, de el porque nuestras funciones tipicamente tienen un parametro p que permite acceder a las rutinas de dibujo como
+					Como en el primer proyecto, seguimos utilizando Gitlab como nuestro
+					repositorio central, recordemos que como GitLab Pages es una pagina
+					generada con Vite, solo podemos utilizar
+					<i>p5.js</i>
+					en modo instancia y no el modo global, de el porque nuestras funciones
+					tipicamente tienen un parametro p que permite acceder a las rutinas de
+					dibujo como
 					<code>p.rect(...)</code>, por ejemplo.
 				</p>
 
 				<h4>Sistema de paginas</h4>
 
 				<p>
-					Se reutilizo el sistema de paginas del proyecto anterior. Cada pagina define metodos para dibujar un fotograma y reaccionar a las interacciones del usuario. El navegador recibe las llamadas de 
+					Se reutilizo el sistema de paginas del proyecto anterior. Cada pagina
+					define metodos para dibujar un fotograma y reaccionar a las
+					interacciones del usuario. El navegador recibe las llamadas de
 					<i>p5.js</i>
-					 y las delega a la pagina activa.
-					
+					y las delega a la pagina activa.
 				</p>
 				<h4>Celdas e historial</h4>
 				<p>
-					Las instancias de 
+					Las instancias de
 					<i>Cell</i>
-					 son inmutables: en lugar de modificarlas directamente, se crean copias con nuevos valores usando metodos como 
-					<code>withDirection</code>. Esto simplifica la gestion del historial de acciones que tenemos. La clase Grid mantiene el timeline que es un arreglo de matrices, guardando el estado completo del tablero despues de cada movimiento.
-
+					son inmutables: en lugar de modificarlas directamente, se crean copias
+					con nuevos valores usando metodos como
+					<code>withDirection</code>. Esto simplifica la gestion del historial
+					de acciones que tenemos. La clase Grid mantiene el timeline que es un
+					arreglo de matrices, guardando el estado completo del tablero despues
+					de cada movimiento.
 				</p>
 
 				<h4>Dibujo</h4>
 
 				<p>
-					El lienzo se dibuja jerarquicamente. <i>GamePage</i> llama al metodo <i>draw</i> del <i>Game</i>, que a su vez llama al <i>draw</i> del <i>Grid</i>, que llama al <i>draw</i> del <i>Cell</i>. Cada celda dibuja un circulo y, si tiene una direccion asignada, una linea apunta hacia la celda del siguiente camino.
+					El lienzo se dibuja jerarquicamente. <i>GamePage</i> llama al metodo
+					<i>draw</i> del <i>Game</i>, que a su vez llama al <i>draw</i> del
+					<i>Grid</i>, que llama al <i>draw</i> del <i>Cell</i>. Cada celda
+					dibuja un circulo y, si tiene una direccion asignada, una linea apunta
+					hacia la celda del siguiente camino.
 				</p>
 
 				<p>
-					Las animaciones que implementamos fueron a los botones, funcionan por medio de un estado interno, este almacena un progreso de animacion que avanza o retrocede con cada fotograma dependiendo si el raton esta encima o no.
+					Las animaciones que implementamos fueron a los botones, funcionan por
+					medio de un estado interno, este almacena un progreso de animacion que
+					avanza o retrocede con cada fotograma dependiendo si el raton esta
+					encima o no.
 				</p>
 
 				<h4>Interactividad</h4>
 
 				<p>
-					La principal interactividad ocurre arrastrando el raton. En cada fotograma del arrastre se consulta en que celda esta el puntero actualmente, luego se intenta conectar la celda anterior con la actual mediante 
+					La principal interactividad ocurre arrastrando el raton. En cada
+					fotograma del arrastre se consulta en que celda esta el puntero
+					actualmente, luego se intenta conectar la celda anterior con la actual
+					mediante
 					<code>canConnect</code>.
 				</p>
 
 				<p>
-					Los botones de deshacer y rehacer detectan los clics del usuario usando
-					<code>intersectsWith</code>, que compara la posicion del clic con el centro y dimensiones del boton.
+					Los botones de deshacer y rehacer detectan los clics del usuario
+					usando
+					<code>intersectsWith</code>, que compara la posicion del clic con el
+					centro y dimensiones del boton.
 				</p>
 
 				<p>
-					El cursor cambia a mano <code>p.HAND</code> cuando el raton esta dobre una celda interactuable o sobre un boton.
+					El cursor cambia a mano <code>p.HAND</code> cuando el raton esta dobre
+					una celda interactuable o sobre un boton.
 				</p>
 
 				<h4>Lógica</h4>
@@ -115,8 +142,13 @@
 
 				<ul>
 					<li>el momento en que el jugador selecciona un punto inicial</li>
-					<li>el momento en que el jugador arrastra un camino por la cuadrícula</li>
-					<li>el momento en que el juego valida si el movimiento realizado es correcto</li>
+					<li>
+						el momento en que el jugador arrastra un camino por la cuadrícula
+					</li>
+					<li>
+						el momento en que el juego valida si el movimiento realizado es
+						correcto
+					</li>
 					<li>el momento en que un camino se completa y queda guardado</li>
 					<li>
 						el momento en que un camino inválido desaparece y el tablero se
@@ -128,10 +160,10 @@
 				<p>
 					Estos momentos se representan internamente mediante estados como
 					<code>pulling</code>, <code>dirty</code>, <code>wonAt</code> y el
-					historial (<code>timeline</code>). Estos estados controlan, por ejemplo,
-					si el jugador puede seguir extendiendo un camino, si el tablero debe
-					regresar al último punto guardado o si debe mostrarse la pantalla de
-					“nivel completado”.
+					historial (<code>timeline</code>). Estos estados controlan, por
+					ejemplo, si el jugador puede seguir extendiendo un camino, si el
+					tablero debe regresar al último punto guardado o si debe mostrarse la
+					pantalla de “nivel completado”.
 				</p>
 
 				<p>
@@ -142,51 +174,55 @@
 
 				<p>
 					Para verificar si un movimiento es válido, el juego comprueba varias
-					condiciones: que la celda destino sea adyacente, que no exista movimiento
-					diagonal, que la celda no pertenezca ya a otro camino, que no se
-					atraviesen caminos existentes y que el camino solo pueda cerrarse con un
-					punto final del mismo color.
+					condiciones: que la celda destino sea adyacente, que no exista
+					movimiento diagonal, que la celda no pertenezca ya a otro camino, que
+					no se atraviesen caminos existentes y que el camino solo pueda
+					cerrarse con un punto final del mismo color.
 				</p>
 
 				<p>
 					Cuando un camino conecta correctamente dos puntos del mismo color, el
-					punto final se sella, el estado del tablero se guarda automáticamente y
-					el juego revisa si todas las celdas ya fueron llenadas.
+					punto final se sella, el estado del tablero se guarda automáticamente
+					y el juego revisa si todas las celdas ya fueron llenadas.
 				</p>
 
 				<p>
-					Si el jugador suelta el mouse antes de completar correctamente un camino,
-					el tablero se restaura automáticamente al último estado válido guardado.
+					Si el jugador suelta el mouse antes de completar correctamente un
+					camino, el tablero se restaura automáticamente al último estado válido
+					guardado.
 				</p>
 
 				<p>
-					La victoria ocurre cuando todos los pares de puntos están conectados y no
-					queda ninguna celda vacía en la cuadrícula.
+					La victoria ocurre cuando todos los pares de puntos están conectados y
+					no queda ninguna celda vacía en la cuadrícula.
 				</p>
 
 				<h3>Resultados y líneas futuras de trabajo</h3>
 
 				<p>
 					El resultado es un juego interactivo basado en la conexión de caminos
-					dentro de una cuadrícula. El jugador debe unir pares de puntos del mismo
-					color sin cruzar caminos y ocupando todas las celdas disponibles.
+					dentro de una cuadrícula. El jugador debe unir pares de puntos del
+					mismo color sin cruzar caminos y ocupando todas las celdas
+					disponibles.
 				</p>
 
 				<p>
-					Se usan animaciones ampliamente para mostrar la aparición, desaparición y
-					transición de los caminos. Además, el sistema incluye efectos visuales
-					como conexiones animadas y celdas fantasma al eliminar rutas.
+					Se usan animaciones ampliamente para mostrar la aparición,
+					desaparición y transición de los caminos. Además, el sistema incluye
+					efectos visuales como conexiones animadas y celdas fantasma al
+					eliminar rutas.
 				</p>
 
 				<p>
-					La implementación está profundamente orientada a objetos. El proyecto se
-					divide en múltiples clases encargadas de distintos sistemas, como la
-					cuadrícula, las celdas, los caminos, el historial de movimientos y la
-					navegación entre páginas. El resultado está documentado con comentarios
-					detallados y utiliza estructuras que facilitan la expansión futura del
-					juego. Sin embargo, con el tiempo, la complejidad del manejo de estados y
-					animaciones fue aumentando. A futuro, es posible mejorar la organización
-					interna y simplificar algunos sistemas.
+					La implementación está profundamente orientada a objetos. El proyecto
+					se divide en múltiples clases encargadas de distintos sistemas, como
+					la cuadrícula, las celdas, los caminos, el historial de movimientos y
+					la navegación entre páginas. El resultado está documentado con
+					comentarios detallados y utiliza estructuras que facilitan la
+					expansión futura del juego. Sin embargo, con el tiempo, la complejidad
+					del manejo de estados y animaciones fue aumentando. A futuro, es
+					posible mejorar la organización interna y simplificar algunos
+					sistemas.
 				</p>
 
 				<h4>Código muerto</h4>
@@ -198,56 +234,57 @@
 					con la intención de usarla en un posible modo infinito que generaría
 					colores aleatorios para los caminos. Sin embargo, este modo nunca fue
 					implementado. También se definieron algunos colores dentro de
-					<code>themeColors</code>, como <code>purple</code>, que no aparecen
-					en ninguno de los niveles actuales. Además, quedaron estructuras y
+					<code>themeColors</code>, como <code>purple</code>, que no aparecen en
+					ninguno de los niveles actuales. Además, quedaron estructuras y
 					comentarios preparados para futuras expansiones del sistema de niveles
 					y de navegación entre páginas, aunque actualmente no tengan un uso
 					directo dentro de la jugabilidad.
 				</p>
 
-
 				<h4>Accesibilidad</h4>
 
 				<p>
 					El juego depende principalmente de elementos visuales y del uso del
-					mouse. Esto se debe a que la interfaz está dibujada manualmente sobre un
-					<code>canvas</code> usando <i>p5.js</i>, sin elementos semánticos del
-					DOM.
+					mouse. Esto se debe a que la interfaz está dibujada manualmente sobre
+					un
+					<code>canvas</code>
+					usando <i>p5.js</i>, sin elementos semánticos del DOM.
 				</p>
 
 				<p>
 					Aunque el código detecta si el usuario usa modo oscuro mediante la
 					función <code>isDark()</code>, la interfaz no adapta completamente sus
-					colores ni respeta otras preferencias de accesibilidad, como la reducción
-					de movimiento o el alto contraste.
+					colores ni respeta otras preferencias de accesibilidad, como la
+					reducción de movimiento o el alto contraste.
 				</p>
 
 				<p>
-					Sin embargo, la interfaz sí se ajusta parcialmente a distintos tamaños de
-					pantalla y utiliza fuentes del sistema, lo que permite cierta adaptación
-					visual desde el navegador.
+					Sin embargo, la interfaz sí se ajusta parcialmente a distintos tamaños
+					de pantalla y utiliza fuentes del sistema, lo que permite cierta
+					adaptación visual desde el navegador.
 				</p>
 				<h4>Jugabilidad</h4>
 
 				<p>
-					El juego resulta entretenido porque el jugador debe conectar correctamente
-					los puntos de colores sin dejar espacios vacíos en la cuadrícula, esto 
-					dependiendodel nivel puede ser todo un reto. Además, la inclusión de varios 
-					niveles con distintos tamaños permite que la dificultad aumente progresivamente.
+					El juego resulta entretenido porque el jugador debe conectar
+					correctamente los puntos de colores sin dejar espacios vacíos en la
+					cuadrícula, esto dependiendodel nivel puede ser todo un reto. Además,
+					la inclusión de varios niveles con distintos tamaños permite que la
+					dificultad aumente progresivamente.
 				</p>
 
 				<p>
 					Actualmente, la interacción depende únicamente del mouse, lo que puede
-					hacer algunos movimientos incómodos o imprecisos. También sería posible
-					mejorar la experiencia añadiendo más tipos de niveles, modos de juego o
-					un sistema de progreso más amplio.
+					hacer algunos movimientos incómodos o imprecisos. También sería
+					posible mejorar la experiencia añadiendo más tipos de niveles, modos
+					de juego o un sistema de progreso más amplio.
 				</p>
 
 				<p>
 					En el futuro, podrían agregarse características como temporizadores,
-					estadísticas, generación aleatoria de niveles o incluso un modo infinito,
-					idea para la cual ya existen algunas funciones preparadas dentro del
-					código.
+					estadísticas, generación aleatoria de niveles o incluso un modo
+					infinito, idea para la cual ya existen algunas funciones preparadas
+					dentro del código.
 				</p>
 				<h3>Uso de modelos de lenguaje</h3>
 
