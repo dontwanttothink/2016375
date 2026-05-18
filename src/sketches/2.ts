@@ -243,6 +243,30 @@ const levels: LevelData[] = [
 			{ row0: 6, col0: 3, row1: 2, col1: 2, color: themeColors.orange },
 		],
 	},
+	{
+		size: 9,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 1, col1: 0, color: themeColors.red },
+			{ row0: 0, col0: 6, row1: 4, col1: 8, color: themeColors.blue },
+			{ row0: 4, col0: 5, row1: 5, col1: 8, color: themeColors.green },
+			{ row0: 4, col0: 0, row1: 6, col1: 1, color: themeColors.yellow },
+			{ row0: 4, col0: 2, row1: 4, col1: 4, color: themeColors.orange },
+			{ row0: 7, col0: 0, row1: 8, col1: 2, color: themeColors.cyan },
+			{ row0: 7, col0: 4, row1: 7, col1: 7, color: themeColors.pink },
+			{ row0: 5, col0: 4, row1: 7, col1: 3, color: themeColors.purple },
+		],
+	},
+	{
+		size: 9,
+		endpoints: [
+			{ row0: 1, col0: 1, row1: 3, col1: 3, color: themeColors.red },
+			{ row0: 1, col0: 4, row1: 1, col1: 7, color: themeColors.blue },
+			{ row0: 2, col0: 0, row1: 4, col1: 1, color: themeColors.green },
+			{ row0: 3, col0: 0, row1: 4, col1: 8, color: themeColors.yellow },
+			{ row0: 5, col0: 8, row1: 7, col1: 7, color: themeColors.orange },
+			{ row0: 7, col0: 0, row1: 8, col1: 4, color: themeColors.cyan },
+		],
+	},
 
 ];
 
@@ -1504,7 +1528,7 @@ class WelcomePage extends Page {
 		p.textFont("system-ui");
 
 		this.handMadeLevelsButton = new Button(p);
-		this.handMadeLevelsButton.setLabel(p, "Niveles de Andrés");
+		this.handMadeLevelsButton.setLabel(p, "Niveles Lineales");
 
 		this.proceduralLevelsButton = new Button(p);
 		this.proceduralLevelsButton.setLabel(p, "Modo infinito");
