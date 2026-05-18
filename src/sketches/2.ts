@@ -200,6 +200,27 @@ const levels: LevelData[] = [
 			{ row0: 3, col0: 4, row1: 2, col1: 5, color: themeColors.pink },
 		],
 	},
+	{
+		size: 7,
+		endpoints: [
+			{ row0: 0, col0: 2, row1: 5, col1: 1, color: themeColors.red },
+			{ row0: 1, col0: 1, row1: 4, col1: 1, color: themeColors.blue },
+			{ row0: 0, col0: 4, row1: 2, col1: 3, color: themeColors.green },
+			{ row0: 0, col0: 6, row1: 3, col1: 3, color: themeColors.yellow },
+			{ row0: 1, col0: 6, row1: 4, col1: 3, color: themeColors.orange },
+			{ row0: 6, col0: 2, row1: 5, col1: 6, color: themeColors.pink },
+		],
+	},
+	{
+		size: 7,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 2, col1: 6, color: themeColors.red },
+			{ row0: 1, col0: 0, row1: 1, col1: 3, color: themeColors.blue },
+			{ row0: 4, col0: 0, row1: 4, col1: 2, color: themeColors.green },
+			{ row0: 4, col0: 3, row1: 6, col1: 3, color: themeColors.yellow },
+			{ row0: 6, col0: 5, row1: 6, col1: 6, color: themeColors.orange },
+		],
+	},
 ];
 
 /*
