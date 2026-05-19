@@ -302,7 +302,6 @@ const levels: LevelData[] = [
 			{ row0: 7, col0: 0, row1: 6, col1: 2, color: themeColors.cyan },
 		],
 	},
-
 ];
 
 /*
