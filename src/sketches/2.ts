@@ -267,6 +267,41 @@ const levels: LevelData[] = [
 			{ row0: 7, col0: 0, row1: 8, col1: 4, color: themeColors.cyan },
 		],
 	},
+	{
+		size: 10,
+		endpoints: [
+			{ row0: 2, col0: 2, row1: 2, col1: 4, color: themeColors.red },
+			{ row0: 1, col0: 3, row1: 0, col1: 6, color: themeColors.blue },
+			{ row0: 0, col0: 7, row1: 2, col1: 9, color: themeColors.green },
+			{ row0: 2, col0: 7, row1: 4, col1: 8, color: themeColors.yellow },
+			{ row0: 4, col0: 5, row1: 8, col1: 7, color: themeColors.orange },
+			{ row0: 5, col0: 0, row1: 8, col1: 8, color: themeColors.cyan },
+			{ row0: 7, col0: 1, row1: 7, col1: 4, color: themeColors.purple },
+		],
+	},
+	{
+		size: 10,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 9, col1: 9, color: themeColors.red },
+			{ row0: 0, col0: 2, row1: 0, col1: 4, color: themeColors.blue },
+			{ row0: 0, col0: 8, row1: 2, col1: 6, color: themeColors.green },
+			{ row0: 1, col0: 0, row1: 3, col1: 2, color: themeColors.yellow },
+			{ row0: 4, col0: 9, row1: 6, col1: 9, color: themeColors.orange },
+			{ row0: 5, col0: 2, row1: 7, col1: 7, color: themeColors.cyan },
+			{ row0: 7, col0: 2, row1: 7, col1: 4, color: themeColors.pink },
+		],
+	},
+	{
+		size: 10,
+		endpoints: [
+			{ row0: 0, col0: 0, row1: 0, col1: 9, color: themeColors.red },
+			{ row0: 1, col0: 2, row1: 4, col1: 1, color: themeColors.blue },
+			{ row0: 2, col0: 2, row1: 4, col1: 5, color: themeColors.green },
+			{ row0: 5, col0: 7, row1: 7, col1: 7, color: themeColors.yellow },
+			{ row0: 6, col0: 0, row1: 8, col1: 3, color: themeColors.orange },
+			{ row0: 7, col0: 0, row1: 6, col1: 2, color: themeColors.cyan },
+		],
+	},
 
 ];
 
