@@ -309,7 +309,7 @@ const levels: LevelData[] = [
  */
 
 /**
- * Un botón. Reutilizamos esto del primer proyecto.
+ * Un botón. Reutilizamos esto del primer proyecto, con cambios pequeños.
  */
 class Button {
 	static PADDING = 12;
