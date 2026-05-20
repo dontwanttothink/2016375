@@ -124,7 +124,6 @@ const levels: LevelData[] = [
 			{ row0: 0, col0: 1, row1: 1, col1: 2, color: themeColors.red },
 		],
 	},
-
 	{
 		size: 4,
 		endpoints: [
@@ -142,7 +141,6 @@ const levels: LevelData[] = [
 			{ row0: 0, col0: 2, row1: 2, col1: 2, color: themeColors.yellow },
 		],
 	},
-
 	{
 		size: 5,
 		endpoints: [
