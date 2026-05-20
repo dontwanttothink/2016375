@@ -16,10 +16,12 @@ function ease(x: number) {
  * @returns La longitud de la ascensión de la tipofaz actual, dado un
  * tamaño.
  */
-function ascent(p: p5, size: number) {
+function textHeight(p: p5, size: number, str: string, width: number) {
 	p.push();
 	p.textSize(size);
-	const out = p.textAscent();
+	p.textAlign(p.LEFT, p.TOP);
+	const bounds = p.textBounds(str, 0, 0, width);
+	const out = bounds.h;
 	p.pop();
 	return out;
 }
@@ -489,6 +491,7 @@ class Cell {
 	constructor(
 		public readonly type: CellType,
 		public readonly color: ThemeColor,
+		private readonly pair: number | null = null,
 		public readonly direction: CellDirection | null = null,
 		public readonly isDisappearing: boolean = false,
 		public readonly animatingSince = currentTime(),
@@ -504,6 +507,15 @@ class Cell {
 
 		const diameter = cellLength * 0.7;
 		p.circle(0, 0, diameter);
+
+		if (this.pair !== null) {
+			const numberColor = p.lerpColor(color, p.color("oklch(1 0 0)"), 0.8);
+			numberColor.setAlpha(this.opacity * 200);
+			p.fill(numberColor);
+			p.textSize(24);
+			p.textAlign(p.CENTER, p.CENTER);
+			p.text(this.pair, 0, 0);
+		}
 
 		p.pop();
 	}
@@ -576,6 +588,7 @@ class Cell {
 		return new Cell(
 			this.type,
 			this.color,
+			this.pair,
 			direction,
 			this.isDisappearing,
 			this.animatingSince,
@@ -591,6 +604,7 @@ class Cell {
 		return new Cell(
 			CellType.SealedEndpoint,
 			this.color,
+			this.pair,
 			this.direction,
 			this.isDisappearing,
 			this.animatingSince,
@@ -601,6 +615,7 @@ class Cell {
 		return new Cell(
 			this.type,
 			this.color,
+			this.pair,
 			this.direction,
 			true,
 			this.animatingSince,
@@ -611,6 +626,7 @@ class Cell {
 		return new Cell(
 			this.type,
 			this.color,
+			this.pair,
 			this.direction,
 			this.isDisappearing,
 			currentTime(),
@@ -646,9 +662,12 @@ class Grid {
 			this.#matrix.push(row);
 		}
 
-		for (const { row0, col0, row1, col1, color } of level.endpoints) {
-			this.#matrix[row0][col0] = new Cell(CellType.Endpoint, color);
-			this.#matrix[row1][col1] = new Cell(CellType.Endpoint, color);
+		for (const [
+			i,
+			{ row0, col0, row1, col1, color },
+		] of level.endpoints.entries()) {
+			this.#matrix[row0][col0] = new Cell(CellType.Endpoint, color, i + 1);
+			this.#matrix[row1][col1] = new Cell(CellType.Endpoint, color, i + 1);
 		}
 	}
 
@@ -788,7 +807,24 @@ class Grid {
 		p.pop();
 	}
 
-	draw(p: p5, container: Rectangle) {
+	drawCells(p: p5, container: Rectangle) {
+		p.push();
+		const { cellLength, originX, originY } = this.properties(container);
+		for (const [i, row] of this.#matrix.entries()) {
+			for (const [j, cell] of row.entries()) {
+				const cellY = originY + cellLength * (i + 0.5);
+				const cellX = originX + cellLength * (j + 0.5);
+
+				p.push();
+				p.translate(cellX, cellY);
+				cell?.draw(p, cellLength);
+				p.pop();
+			}
+		}
+		p.pop();
+	}
+
+	drawBase(p: p5, container: Rectangle) {
 		p.push();
 		const { vertexLength, cellLength, originX, originY } =
 			this.properties(container);
@@ -803,18 +839,6 @@ class Grid {
 			p.line(x, originY, x, originY + vertexLength);
 		}
 		p.square(originX, originY, vertexLength, 10);
-
-		for (const [i, row] of this.#matrix.entries()) {
-			for (const [j, cell] of row.entries()) {
-				const cellY = originY + cellLength * (i + 0.5);
-				const cellX = originX + cellLength * (j + 0.5);
-
-				p.push();
-				p.translate(cellX, cellY);
-				cell?.draw(p, cellLength);
-				p.pop();
-			}
-		}
 
 		p.pop();
 	}
@@ -1246,8 +1270,9 @@ class Game {
 			}
 		}
 
-		this.#grid.draw(p, this.container(p));
+		this.#grid.drawBase(p, this.container(p));
 		this.#grid.drawOverlays(p, this.container(p), this.#paths, this.#phantoms);
+		this.#grid.drawCells(p, this.container(p));
 	}
 }
 
@@ -1488,21 +1513,27 @@ class WonPage extends Page<{ levelIndex: number; wasProcedural: boolean }> {
 			this.button.setLabel(p, "Siguiente nivel");
 		}
 
+		const maxWidth = p.width - 20;
+
 		const totalHeight =
 			this.button.height +
-			ascent(p, PRIMARY_SIZE) +
-			ascent(p, SECONDARY_SIZE) +
+			textHeight(p, PRIMARY_SIZE, primaryMessage, maxWidth) +
+			textHeight(p, SECONDARY_SIZE, secondaryMessage, maxWidth) +
 			MARGIN * 2.5;
-		const primaryY = (p.height - totalHeight + ascent(p, PRIMARY_SIZE)) / 2;
+		const primaryY =
+			(p.height -
+				totalHeight +
+				textHeight(p, PRIMARY_SIZE, primaryMessage, maxWidth)) /
+			2;
 		const secondaryY =
 			primaryY +
 			MARGIN +
-			ascent(p, PRIMARY_SIZE) / 2 +
-			ascent(p, SECONDARY_SIZE) / 2;
+			textHeight(p, PRIMARY_SIZE, primaryMessage, maxWidth) / 2 +
+			textHeight(p, SECONDARY_SIZE, secondaryMessage, maxWidth) / 2;
 		const buttonY =
 			secondaryY +
 			MARGIN * 1.5 +
-			ascent(p, SECONDARY_SIZE) / 2 +
+			textHeight(p, SECONDARY_SIZE, secondaryMessage, maxWidth) / 2 +
 			this.button.height / 2;
 
 		p.background(themeColors.overlay(p));
@@ -1514,13 +1545,13 @@ class WonPage extends Page<{ levelIndex: number; wasProcedural: boolean }> {
 		c.setAlpha(t_0 * 255);
 		p.fill(c);
 		p.textSize(PRIMARY_SIZE);
-		p.text(primaryMessage, p.width / 2, primaryY);
+		p.text(primaryMessage, p.width / 2 - maxWidth / 2, primaryY, maxWidth);
 
 		// mensaje secundario
 		c.setAlpha(t_1 * 255);
 		p.fill(c);
 		p.textSize(SECONDARY_SIZE);
-		p.text(secondaryMessage, p.width / 2, secondaryY);
+		p.text(secondaryMessage, p.width / 2 - maxWidth / 2, secondaryY, maxWidth);
 
 		// botón
 		this.button.alpha = t_1 * 255;
@@ -1551,6 +1582,160 @@ class WonPage extends Page<{ levelIndex: number; wasProcedural: boolean }> {
 	}
 }
 
+class InfiniteModeInformationPage extends Page {
+	/**
+	 * El momento en el tiempo en que se empezó a mostrar esta página.
+	 */
+	appearedAt!: number;
+
+	button!: Button;
+
+	setup(p: p5) {
+		p.colorMode(p.OKLCH); // necesario debido a https://github.com/processing/p5.js/issues/8806
+		p.textFont("system-ui");
+		this.appearedAt = currentTime();
+		this.button = new Button(p);
+		this.button.setLabel(p, "Regresar");
+	}
+
+	draw(p: p5) {
+		const ANIMATION_DURATION = 300;
+		const SECONDARY_DELAY = 270;
+
+		const elapsed_0 = currentTime() - this.appearedAt;
+		const elapsed_1 = currentTime() - this.appearedAt - SECONDARY_DELAY;
+		const t_0 = p.constrain(elapsed_0 / ANIMATION_DURATION, 0, 1);
+		const t_1 = p.constrain(elapsed_1 / ANIMATION_DURATION, 0, 1);
+
+		const PRIMARY_SIZE = 34;
+		const SECONDARY_SIZE = 20;
+		const MARGIN = 30;
+
+		const primaryMessage: string = "En construcción :(";
+		const secondaryMessage: string =
+			"El modo infinito todavía no está listo. Para leer el código de generación de niveles y las fuentes que se usaron para entender cómo realizarlo, revisa el reporte. Mientras tanto, ¡prueba los niveles hechos a mano!";
+
+		const maxWidth = p.width - 20;
+
+		const totalHeight =
+			this.button.height +
+			textHeight(p, PRIMARY_SIZE, primaryMessage, maxWidth) +
+			textHeight(p, SECONDARY_SIZE, secondaryMessage, maxWidth) +
+			MARGIN * 2.5;
+		const primaryY =
+			(p.height -
+				totalHeight +
+				textHeight(p, PRIMARY_SIZE, primaryMessage, maxWidth)) /
+			2;
+		const secondaryY =
+			primaryY +
+			MARGIN +
+			textHeight(p, PRIMARY_SIZE, primaryMessage, maxWidth) / 2 +
+			textHeight(p, SECONDARY_SIZE, secondaryMessage, maxWidth) / 2;
+		const buttonY =
+			secondaryY +
+			MARGIN * 1.5 +
+			textHeight(p, SECONDARY_SIZE, secondaryMessage, maxWidth) / 2 +
+			this.button.height / 2;
+
+		p.background(themeColors.overlay(p));
+
+		// mensaje principal
+		p.noStroke();
+		p.textAlign(p.CENTER, p.CENTER);
+		const c = themeColors.foreground(p);
+		c.setAlpha(t_0 * 255);
+		p.fill(c);
+		p.textSize(PRIMARY_SIZE);
+		p.text(primaryMessage, p.width / 2 - maxWidth / 2, primaryY, maxWidth);
+
+		// mensaje secundario
+		c.setAlpha(t_1 * 255);
+		p.fill(c);
+		p.textSize(SECONDARY_SIZE);
+		p.text(secondaryMessage, p.width / 2 - maxWidth / 2, secondaryY, maxWidth);
+
+		// botón
+		this.button.alpha = t_1 * 255;
+		this.button.x = p.width / 2;
+		this.button.y = buttonY;
+		this.button.draw(p);
+
+		if (this.button.intersectsWith(p.mouseX, p.mouseY)) {
+			p.cursor(p.HAND);
+		} else {
+			p.cursor(p.ARROW);
+		}
+	}
+
+	mouseClicked(p: p5) {
+		if (this.button.intersectsWith(p.mouseX, p.mouseY)) {
+			this.navigator.switchPage(p, WelcomePage);
+		}
+	}
+}
+
+class Ribbon {
+	static MAX_POINTS = 100;
+
+	angle: number = Math.random() * 2 * Math.PI;
+	rotation = 0;
+	points: [number, number][] = [];
+	speed = 2;
+	color: ThemeColor;
+	opacity: number;
+
+	constructor(x: number, y: number, color: ThemeColor) {
+		this.points.push([x, y]);
+		this.color = color;
+		this.opacity = Math.random() * 150;
+	}
+
+	draw(p: p5) {
+		this.tick();
+		p.push();
+		p.strokeWeight(10);
+		p.noFill();
+		p.beginShape();
+
+		const lastPos = this.points.at(-1);
+		if (!lastPos) {
+			return;
+		}
+		const c = this.color(p);
+		c.setAlpha(this.opacity);
+		p.stroke(c);
+
+		for (const point of this.points) {
+			p.splineVertex(...point);
+		}
+		p.endShape();
+		p.pop();
+	}
+
+	tick() {
+		this.angle += this.rotation;
+
+		const breadth = Math.PI / 100;
+		this.rotation +=
+			Math.random() * breadth - breadth / 2 - this.rotation * 0.033;
+
+		const lastPos = this.points.at(-1);
+		if (!lastPos) {
+			return;
+		}
+		const [x, y] = lastPos;
+		this.points.push([
+			x + Math.cos(this.angle) * this.speed,
+			y + Math.sin(this.angle) * this.speed,
+		]);
+
+		if (this.points.length > Ribbon.MAX_POINTS) {
+			this.points.shift();
+		}
+	}
+}
+
 /**
  * La página de bienvenida; es decir, la que siempre aparece primero.
  */
@@ -1558,11 +1743,14 @@ class WelcomePage extends Page {
 	handMadeLevelsButton!: Button;
 	proceduralLevelsButton!: Button;
 
+	ribbons: Ribbon[] = [];
+	lastAddedRibbon = currentTime();
+
 	setup(p: p5) {
 		p.textFont("system-ui");
 
 		this.handMadeLevelsButton = new Button(p);
-		this.handMadeLevelsButton.setLabel(p, "Niveles Lineales");
+		this.handMadeLevelsButton.setLabel(p, "Niveles a mano");
 
 		this.proceduralLevelsButton = new Button(p);
 		this.proceduralLevelsButton.setLabel(p, "Modo infinito");
@@ -1585,6 +1773,8 @@ class WelcomePage extends Page {
 	draw(p: p5) {
 		p.clear();
 		p.fill(themeColors.foreground(p));
+
+		this.drawBackground(p);
 
 		const MARGIN = 60;
 
@@ -1615,6 +1805,27 @@ class WelcomePage extends Page {
 		}
 	}
 
+	drawBackground(p: p5) {
+		if (currentTime() - this.lastAddedRibbon > 1_000) {
+			this.ribbons.push(
+				new Ribbon(
+					Math.random() * p.width,
+					Math.random() * p.height,
+					randomThemeColor(),
+				),
+			);
+			this.lastAddedRibbon = currentTime();
+
+			if (this.ribbons.length > 100) {
+				this.ribbons.shift();
+			}
+		}
+
+		for (const ribbon of this.ribbons) {
+			ribbon.draw(p);
+		}
+	}
+
 	mouseClicked(p: p5) {
 		if (this.handMadeLevelsButton.intersectsWith(p.mouseX, p.mouseY)) {
 			this.navigator.switchPage(p, GameP	age, {
@@ -1625,11 +1836,7 @@ class WelcomePage extends Page {
 		}
 
 		if (this.proceduralLevelsButton.intersectsWith(p.mouseX, p.mouseY)) {
-			this.navigator.switchPage(p, GamePage, {
-				level: levels[0],
-				index: 0,
-				isProcedural: false,
-			});
+			this.navigator.switchPage(p, InfiniteModeInformationPage);
 		}
 	}
 }
@@ -1640,7 +1847,11 @@ class WelcomePage extends Page {
  * En este contexto, tanto el navegador como las páginas se refieren a
  * conceptos originales. No se refieren al navegador web o a páginas web.
  */
-const navigator = new Navigator(WelcomePage, [GamePage, WonPage]);
+const navigator = new Navigator(WelcomePage, [
+	GamePage,
+	WonPage,
+	InfiniteModeInformationPage,
+]);
 
 // Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
