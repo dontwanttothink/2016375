@@ -35,10 +35,16 @@
 				<h3>Objetivos</h3>
 				<p>
 					Quisimos implementar un juego tipo
-					<i>Flow Free</i>
-					: una cuadricula con pares de puntos de colores que el usuario debe
-					conectar arrastrando el raton, llenando completamente el talbero sin
-					que los caminos se crucen.
+					<i
+						><a href="https://en.wikipedia.org/wiki/Numberlink"
+							>numberlink</a
+						></i
+					>
+					(también popularizado por
+					<a href="https://www.bigduckgames.com/flowfree">Flow Free</a>): una
+					cuadricula con pares de puntos de colores que el usuario debe
+					conectar, llenando completamente el tablero sin que los caminos se
+					crucen.
 				</p>
 				<p>
 					La implementación debía usar técnicas de la clase de programación
@@ -49,91 +55,151 @@
 				<ul>
 					<li>usar la librería <i>p5.js</i></li>
 					<li>
-						Definir niveles con distribucion fijas y con solucion garantizada
+						ofrecer, al menos, múltiples niveles hechos a mano y con solucion
+						garantizada
 					</li>
 					<li>
-						Permitir al usuario dibujar con el raton caminos para unir puntos
+						permitir al usuario dibujar con el ratón caminos para unir puntos
 						del mismo color
 					</li>
+					<li>indicar si el usuario ganó</li>
+					<li>tener una presentación visual atractiva</li>
 				</ul>
-				<p>
-					Se uso una paleta de colores definida (OKLCH) para lograr consistencia
-					cisual y compatibilidad con temas claros y oscuros.
-				</p>
 
 				<h3>Decisiones arquitecturales o de diseño técnico</h3>
 
 				<h4 class="preserve-case">GitLab, Vite y el modo instancia</h4>
 
 				<p>
-					Como en el primer proyecto, seguimos utilizando Gitlab como nuestro
-					repositorio central, recordemos que como GitLab Pages es una pagina
-					generada con Vite, solo podemos utilizar
-					<i>p5.js</i>
-					en modo instancia y no el modo global, de el porque nuestras funciones
-					tipicamente tienen un parametro p que permite acceder a las rutinas de
-					dibujo como
-					<code>p.rect(...)</code>, por ejemplo.
+					Como en el primer proyecto, seguimos utilizando GitLab para albergar
+					nuestro repositorio central. De nuevo, como se genera una página
+					estática con Vite, usamos el modo instancia de <i>p5.js</i> y no el
+					modo global. Por eso, nuestras funciones típicamente reciben un
+					parametro <code>p</code> que permite acceder a las rutinas de dibujo,
+					como <code>p.rect(...)</code> por ejemplo.
 				</p>
 
-				<h4>Sistema de paginas</h4>
+				<h4>Sistema de páginas</h4>
 
 				<p>
-					Se reutilizo el sistema de paginas del proyecto anterior. Cada pagina
+					Se reutilizó el sistema de paginas del proyecto anterior. Cada página
 					define metodos para dibujar un fotograma y reaccionar a las
-					interacciones del usuario. El navegador recibe las llamadas de
+					interacciones del usuario. El 'navegador' (<code>Navigator</code>)
+					recibe las llamadas de
 					<i>p5.js</i>
 					y las delega a la pagina activa.
 				</p>
+
+				<h4>Colores</h4>
+
+				<p>
+					Para ofrecer un modo oscuro y lograr una consistencia visual, se
+					definió una paleta de colores usando el
+					<a href="https://en.wikipedia.org/wiki/Oklab_color_space"
+						>espacio de colores OKLCH</a
+					>. OKLCH permite determinar colores en términos de su luminosidad,
+					intensidad y tono. Esto facilitó la generación programática de paletas
+					visuales.
+				</p>
+
 				<h4>Celdas e historial</h4>
 				<p>
 					Las instancias de
 					<i>Cell</i>
 					son inmutables: en lugar de modificarlas directamente, se crean copias
-					con nuevos valores usando metodos como
-					<code>withDirection</code>. Esto simplifica la gestion del historial
-					de acciones que tenemos. La clase Grid mantiene el timeline que es un
-					arreglo de matrices, guardando el estado completo del tablero despues
-					de cada movimiento.
+					con nuevos valores usando métodos como
+					<code>withDirection</code>. Esto simplifica la gestión del historial
+					porque elimina los problemas potenciales asociados a la mutación de
+					referencias compartidas. La clase <code>Game</code> es responsable del
+					<i>timeline</i>, que se representa como un arreglo de matrices,
+					guardando el estado completo del tablero despues de cada movimiento
+					completo.
 				</p>
 
 				<h4>Dibujo</h4>
 
 				<p>
-					El lienzo se dibuja jerarquicamente. <i>GamePage</i> llama al metodo
-					<i>draw</i> del <i>Game</i>, que a su vez llama al <i>draw</i> del
-					<i>Grid</i>, que llama al <i>draw</i> del <i>Cell</i>. Cada celda
-					dibuja un circulo y, si tiene una direccion asignada, una linea apunta
-					hacia la celda del siguiente camino.
+					El lienzo se dibuja jerárquicamente. Por ejemplo,
+					<code>GamePage</code>
+					llama al metodo
+					<code>draw</code>
+					del <code>Game</code>, que a su vez llama al <code>draw</code> de
+					<code>Grid</code>, que llama al <code>draw</code> de
+					<code>Cell</code>.
+				</p>
+
+				<h4>Cuadrículas en capas, o <i>layered boards</i></h4>
+
+				<p>
+					A diferencia de nuestro proyecto anterior, partes del estado de la
+					cuadrícula visible se distribuyeron entre varias cuadrículas reales
+					distintas, que se dibujan una encima de la otra. En particular:
+
+					<ul class="preserve-case">
+						<li>
+							Cuando el usuario elimina celdas (por ejemplo, al deshacer un
+							movimiento) se necesita persistirlas por un momento para dibujar
+							la transición. Esto se logra a través de una matriz dispersa
+							'fantasma'. En el código, se le llama <code>#phantoms</code>.
+						</li>
+						<li>
+							Aunque las celdas se dibujan directamente a partir de la matriz de
+							juego principal, las líneas coloridas que las unen necesitan su
+							propio estado de animación. Por lo tanto, estas líneas son
+							sobrepuestas.
+						</li>
+					</ul>
+				</p>
+
+				<h4>Animaciones</h4>
+
+				<p>
+					Se reusó el código para dibujar botones del proyecto 1, con algunas
+					modificaciones menores. Como resultado, la animación de los botones
+					funciona igual. Es interrumpible y se basa en un estado interno, que
+					avanza o retrocede con cada fotograma dependiendo de si el ratón está
+					encima o no.
 				</p>
 
 				<p>
-					Las animaciones que implementamos fueron a los botones, funcionan por
-					medio de un estado interno, este almacena un progreso de animacion que
-					avanza o retrocede con cada fotograma dependiendo si el raton esta
-					encima o no.
+					Las líneas que conectan los puntos de un camino avanzan
+					progresivamente. Esta animación también está basada en un estado
+					interno y es interrumpible. La velocidad con la que una línea recorre
+					un camino es proporcional a la distancia que le hace falta recorrer,
+					lo que da algo de satisfacción visual.
 				</p>
 
 				<h4>Interactividad</h4>
 
 				<p>
-					La principal interactividad ocurre arrastrando el raton. En cada
-					fotograma del arrastre se consulta en que celda esta el puntero
-					actualmente, luego se intenta conectar la celda anterior con la actual
-					mediante
-					<code>canConnect</code>.
+					La principal interactividad ocurre arrastrando el ratón. La lógica de
+					la interacción pertenece a <code>Game</code>, mientras que
+					<code>GamePage</code>
+					se encarga de interpretar las pulsaciones y movimientos individuales
+					del puntero. Por ejemplo, <code>Game</code> se encarga de determinar
+					que un movimiento sea válido y rechazarlo si no lo es;
+					<code>GamePage</code>
+					se encarga de determinar qué celdas se intentaron conectar en primer
+					lugar.
+				</p>
+
+				<p>
+					En cada fotograma del arrastre se consulta en qué celda está el
+					puntero actualmente. Luego, se intenta conectar la celda anterior con
+					la actual mediante
+					<code>pull</code>, un método de <code>Game</code>.
 				</p>
 
 				<p>
 					Los botones de deshacer y rehacer detectan los clics del usuario
 					usando
 					<code>intersectsWith</code>, que compara la posicion del clic con el
-					centro y dimensiones del boton.
+					centro y dimensiones del boton usando matemáticas simples.
 				</p>
 
 				<p>
-					El cursor cambia a mano <code>p.HAND</code> cuando el raton esta dobre
-					una celda interactuable o sobre un boton.
+					El cursor se convierte en una mano (<code>p.HAND</code>) cuando el
+					ratón está sobre una celda interactuable o sobre un botón.
 				</p>
 
 				<h4>Lógica</h4>
@@ -225,15 +291,108 @@
 					sistemas.
 				</p>
 
+				<h4>Generación de niveles</h4>
+
+				<p>
+					Desde el inicio, quisimos escribir un algoritmo capaz de generar
+					niveles aleatorios. Esto resulta ser un problema computacional algo
+					difícil. Sin embargo, existen artículos académicos que analizan
+					algunas propiedades de grafos que son relevantes a nuestro juego.
+				</p>
+
+				<p>
+					Un grafo es un objeto matemático compuesto de
+					<em>vértices</em>
+					conectados por <em>aristas</em>. Es una idea que permite modelar cosas
+					que están conectadas entre sí, como edificios conectados por calles.
+					En este contexto, una cuadrícula se puede entender como un grafo, con
+					vértices en cada celda y aristas uniendo cada celda adyacente.
+					(Además, se puede entender como un grafo <i>bipartito</i>, lo que
+					proporciona propiedades muy útiles para el análisis de caminos.)
+				</p>
+
+				<p>
+					La teoría de grafos tiene conceptos relevantes a la tarea de generar
+					niveles de <i>numberlink</i>. Por ejemplo, los caminos Hamiltonianos.
+					Un camino Hamiltoniano visita cada vértice de un grafo exactamente una
+					vez. Se puede observar que, al cortar un camino Hamiltoniano en varias
+					partes, se produce un nivel válido del juego.
+				</p>
+
+				<p>
+					No se conoce ningún algoritmo que pueda computar caminos Hamiltonianos
+					rápidamente en grafos arbitrarios. De hecho, es probable que no exista
+					ninguno. (En particular, se ha demostrado que
+					<a href="https://en.wikipedia.org/wiki/Hamiltonian_path_problem"
+						>el problema general de encontrar caminos Hamiltonianos</a
+					>
+					pertenece a la
+					<a href="https://en.wikipedia.org/wiki/NP-completeness"
+						>clase de complejidad NP-completo</a
+					>. El descubrimiento de un algoritmo polinómico para encontrar caminos
+					Hamiltonianos tendría implicaciones profundas en la teoría
+					computacional, y quizá resultaría en un pánico.)
+				</p>
+
+				<p>
+					Pero se han investigado los grafos de cuadrículas rectangulares, como
+					los que usamos en el juego. Gracias a Itai, A., et al. (1982), es
+					posible determinar, en tiempo constante, si existe un camino
+					Hamiltoniano que empieza en una celda
+					<i>s</i>
+					y termina en una celda <i>t</i> de una cuadrícula rectangular. No solo
+					eso, es posible encontrar uno de esos caminos en tiempo linear. Este
+					resultado y su demostración son fascinantes.
+				</p>
+
+				<p>
+					Pero no es fácil implementar rápidamente el algoritmo. El artículo no
+					lo describe a detalle; en cambio, está implicado en la forma en que se
+					demuestran los teoremas. Para probar que existe un camino Hamiltoniano
+					bajo ciertas condiciones, los autores usaron un argumento
+					constructivo. Eso significa que, si se sigue la lógica de los autores,
+					se termina con un ejemplo.
+				</p>
+
+				<p>
+					La idea fundamental de la demostración y, por lo tanto, del algoritmo,
+					es que se puede simplificar la tarea de encontrar un camino
+					Hamiltoniano hasta que se obtienen problemas que no se pueden
+					simplificar más. A los problemas que no se pueden simplificar más se
+					les dice
+					<i>primos</i>, y el número de estos problemas es finito.
+				</p>
+
+				<p>
+					Para generar problemas interesantes, se pueden tomar decisiones
+					aleatorias dentro del proceso de generación. Pero queríamos que los
+					resultados fueran predecibles. Dado que la implementación del
+					algoritmo es separada de <code>p5</code>, rápidamente se implementó un
+					<a href="https://en.wikipedia.org/wiki/Xorshift#xoshiro256++"
+						>algoritmo pequeño de generación de números pseudoaleatorios</a
+					>
+					al que se le pudiera dar una semilla constante. Implementar un
+					generador de números aleatorios a mano fue educativo y muy divertido.
+					Es algo sorprendente que salgan buenos resultados de una función tan
+					pequeña.
+				</p>
+
+				<p>
+					No alcanzamos a terminar la implementación del algoritmo a tiempo del
+					todo, pero
+					<a
+						href="https://tangled.org/dontwanttoth.ink/twists-and-turns/tree/implement"
+						>el trabajo en progreso se puede encontrar aquí</a
+					>. Por ahora, la biblioteca tiene su propio repositorio porque podría
+					ser útil por fuera de este proyecto.
+				</p>
+
 				<h4>Código muerto</h4>
 
 				<p>
 					Mientras se estaba desarrollando el juego, se implementaron funciones
 					y características que finalmente no fueron utilizadas en la versión
-					final. Por ejemplo, se creó la función <code>randomThemeColor()</code>
-					con la intención de usarla en un posible modo infinito que generaría
-					colores aleatorios para los caminos. Sin embargo, este modo nunca fue
-					implementado. También se definieron algunos colores dentro de
+					final. Por ejemplo, se definieron algunos colores dentro de
 					<code>themeColors</code>, como <code>purple</code>, que no aparecen en
 					ninguno de los niveles actuales. Además, quedaron estructuras y
 					comentarios preparados para futuras expansiones del sistema de niveles
@@ -244,18 +403,32 @@
 				<h4>Accesibilidad</h4>
 
 				<p>
-					El juego depende principalmente de elementos visuales y del uso del
-					mouse. Esto se debe a que la interfaz está dibujada manualmente sobre
-					un
-					<code>canvas</code>
-					usando <i>p5.js</i>, sin elementos semánticos del DOM.
+					El juego depende enteramente de elementos visuales y del uso del
+					mouse. Esto se debe, en parte, a que la interfaz está dibujada
+					manualmente sobre un <code>&lt;canvas&gt;</code> usando <i>p5.js</i>,
+					sin elementos semánticos del DOM.
+				</p>
+
+				<p>
+					Eso significa que las personas que prefieren una forma de interacción
+					diferente (como un lector de pantalla o el teclado) se ven obligadas a
+					usar el único método disponible. Si resulta imposible interactuar de
+					manera efectiva a través del mouse y la pantalla, no se puede jugar en
+					absoluto.
 				</p>
 
 				<p>
 					Aunque el código detecta si el usuario usa modo oscuro mediante la
 					función <code>isDark()</code>, la interfaz no adapta completamente sus
 					colores ni respeta otras preferencias de accesibilidad, como la
-					reducción de movimiento o el alto contraste.
+					reducción del movimiento, el alto contraste, o la diferenciación sin
+					color.
+				</p>
+
+				<p>
+					Mientras se verificaba el juego, un compañero daltónico expresó que le
+					costaba identificar algunas de las parejas de colores. Por eso, en el
+					juego final, cada pareja se denota con un número, además del color.
 				</p>
 
 				<p>
@@ -263,13 +436,14 @@
 					de pantalla y utiliza fuentes del sistema, lo que permite cierta
 					adaptación visual desde el navegador.
 				</p>
+
 				<h4>Jugabilidad</h4>
 
 				<p>
 					El juego resulta entretenido porque el jugador debe conectar
 					correctamente los puntos de colores sin dejar espacios vacíos en la
-					cuadrícula, esto dependiendodel nivel puede ser todo un reto. Además,
-					la inclusión de varios niveles con distintos tamaños permite que la
+					cuadrícula. Dependiendo del nivel, puede ser todo un reto. Además, la
+					inclusión de varios niveles con distintos tamaños permite que la
 					dificultad aumente progresivamente.
 				</p>
 
@@ -281,11 +455,35 @@
 				</p>
 
 				<p>
-					En el futuro, podrían agregarse características como temporizadores,
-					estadísticas, generación aleatoria de niveles o incluso un modo
-					infinito, idea para la cual ya existen algunas funciones preparadas
-					dentro del código.
+					En el futuro, podrían permitirse eliminar una agregarse
+					características como temporizadores, estadísticas, generación
+					aleatoria de niveles o incluso un modo infinito, idea para la cual ya
+					existen algunas funciones preparadas dentro del código.
 				</p>
+
+				<h4>Comunidad de código abierto</h4>
+
+				<p>
+					Encontramos
+					<a href="https://github.com/processing/p5.js/issues/8806"
+						>un bug en <code>p5</code> que podía producir excepciones al
+						intentar combinar colores</a
+					>. Leímos el código y determinamos la razón. Un
+					<a href="https://github.com/processing/p5.js/pull/8807"
+						>borrador de una solicitud de fusión para arreglar el problema</a
+					>
+					se presentó en el repositorio.
+				</p>
+
+				<p>
+					Durante el proyecto anterior, notamos errores incorrectos en la
+					consola.
+					<a href="https://github.com/processing/p5.js/pull/8522"
+						>Se contribuyó un cambio diminuto para evitar mensajes de error
+						incorrectos generados por un análisis estático</a
+					>. Ese cambio fue incluido en la versión 2.2.2.
+				</p>
+
 				<h3>Uso de modelos de lenguaje</h3>
 
 				<p>
@@ -352,40 +550,24 @@
 				<h5>Herramientas usadas</h5>
 
 				<ul class="preserve-case">
-					<li>
-						sugerencias predictivas en <a href="https://zed.dev">Zed</a> usando
-						el modelo
-						<a href="https://www.inceptionlabs.ai/models"
-							>Mercury Coder de Inception Labs</a
-						>
-					</li>
+					<li>Asistente de <a href="https://kagi.com">Kagi</a></li>
 					<li>Claude Sonnet 4.6</li>
 				</ul>
 
 				<h5>Razón por la que se usó</h5>
 
 				<p>
-					Brevemente usé sugerencias predictivas dentro de mi editor. Las
-					sugerencias fueron líneas triviales de código que se ajustaban a la
-					idea de lo que estaba escribiendo. Activé esta función porque tenía
-					curiosidad por los modelos de difusión de Inception Labs. Poco tiempo
-					después, lo desactivé porque sentí que me distraía más de lo que me
-					ayudaba.
-				</p>
-
-				<p>
-					Usé el chat web de Claude para hacer preguntas abiertas sobre APIs Web
-					y de JavaScript. También lo usé para aclarar dudas relacionadas con
-					sistema de tipos de TypeScript.
+					Usé el chat web de Claude y el asistente de Kagi para hacer preguntas
+					abiertas sobre APIs Web y de JavaScript. También lo usé para aclarar
+					dudas relacionadas con sistema de tipos de TypeScript, y sobre teoría
+					de grafos.
 				</p>
 
 				<h5>Alcance</h5>
 
 				<p>
-					Mínimo. Usé a Claude para responder preguntas generales, que no
-					estaban directamente relacionadas con código. Usé las sugerencias
-					predictivas por un tiempo limitado, y solo acepté sugerencias
-					triviales.
+					Mínimo. Usé estas herramientas para responder preguntas generales que
+					no estaban directamente relacionadas con código.
 				</p>
 
 				<h5>Validación</h5>
@@ -482,6 +664,26 @@
 						[Documentación].
 					</li>
 					<li>
+						Contribuidores de Wikipedia. (2026).
+						<cite
+							><a href="https://en.wikipedia.org/wiki/Hamiltonian_path_problem"
+								>Hamiltonian path problem</a
+							></cite
+						>
+						[Enciclopedia].
+					</li>
+					<li>
+						Itai, A. et al. (1982).
+						<cite
+							><a
+								href="https://epubs.siam.org/doi/abs/10.1137/0211056?cookieSet=1"
+								>Hamilton paths in grid graphs</a
+							>
+							(doi:10.1137/0211056)</cite
+						>
+						[Artículo científico].
+					</li>
+					<li>
 						Contribuidores de p5.js. (2026).
 						<cite
 							><a href="https://beta.p5js.org/reference/"
@@ -491,28 +693,30 @@
 						[Documentación].
 					</li>
 					<li>
-						C. G., Héctor. (marzo, 2021).
-						<cite
-							><a
-								href="https://hektorprofe.github.io/academia/javascript/biblioteca-p5js/"
-								>Introducción a la biblioteca p5.js</a
-							></cite
-						>
-						[Guía]
-					</li>
-					<li>
-						Contribuidores de Rolldown. (enero, 2026).
+						user1201210. (2012).
 						<cite>
-							<a href="https://rolldown.rs/reference/OutputOptions.postBanner"
-								>postBanner</a
+							<a href="https://stackoverflow.com/a/12926928"
+								>What to use for flow free-like game random level creation?</a
 							>
 						</cite>
-						[Documentación].
+						[Foro].
 					</li>
 					<li>
-						Contribuidores de Vite. (marzo, 2026).
-						<cite> <a href="https://vite.dev/guide/api-hmr">HMR API</a> </cite>
-						[Documentación].
+						Contribuidores de Wikipedia. (2026).
+						<cite
+							><a href="https://en.wikipedia.org/wiki/Xorshift#xoshiro256++"
+								>Xorshift (xoshiro256++)</a
+							></cite
+						>
+						[Enciclopedia.]
+					</li>
+					<li>
+						Contribuidores de Wikipedia. (2026)
+						<cite
+							><a href="https://en.wikipedia.org/wiki/NP-completeness"
+								>NP-completeness</a
+							></cite
+						>
 					</li>
 				</ul>
 			</article>
