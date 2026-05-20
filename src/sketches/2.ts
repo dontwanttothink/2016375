@@ -1828,7 +1828,7 @@ class WelcomePage extends Page {
 
 	mouseClicked(p: p5) {
 		if (this.handMadeLevelsButton.intersectsWith(p.mouseX, p.mouseY)) {
-			this.navigator.switchPage(p, GameP	age, {
+			this.navigator.switchPage(p, GamePage, {
 				level: levels[0],
 				index: 0,
 				isProcedural: false,
