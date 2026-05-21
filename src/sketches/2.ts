@@ -935,6 +935,11 @@ class Game {
 	 * Dado que las matrices del juego son muy pequeñas, esta representación de
 	 * una matriz dispersa no ofrece beneficios de rendimiento. Sin embargo, es
 	 * quizá un poco más cómoda de usar.
+	 *
+	 * Nótese que cada instancia de un arreglo se considera un objeto diferente,
+	 * incluso si tiene los mismos elementos. Es posible que haya más de un
+	 * elemento correspondiente a una misma pareja de coordenadas. (Esto no pasa
+	 * realmente en la práctica, pero creo que no sería un problema.)
 	 */
 	#phantoms: Map<[number, number], Cell> = new Map();
 
