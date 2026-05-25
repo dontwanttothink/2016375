@@ -1,41 +1,24 @@
 import p5 from "p5";
-import targetDimensions from "../dimensions";
+import { Navigator, Page } from "../pages";
 
-// Estado
-// (nada)
+class WelcomePage extends Page {
+	setup(p: p5) {
+		p.noStroke();
+		p.fill("rebeccapurple");
+	}
 
-// Configuración del lienzo
-function setup(p: p5) {
-	const [width, height] = targetDimensions();
-	p.createCanvas(width, height);
-}
-function windowResized(p: p5) {
-	const [width, height] = targetDimensions();
-	p.resizeCanvas(width, height);
-}
-
-// Dibujo (cada fotograma)
-function draw(p: p5) {
-	p.background(200);
-	p.fill(20);
-	p.ellipse(p.width / 2, p.height / 2, 100, 100);
-
-	handleInput(p);
+	draw(p: p5) {
+		p.clear();
+		p.circle(p.width / 2, p.height / 2, 200);
+	}
 }
 
-// Responder a las entradas
-function handleInput(_: p5) {}
+const navigator = new Navigator(WelcomePage, []);
 
-// Inicializar el bosquejo p5
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
 	throw new Error();
 }
 
-new p5((p) => {
-	p.setup = () => setup(p);
-	p.draw = () => draw(p);
-	p.windowResized = () => windowResized(p);
-}, canvasParent);
-
-
+new p5(navigator.sketch, canvasParent);
+p5.disableFriendlyErrors = true; // falsos positivos
