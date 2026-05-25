@@ -1,8 +1,14 @@
 # 2016375
 
-## Proyecto 1
+## Proyectos
+
+### Proyecto 1
 
 Un juego de memoria.
+
+### Proyecto 2
+
+Un juego como _[numberlink](https://en.wikipedia.org/wiki/Numberlink)_.
 
 ## Uso de modelos de lenguaje
 
