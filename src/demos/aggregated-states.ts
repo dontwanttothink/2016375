@@ -14,7 +14,7 @@ const ROWS = 6;
 let game: Quadrille;
 let ganó = false; // usado solo por economía
 
-let últimaInteracción: number = -Infinity; // usado para las animaciones
+let últimaInteracción = -Infinity; // usado para las animaciones
 
 // Configuración del lienzo
 function setup(p: p5) {
@@ -103,7 +103,7 @@ class Ficha {
 	esRoja: boolean;
 	p: p5;
 
-	#velocity: number = 10;
+	#velocity = 10;
 	#delta: number | null = null;
 
 	constructor(roja: boolean, p: p5) {
