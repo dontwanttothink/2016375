@@ -7,6 +7,7 @@
 		<link rel="icon" href="/favicon.png" type="image/png">
 		<title>Proyecto 3: Informe</title>
 	</head>
+
 	<body>
 		<main>
 			<h1>Proyecto 3</h1>
@@ -18,8 +19,122 @@
 					resultados (incluyendo sus limitaciones) y los materiales
 					referenciados.
 				</p>
-				<h3>Objetivos</h3>
-				<p>Quisimos implementar ???.</p>
+				<h2>Logica del juego</h2>
+				<h3>Partida:</h3>
+				<h4>Requisitos</h4>
+				<ul>
+					<li>Tablero</li>
+					<li>Personajes jugador</li>
+					<li>Personajes del bot</li>
+					<li>Dificultad</li>
+
+					<li>
+						Comienzan todos los personajes del jugador en la primera columna y
+						los personajes del bot en la ultima columna de la matriz
+					</li>
+					<li>
+						Se acaba la partida si todos los personajes de un equipo pierden
+						toda su vida
+					</li>
+					<li>
+						Si el jugador pierde se despliega otra pagina con el "perdiste",
+						boton para volver a intentar
+					</li>
+					<li>
+						Si el jugador gana todos los personaje de este avanzan a la
+						siguiente sala, se busca el camino mas corto para ir a la salida, el
+						personaje principal ira primero y lo seguiran los demas a medida de
+						que el este mas adelante que ellos, avanzara para la salida, casilla
+						por casilla
+					</li>
+					<li>
+						La vida de los personajes se regenerara completamente al pasar de
+						nivel
+					</li>
+					<li>
+						A medida que avanzamos en los niveles, se aumenta la cantidad de
+						personajes de ambos equipos, la energia dada para cada
+						nivel(dependiendo de la matriz) y se mejora el algoritmo del bot
+					</li>
+				</ul>
+
+				<h3>Tablero:</h3>
+				<ul>
+					<li>Depende de una matriz</li>
+					<li>
+						Los primeros se haran a mano, a medida que se avanze de nivel se ira
+						aumentando la matriz del tablero
+					</li>
+					<li>Algunos niveles tendran obstaculos</li>
+					<li>
+						Se ira cambiando de aspecto los niveles con el fin de seguir la
+						historia base del juego
+					</li>
+					<li>Esta se divide en casillas visibles para el jugador</li>
+				</ul>
+
+				<h3>Personaje:</h3>
+				<h4>Stats:</h4>
+				<ul>
+					<li>Vida base : int</li>
+					<li>Daño base : int</li>
+					<li>Enfriamento de la habilidad : int</li>
+					<li>rango : int</li>
+				</ul>
+				<h4>Interaccion</h4>
+				<ul>
+					<li>
+						Al dar click en el personaje se despliegara un menu con las 4
+						acciones de cada personaje, al volver a darle click se retrae este
+						menu (se necesita para esto columna y fila, para ubicar el menu)
+					</li>
+					<li>Cada personaje tendra sus propias animaciones y aspecto</li>
+					<li>Se mostrara la barra de vida de cada personaje</li>
+				</ul>
+				<h3>Acciones:</h3>
+				<h4>Atacar:</h4>
+				<ul>
+					<li>
+						gasta energia, tiene un daño que puede ser boosteado por abilidades
+						futuras
+					</li>
+					<li>tiene un rango medido por casillas (Se necesita un enemigo )</li>
+				</ul>
+				<h4>Mover:</h4>
+				<ul>
+					<p>
+						gasta energia dependiendo de cuantas casillas se mueva (se necesita
+						la columna y fila de destino)
+					</p>
+				</ul>
+
+				<h4>Bloquear:</h4>
+				<ul>
+					<p>gasta energia, no recibe el daño del siguiente ataque</p>
+				</ul>
+				<h4>Abilidad unica:</h4>
+				<ul>
+					<li>Gasta toda la energia del personaje</li>
+					<li>
+						se puede utilizar despues ciertos turnos(depende del personaje)
+					</li>
+					<li>
+						esta tambien tiene un rango dependiendo del personaje (Se necesita
+						un enemigo)
+					</li>
+				</ul>
+				<h3>Turnos:</h3>
+				<ul>
+					<li>Comenzara el jugador, seguido por el bot y asi sucesivamente</li>
+					<li>
+						Cada jugador tiene un max de energia que se llenara por cada turno,
+						con esta se realizaran todas las acciones
+					</li>
+					<li>
+						El turno se acaba si el jugador lo desea o si el jugador se queda
+						sin energia
+					</li>
+				</ul>
 			</article>
 		</main>
 	</body>
