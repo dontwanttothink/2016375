@@ -328,10 +328,17 @@ function draw(p: p5) {
 }
 
 function updateCursor(p: p5) {
+	const currentCoords: [number, number] = [
+		quadrille.mouseRow,
+		quadrille.mouseCol,
+	];
+	const currentCell = quadrille.read(...currentCoords);
+
 	if (
-		state.phase === Phase.Waiting &&
-		quadrille.read(quadrille.mouseRow, quadrille.mouseCol) instanceof
-			Protagonist
+		(state.phase === Phase.Waiting && currentCell === protagonist) ||
+		(state.phase === Phase.Selected &&
+			(!(currentCell instanceof Warrior) ||
+				protagonist.canReach(currentCoords)))
 	) {
 		p.cursor(p.HAND);
 	} else {
