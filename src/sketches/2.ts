@@ -750,7 +750,7 @@ class Grid {
 		p: p5,
 		container: Rectangle,
 		paths: Map<[number, number], Path>,
-		phantoms: Map<[number, number], Cell>,
+		phantoms: Set<[[number, number], Cell]>,
 	) {
 		p.push();
 		const { cellLength, originX, originY } = this.properties(container);
@@ -792,7 +792,7 @@ class Grid {
 			}
 		}
 
-		for (const [phantom, phantomCell] of phantoms.entries()) {
+		for (const [phantom, phantomCell] of phantoms.values()) {
 			const cellY = originY + cellLength * (phantom[0] + 0.5);
 			const cellX = originX + cellLength * (phantom[1] + 0.5);
 
@@ -941,7 +941,7 @@ class Game {
 	 * elemento correspondiente a una misma pareja de coordenadas. (Esto no pasa
 	 * realmente en la práctica, pero creo que no sería un problema.)
 	 */
-	#phantoms: Map<[number, number], Cell> = new Map();
+	#phantoms: Set<[[number, number], Cell]> = new Set();
 
 	/**
 	 * Indica si hay cambios sin guardar.
@@ -1183,10 +1183,10 @@ class Game {
 					const newCell = grid.get(i, j);
 					const currentCell = currentGrid.get(i, j);
 					if (newCell === null && currentCell !== null) {
-						this.#phantoms.set(
+						this.#phantoms.add([
 							[i, j],
 							currentCell.asAnimating().asDisappearing(),
-						);
+						]);
 					}
 					if (newCell !== null && currentCell === null) {
 						newGrid.set(i, j, newCell.asAnimating());
@@ -1267,7 +1267,8 @@ class Game {
 			}
 		}
 
-		for (const [phantom, phantomCell] of this.#phantoms.entries()) {
+		for (const phantom of this.#phantoms.values()) {
+			const phantomCell = phantom[1];
 			if (phantomCell.isStale) {
 				this.#phantoms.delete(phantom);
 			}
