@@ -179,19 +179,30 @@ class Pingüino extends Warrior {
 }
 
 class Projectile {
+	p: p5;
+
 	emoji: string;
 	origin: [number, number];
 	target: [number, number];
 
+	#created: number = currentTime();
+
+	get #progress() {}
+
 	constructor(
+		p: p5,
 		emoji: string,
 		origin: [number, number],
 		target: [number, number],
 	) {
+		this.p = p;
+
 		this.emoji = emoji;
 		this.target = target;
 		this.origin = origin;
 	}
+
+	display() {}
 }
 
 const ROWS = 6;
