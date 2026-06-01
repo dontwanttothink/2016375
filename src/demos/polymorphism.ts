@@ -8,9 +8,7 @@ import targetDimensions from "../dimensions";
  * @param x Un número en el intervalo [0, 1].
  * @returns Un número dentro del mismo intervalo.
  */
-function ease(x: number) {
-	return Math.sin(x * (Math.PI / 2));
-}
+const ease = (x: number) => 1 - (1 - x) ** 5;
 
 const currentTime = () => Number(document.timeline.currentTime);
 const isDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -27,25 +25,35 @@ class Cell {
 }
 
 class HighlightCell extends Cell {
-	highlightingSince: null | number = null;
+	isHighlighting = false;
+	#changedAt = -Infinity;
 
 	display() {
+		const ANIMATION_DURATION = 300;
 		const cl = cellLength(this.p);
 
-		if (this.highlightingSince !== null) {
-			const ANIMATION_DURATION = 300;
-
-			this.p.push();
-			this.p.fill(
-				`rgba(251, 62, 78, ${0.1 * Math.min(1, (currentTime() - this.highlightingSince) / ANIMATION_DURATION)})`,
-			);
-			this.p.square(0, 0, cl);
-			this.p.pop();
+		const rawProgress = (currentTime() - this.#changedAt) / ANIMATION_DURATION;
+		let progress: number;
+		if (this.isHighlighting) {
+			progress = Math.min(1, rawProgress);
+		} else {
+			progress = Math.max(0, 1 - rawProgress);
 		}
+
+		this.p.push();
+		this.p.fill(`rgba(251, 62, 78, ${0.1 * progress})`);
+		this.p.square(0, 0, cl);
+		this.p.pop();
 	}
 
 	highlight() {
-		this.highlightingSince = currentTime();
+		this.#changedAt = currentTime();
+		this.isHighlighting = true;
+	}
+
+	stopHighlighting() {
+		this.#changedAt = currentTime();
+		this.isHighlighting = false;
 	}
 }
 
@@ -72,10 +80,11 @@ class Warrior extends Cell {
 		const ANIMATION_DURATION = 500;
 
 		const progress =
-			ease(
-				1 -
+			(1 -
+				ease(
 					Math.min(1, (currentTime() - this.#movingSince) / ANIMATION_DURATION),
-			) * cl;
+				)) *
+			cl;
 
 		return [this.#initialDelta[0] * progress, this.#initialDelta[1] * progress];
 	}
@@ -93,14 +102,19 @@ class Warrior extends Cell {
 		this.p.stroke(c);
 		this.p.strokeWeight(WEIGHT);
 
-		const cl = cellLength(this.p);
-		this.p.line(MARGIN, cl - MARGIN, (cl - MARGIN) * portion, cl - MARGIN);
-
 		this.p.translate(this.delta[1], this.delta[0]);
+
+		const cl = cellLength(this.p);
+		this.p.line(
+			2 * MARGIN,
+			cl - MARGIN,
+			(cl - 2 * MARGIN) * portion,
+			cl - MARGIN,
+		);
 	}
 
-	canReach(from: [number, number], cell: [number, number]): boolean {
-		return from[0] === cell[0] || from[1] === cell[1];
+	canReach(cell: [number, number]): boolean {
+		return this.location[0] === cell[0] || this.location[1] === cell[1];
 	}
 
 	move(to: [number, number]) {
@@ -161,6 +175,22 @@ class Pingüino extends Warrior {
 		this.p.textAlign(this.p.CENTER, this.p.CENTER);
 		this.p.textSize(cl * 0.6);
 		this.p.text("🐧", cl / 2, cl / 2);
+	}
+}
+
+class Projectile {
+	emoji: string;
+	origin: [number, number];
+	target: [number, number];
+
+	constructor(
+		emoji: string,
+		origin: [number, number],
+		target: [number, number],
+	) {
+		this.emoji = emoji;
+		this.target = target;
+		this.origin = origin;
 	}
 }
 
@@ -248,16 +278,26 @@ function mouseClicked(p: p5) {
 	if (state.phase === Phase.Waiting && currentCell instanceof Protagonist) {
 		state.phase = Phase.Selected;
 		highlightQuadrille.visit(
-			({ value: cell }: { value: Cell }) => cell.highlight(),
+			({ value: cell }: { value: HighlightCell }) => cell.highlight(),
 			({ row, col }: { row: number; col: number; value: Cell }) =>
-				currentCell.canReach(currentCoords, [row, col]),
+				currentCell.canReach([row, col]),
 		);
+		return;
 	}
 
 	if (state.phase === Phase.Selected) {
-		if (!(currentCell instanceof Protagonist)) {
+		if (currentCell instanceof Warrior) {
+			if (currentCell.canReach(currentCoords)) {
+				state.phase = Phase.Attacking;
+			}
+		} else {
 			protagonist.move(currentCoords);
+			state.phase = Phase.Waiting;
 		}
+
+		highlightQuadrille.visit(({ value: cell }: { value: HighlightCell }) => {
+			if (cell.isHighlighting) cell.stopHighlighting();
+		});
 	}
 }
 
@@ -268,6 +308,13 @@ function draw(p: p5) {
 	const cl = cellLength(p);
 	const ancho = cl * COLS;
 	const alto = cl * ROWS;
+
+	p.drawQuadrille(highlightQuadrille, {
+		outlineWeight: 0,
+		cellLength: cl,
+		x: p.width / 2 - ancho / 2,
+		y: p.height / 2 - alto / 2,
+	});
 
 	// Dibujar la cuadrícula en el centro.
 	p.drawQuadrille(quadrille, {
