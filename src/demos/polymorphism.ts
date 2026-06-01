@@ -4,7 +4,7 @@ import Quadrille from "p5.quadrille";
 import targetDimensions from "../dimensions";
 
 /**
- * Una función que acelera y decelera naturalmente.
+ * Una función que decelera naturalmente.
  * @param x Un número en el intervalo [0, 1].
  * @returns Un número dentro del mismo intervalo.
  */
