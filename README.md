@@ -21,3 +21,7 @@ Incluye una utilidad para convertir PNGs pequeños en arreglos de JSON.
 ## Uso de modelos de lenguaje
 
 Algunos de nosotros usamos modelos de lenguaje para ayudarnos a entender el código de nuestros compañeros, para obtener inspiración o ideas para el juego y su implementación, y para aclarar dudas sobre APIs web o de JavaScript.
+
+## Derechos de autor
+
+El código original en este repositorio está disponible bajo la _Unlicense_ o la _GPL-3.0_, a elección.
