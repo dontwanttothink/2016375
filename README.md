@@ -10,9 +10,13 @@ Un juego de memoria.
 
 Un juego como _[numberlink](https://en.wikipedia.org/wiki/Numberlink)_.
 
+Incluye un [generador de niveles automático](https://tangled.org/dontwanttoth.ink/twists-and-turns) sin terminar.
+
 ### Proyecto 3
 
-Un dungeon crawler, como Zelda.
+Un _dungeon crawler_, como _Zelda_.
+
+Incluye una utilidad para convertir PNGs pequeños en arreglos de JSON.
 
 ## Uso de modelos de lenguaje
 
