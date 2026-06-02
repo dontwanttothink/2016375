@@ -3,6 +3,10 @@ import "p5.quadrille";
 import Quadrille from "p5.quadrille";
 import targetDimensions from "../dimensions";
 
+const ROWS = 6;
+const COLS = 6;
+const GRID_MARGIN = 100;
+
 /**
  * Una función que decelera naturalmente.
  * @param x Un número en el intervalo [0, 1].
@@ -12,7 +16,23 @@ const ease = (x: number) => 1 - (1 - x) ** 5;
 
 const currentTime = () => Number(document.timeline.currentTime);
 const isDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
-const cellLength = (p: p5) => Math.min(p.height / ROWS, p.width / COLS) - 3;
+const cellLength = (p: p5) =>
+	Math.min((p.height - GRID_MARGIN) / ROWS, (p.width - GRID_MARGIN) / COLS);
+
+function gridProperties(p: p5) {
+	const cl = cellLength(p);
+	const ancho = cl * COLS;
+	const alto = cl * ROWS;
+	const x = p.width / 2 - ancho / 2;
+	const y = p.height / 2 - alto / 2;
+
+	return { ancho, alto, x, y, cellLength: cl };
+}
+
+function toScreen(p: p5, cell: [number, number]): [number, number] {
+	const { cellLength: cl, x, y } = gridProperties(p);
+	return [x + (cell[1] + 0.5) * cl, y + (cell[0] + 0.5) * cl];
+}
 
 class Cell {
 	p: p5;
@@ -77,7 +97,7 @@ class Warrior extends Cell {
 		}
 
 		const cl = cellLength(this.p);
-		const ANIMATION_DURATION = 500;
+		const ANIMATION_DURATION = 450;
 
 		const progress =
 			(1 -
@@ -114,7 +134,10 @@ class Warrior extends Cell {
 	}
 
 	canReach(cell: [number, number]): boolean {
-		return this.location[0] === cell[0] || this.location[1] === cell[1];
+		return (
+			(this.location[0] === cell[0] || this.location[1] === cell[1]) &&
+			(this.location[0] !== cell[0] || this.location[1] !== cell[1])
+		);
 	}
 
 	move(to: [number, number]) {
@@ -137,9 +160,10 @@ class Protagonist extends Warrior {
 
 		const cl = cellLength(this.p);
 		this.p.noStroke();
-		isDark() ? this.p.fill("#172133") : this.p.fill("lightblue");
+		isDark() ? this.p.fill("#2e426754") : this.p.fill("lightblue");
 		this.p.circle(cl / 2, cl / 2, cl * 0.6);
 
+		this.p.fill(0);
 		this.p.textAlign(this.p.CENTER, this.p.CENTER);
 		this.p.textSize(cl * 0.7);
 		this.p.text("🥷", cl / 2, cl / 2);
@@ -180,38 +204,136 @@ class Pingüino extends Warrior {
 
 class Projectile {
 	p: p5;
+	quadrille: Quadrille;
+
+	damage = 10;
 
 	emoji: string;
 	origin: [number, number];
 	target: [number, number];
 
+	#seenCells: [number, number][] = [];
+
 	#created: number = currentTime();
 
-	get #progress() {}
+	get #progress() {
+		const SPEED = 0.0155;
+
+		const displacement = [
+			this.target[0] - this.origin[0],
+			this.target[1] - this.origin[1],
+		];
+		const length = Math.sqrt(displacement[0] ** 2 + displacement[1] ** 2);
+
+		return (SPEED * (currentTime() - this.#created)) ** (1 / 1.1) / length;
+	}
+
+	get location(): [number, number] {
+		return [
+			this.origin[0] + (this.target[0] - this.origin[0]) * this.#progress,
+			this.origin[1] + (this.target[1] - this.origin[1]) * this.#progress,
+		];
+	}
+
+	get opacity(): number {
+		const currentScreenPosition = toScreen(this.p, this.location);
+		const distancesFromEdges = [
+			0 - currentScreenPosition[0],
+			0 - currentScreenPosition[1],
+			currentScreenPosition[0] - this.p.width,
+			currentScreenPosition[1] - this.p.height,
+		];
+		return (
+			255 -
+			Math.max(0, ...distancesFromEdges.map((d) => d + GRID_MARGIN)) *
+				(255 / GRID_MARGIN)
+		);
+	}
 
 	constructor(
 		p: p5,
+		quadrille: Quadrille,
+
 		emoji: string,
 		origin: [number, number],
 		target: [number, number],
 	) {
 		this.p = p;
+		this.quadrille = quadrille;
 
 		this.emoji = emoji;
 		this.target = target;
 		this.origin = origin;
 	}
 
-	display() {}
-}
+	display() {
+		const currentScreenPosition = toScreen(this.p, this.location);
 
-const ROWS = 6;
-const COLS = 6;
+		const size = cellLength(this.p) * 0.5;
+
+		this.p.fill(0, this.opacity);
+		this.p.textSize(size);
+		this.p.textAlign(this.p.CENTER, this.p.CENTER);
+		this.p.text(this.emoji, ...currentScreenPosition);
+	}
+
+	checkCollision() {
+		const flooredLocation: [number, number] = [
+			Math.floor(this.location[0]),
+			Math.floor(this.location[1]),
+		];
+
+		if (
+			flooredLocation[0] === this.origin[0] &&
+			flooredLocation[1] === this.origin[1]
+		) {
+			return;
+		}
+
+		if (
+			this.#seenCells.some(
+				([x, y]) => x === flooredLocation[0] && y === flooredLocation[1],
+			)
+		) {
+			return;
+		}
+
+		const cell = quadrille.read(...flooredLocation);
+
+		if (!cell) {
+			return;
+		}
+
+		if (cell instanceof Warrior) {
+			cell.health -= this.damage;
+		}
+
+		this.#seenCells.push(flooredLocation);
+	}
+}
 
 let highlightQuadrille: Quadrille;
 
 let quadrille: Quadrille;
 let protagonist: Protagonist;
+
+const projectiles: Set<Projectile> = new Set();
+
+function setup(p: p5) {
+	p.createCanvas(...targetDimensions());
+
+	// esto se puede limpiar
+	quadrille = p.createQuadrille(ROWS, COLS);
+	quadrille.memory2D = initialState(ROWS, COLS, p);
+
+	highlightQuadrille = p.createQuadrille(ROWS, COLS);
+	highlightQuadrille.replace(
+		null,
+		Quadrille.factory(() => {
+			return new HighlightCell(highlightQuadrille, p);
+		}),
+	);
+}
 
 function initialState(rows: number, cols: number, p: p5) {
 	const r = (n: number) => Math.floor(Math.random() * n);
@@ -241,22 +363,6 @@ function initialState(rows: number, cols: number, p: p5) {
 	matrix[pRow][pCol] = protagonist;
 
 	return matrix;
-}
-
-function setup(p: p5) {
-	p.createCanvas(...targetDimensions());
-
-	// esto se puede limpiar
-	quadrille = p.createQuadrille(ROWS, COLS);
-	quadrille.memory2D = initialState(ROWS, COLS, p);
-
-	highlightQuadrille = p.createQuadrille(ROWS, COLS);
-	highlightQuadrille.replace(
-		null,
-		Quadrille.factory(() => {
-			return new HighlightCell(highlightQuadrille, p);
-		}),
-	);
 }
 
 function windowResized(p: p5) {
@@ -297,18 +403,23 @@ function mouseClicked(p: p5) {
 	}
 
 	if (state.phase === Phase.Selected) {
-		if (currentCell instanceof Warrior) {
-			if (currentCell.canReach(currentCoords)) {
-				state.phase = Phase.Attacking;
-			}
-		} else {
+		if (currentCell instanceof Warrior && protagonist.canReach(currentCoords)) {
+			projectiles.add(
+				new Projectile(p, quadrille, "🪩", protagonist.location, currentCoords),
+			);
+			state.phase = Phase.Attacking;
+		} else if (!(currentCell instanceof Warrior)) {
 			protagonist.move(currentCoords);
 			state.phase = Phase.Waiting;
+		} else {
+			return;
 		}
 
 		highlightQuadrille.visit(({ value: cell }: { value: HighlightCell }) => {
 			if (cell.isHighlighting) cell.stopHighlighting();
 		});
+
+		return;
 	}
 }
 
@@ -316,27 +427,51 @@ function draw(p: p5) {
 	p.clear();
 
 	// Calcular el tamaño que queremos dar a la cuadrícula.
-	const cl = cellLength(p);
-	const ancho = cl * COLS;
-	const alto = cl * ROWS;
+	const { cellLength: cl, x, y } = gridProperties(p);
 
+	// Dibujar los fondos rojos
 	p.drawQuadrille(highlightQuadrille, {
 		outlineWeight: 0,
 		cellLength: cl,
-		x: p.width / 2 - ancho / 2,
-		y: p.height / 2 - alto / 2,
+		x,
+		y,
 	});
 
 	// Dibujar la cuadrícula en el centro.
 	p.drawQuadrille(quadrille, {
-		outline: p.color(200),
+		outlineWeight: 1.05,
+		outline: isDark() ? p.color(60) : p.color(200),
 		cellLength: cl,
-		x: p.width / 2 - ancho / 2,
-		y: p.height / 2 - alto / 2,
+		x,
+		y,
 	});
+
+	// Dibujar proyectiles
+	for (const projectile of projectiles) {
+		p.push();
+		projectile.display();
+		projectile.checkCollision();
+
+		if (projectile.opacity === 0) {
+			projectiles.delete(projectile);
+		}
+
+		p.pop();
+	}
+
+	if (state.phase === Phase.Attacking && projectiles.size === 0) {
+		state.phase = Phase.Responding;
+		state.since = currentTime();
+	}
+
+	if (state.phase === Phase.Responding) {
+		respondToAttack();
+	}
 
 	updateCursor(p);
 }
+
+function respondToAttack() {}
 
 function updateCursor(p: p5) {
 	const currentCoords: [number, number] = [
