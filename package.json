@@ -19,6 +19,7 @@
 	},
 	"dependencies": {
 		"p5": "^2.2.3",
-		"p5.quadrille": "^3.4.13"
+		"p5.quadrille": "^3.4.13",
+		"tuplerone": "^3.3.3"
 	}
 }
