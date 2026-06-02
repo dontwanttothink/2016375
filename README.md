@@ -10,6 +10,10 @@ Un juego de memoria.
 
 Un juego como _[numberlink](https://en.wikipedia.org/wiki/Numberlink)_.
 
+### Proyecto 3
+
+Un dungeon crawler, como Zelda.
+
 ## Uso de modelos de lenguaje
 
 Algunos de nosotros usamos modelos de lenguaje para ayudarnos a entender el código de nuestros compañeros, para obtener inspiración o ideas para el juego y su implementación, y para aclarar dudas sobre APIs web o de JavaScript.
