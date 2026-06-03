@@ -460,7 +460,8 @@ function draw(p: p5) {
 	}
 
 	if (state.phase === Phase.Attacking && projectiles.size === 0) {
-		state.phase = Phase.Responding;
+		// state.phase = Phase.Responding;
+		state.phase = Phase.Waiting;
 		state.since = currentTime();
 	}
 
