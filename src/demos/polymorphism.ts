@@ -504,8 +504,6 @@ function draw(p: p5) {
 		p.pop();
 	}
 
-	p.text(projectiles.size, 10, 10);
-
 	if (state.phase === Phase.Attacking && projectiles.size === 0) {
 		// state.phase = Phase.Responding;
 		state.phase = Phase.Waiting;
