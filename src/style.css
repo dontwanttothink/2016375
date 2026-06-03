@@ -14,7 +14,7 @@
 
 a {
 	--base-color: light-dark(#2c96bc, #7ebbe9);
-	--base-visited-color: oklch(from var(--base-color) l c calc(h + 20));
+	--base-visited-color: oklch(from var(--base-color) l c calc(h + 50));
 	font-weight: 500;
 	color: var(--base-color);
 	text-decoration: underline;
