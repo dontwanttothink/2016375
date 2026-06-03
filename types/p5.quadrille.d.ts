@@ -5,6 +5,7 @@ declare module "./p5.quadrille" {
 	interface p5 {
 		createQuadrille(cols: number, rows: number): Quadrille;
 		createQuadrille(matrix: unknown[]): Quadrille;
+		createQuadrille(width: number, array: unknown[]): Quadrille;
 		createQuadrille(): Quadrille;
 		drawQuadrille(
 			quadrille: Quadrille,
