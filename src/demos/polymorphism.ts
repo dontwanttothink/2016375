@@ -78,8 +78,22 @@ class HighlightCell extends Cell {
 }
 
 class Warrior extends Cell {
-	max_health = 30;
-	health = this.max_health;
+	maxHealth = 30;
+	#damage = 0;
+
+	isDefeatedSince: number | null = null;
+
+	get health() {
+		return this.maxHealth - this.#damage;
+	}
+	set health(val: number) {
+		this.#damage = Math.max(0, Math.min(this.maxHealth, this.maxHealth - val));
+		console.log(this.#damage, this.maxHealth);
+
+		if (this.health === 0) {
+			this.disappear();
+		}
+	}
 
 	location: [number, number];
 
@@ -113,7 +127,7 @@ class Warrior extends Cell {
 		const WEIGHT = 5;
 		const MARGIN = 10;
 
-		const portion = this.health / this.max_health;
+		const portion = this.health / this.maxHealth;
 		const c = this.p.lerpColor(
 			this.p.color("red"),
 			this.p.color("limegreen"),
@@ -125,12 +139,15 @@ class Warrior extends Cell {
 		this.p.translate(this.delta[1], this.delta[0]);
 
 		const cl = cellLength(this.p);
-		this.p.line(
-			2 * MARGIN,
-			cl - MARGIN,
-			(cl - 2 * MARGIN) * portion,
-			cl - MARGIN,
-		);
+
+		if (this.health !== 0) {
+			this.p.line(
+				2 * MARGIN,
+				cl - MARGIN,
+				2 * MARGIN + (cl - 4 * MARGIN) * portion,
+				cl - MARGIN,
+			);
+		}
 	}
 
 	canReach(cell: [number, number]): boolean {
@@ -149,11 +166,15 @@ class Warrior extends Cell {
 
 		this.location = to;
 	}
+
+	disappear() {
+		this.isDefeatedSince = currentTime();
+		this.quadrille.fill(...this.location, new Cell(this.quadrille, this.p));
+	}
 }
 
 class Protagonist extends Warrior {
-	max_health = 50;
-	health = this.max_health;
+	maxHealth = 50;
 
 	display() {
 		super.display();
@@ -173,6 +194,12 @@ class Andrés extends Warrior {
 	display() {
 		super.display();
 
+		if (this.isDefeatedSince !== null) {
+			const ANIMATION_DURATION = 600;
+			const t = (currentTime() - this.isDefeatedSince) / ANIMATION_DURATION;
+			this.p.fill(0, 255 * (1 - t));
+		}
+
 		const cl = cellLength(this.p);
 		this.p.textAlign(this.p.CENTER, this.p.CENTER);
 		this.p.textSize(cl * 0.6);
@@ -182,6 +209,12 @@ class Andrés extends Warrior {
 class Sergio extends Warrior {
 	display() {
 		super.display();
+
+		if (this.isDefeatedSince !== null) {
+			const ANIMATION_DURATION = 600;
+			const t = (currentTime() - this.isDefeatedSince) / ANIMATION_DURATION;
+			this.p.fill(0, 255 * (1 - t));
+		}
 
 		const cl = cellLength(this.p);
 		this.p.textAlign(this.p.CENTER, this.p.CENTER);
@@ -194,6 +227,17 @@ class Pingüino extends Warrior {
 
 	display() {
 		super.display();
+
+		if (this.isDefeatedSince !== null) {
+			this.p.text(
+				`DEFEATED SINCE ${this.isDefeatedSince}`,
+				this.p.mouseX,
+				this.p.mouseY,
+			);
+			const ANIMATION_DURATION = 600;
+			const t = (currentTime() - this.isDefeatedSince) / ANIMATION_DURATION;
+			this.p.fill(0);
+		}
 
 		const cl = cellLength(this.p);
 		this.p.textAlign(this.p.CENTER, this.p.CENTER);
@@ -243,10 +287,11 @@ class Projectile {
 			currentScreenPosition[0] - this.p.width,
 			currentScreenPosition[1] - this.p.height,
 		];
-		return (
+		return Math.max(
+			0,
 			255 -
-			Math.max(0, ...distancesFromEdges.map((d) => d + GRID_MARGIN)) *
-				(255 / GRID_MARGIN)
+				Math.max(0, ...distancesFromEdges.map((d) => d + GRID_MARGIN)) *
+					(255 / GRID_MARGIN),
 		);
 	}
 
@@ -458,6 +503,8 @@ function draw(p: p5) {
 
 		p.pop();
 	}
+
+	p.text(projectiles.size, 10, 10);
 
 	if (state.phase === Phase.Attacking && projectiles.size === 0) {
 		// state.phase = Phase.Responding;
