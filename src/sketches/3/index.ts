@@ -1,6 +1,9 @@
 import p5 from "p5";
 import { Navigator, Page } from "../../pages";
 
+// nota: iterar sobre entidades para dibujar, en vez de tener un arreglo
+// bidimensional
+
 class WelcomePage extends Page {
 	setup(p: p5) {
 		p.noStroke();
