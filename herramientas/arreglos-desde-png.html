@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+	<head>
+		<!-- Con ayuda de: https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop -->
+		<!-- y: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas#getting_the_pixel_data_for_a_context -->
+
+		<script type="module" src="/src/tools/png-to-array.ts"></script>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" href="/src/style.css">
+		<style>
+		input,
+		label {
+			display: block;
+		}
+
+		input {
+			display: none;
+		}
+
+		.hidden {
+			display: none;
+		}
+
+		#container {
+			margin: auto;
+			display: flex;
+			justify-content: center;
+
+			label {
+				margin: 1rem;
+				height: 30rem;
+				width: 30rem;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+
+				cursor: pointer;
+
+				border-radius: 2rem;
+				border-style: dashed;
+				border-color: var(--foreground);
+
+				&.hidden {
+					/* otra vez porque especificidad y no sé cómo organizar eso
+					correctamente */
+					display: none;
+				}
+			}
+		}
+
+		pre {
+			text-align: left;
+		}
+		</style>
+		<link rel="icon" href="/favicon.png" type="image/png">
+		<title>Desde PNG a un arreglo</title>
+	</head>
+	<body>
+		<main>
+			<h1>Desde PNG a un arreglo</h1>
+			<p class="subtitle">Herramienta</p>
+
+			<div id="container">
+				<label id="dropoff" for="image">Selecciona una imagen PNG.</label>
+				<input type="file" id="image" name="image" accept="image/png">
+
+				<pre><code class="hidden preserve-case" id="generated-source">
+				</code></pre>
+			</div>
+
+			<nav style="opacity: 80%">
+				<p><a href="/">Regresar</a></p>
+			</nav>
+		</main>
+	</body>
+</html>

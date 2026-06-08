@@ -37,6 +37,7 @@ export default defineConfig({
 				resolve(import.meta.dirname, "index.html"),
 				...(await inputs(resolve(import.meta.dirname, "proyectos"))),
 				...(await inputs(resolve(import.meta.dirname, "demos"))),
+				...(await inputs(resolve(import.meta.dirname, "herramientas"))),
 			],
 			output: {
 				postBanner: `/* Consulta la información de derechos de autor de las dependencias incluidas aquí: ${hostname}/licencias.md\nObtén más información sobre el código fuente y las licencias GPL y LGPL en la página principal: ${hostname} */`,

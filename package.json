@@ -20,6 +20,7 @@
 	"dependencies": {
 		"p5": "^2.2.3",
 		"p5.quadrille": "^3.4.13",
+		"prettier": "^3.8.3",
 		"tuplerone": "^3.3.3"
 	}
 }

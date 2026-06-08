@@ -1,5 +1,6 @@
 :root {
 	--content-padding: 2rem;
+	--foreground: light-dark(#213547, rgba(255, 255, 255, 0.87));
 
 	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 	line-height: 1.5;
@@ -8,7 +9,7 @@
 	text-transform: lowercase;
 
 	color-scheme: light dark;
-	color: light-dark(#213547, rgba(255, 255, 255, 0.87));
+	color: var(--foreground);
 	background-color: light-dark(#ffffff, #242424);
 }
 
