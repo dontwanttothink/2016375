@@ -21,5 +21,10 @@
 		"noFallthroughCasesInSwitch": true,
 		"noUncheckedSideEffectImports": true
 	},
-	"include": ["src", "types/p5.quadrille.d.ts", "types/p5.quadrille.ts"]
+	"include": [
+		"src",
+		"types/p5.quadrille.d.ts",
+		"types/p5.quadrille.ts",
+		"public/art"
+	]
 }
