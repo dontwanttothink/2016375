@@ -19,7 +19,6 @@
 	},
 	"dependencies": {
 		"comlink": "^4.4.2",
-		"json5": "^2.2.3",
 		"p5": "^2.2.3",
 		"p5.quadrille": "^3.4.13",
 		"prettier": "^3.8.3"
