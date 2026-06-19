@@ -14,9 +14,20 @@ function expect<T>(x: T, msg?: string): NonNullable<T> {
 }
 
 const zone = expect(document.getElementById("dropoff"));
+const input = expect(document.getElementById("image"));
 const code = expect(document.getElementById("generated-source"));
 
-zone.addEventListener("drop", dropped);
+zone.addEventListener("drop", (e) => {
+	e.preventDefault();
+	const items = expect(e.dataTransfer).items;
+	interacted(
+		[...items].map((item) => item.getAsFile()).filter((file) => !!file),
+	);
+});
+
+input.addEventListener("change", (e) => {
+	interacted([...expect((expect(e.target) as HTMLInputElement).files)]);
+});
 
 zone.addEventListener("dragover", (e) => {
 	assert(e?.dataTransfer);
@@ -57,13 +68,7 @@ window.addEventListener("drop", (e) => {
 	}
 });
 
-async function dropped(e: DragEvent) {
-	e.preventDefault();
-
-	const files = [...expect(e.dataTransfer).items]
-		.map((item) => item.getAsFile())
-		.filter((file) => !!file);
-
+async function interacted(files: File[]) {
 	const pixelArrays = await Promise.all(files.map(intoPixelArray));
 
 	const sources = (
