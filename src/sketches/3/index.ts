@@ -24,6 +24,7 @@ class WelcomePage extends Page {
 			[p.mouseX, p.mouseY],
 			400,
 			400 + Math.sin(p.millis() / 200) * 30,
+			{ fit: false },
 		);
 	}
 }

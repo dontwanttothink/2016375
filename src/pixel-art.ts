@@ -8,87 +8,19 @@ function expect<T>(x: T, msg?: string): NonNullable<T> {
 	return x;
 }
 
-class ArtMatrix {
-	constructor(
-		public width: number,
-		public pixels: p5.Color[],
-	) {
-		if (pixels.length % width !== 0) {
-			throw new TypeError(
-				`The number of pixels, ${pixels.length}, is not a multiple of the provided width, ${width}.`,
-			);
-		}
-	}
-
-	get height() {
-		return this.pixels.length / this.width;
-	}
-}
-
 interface ArtAnimation {
-	frames: ArtMatrix[];
+	frames: p5.Image[];
 	rate: number;
 }
 
 interface ArtAnimationState {
 	since: number;
+	looping: boolean;
 	identifier: string;
 }
 
 export class Art {
 	private static ART_URL = new URL("/art/", window.location.origin);
-
-	private static pixelsToColors(p: p5, pixels: Uint8ClampedArray) {
-		const out: p5.Color[] = [];
-		p.push();
-		p.colorMode(p.RGB, 255);
-		for (let i = 0; i < pixels.length; i += 4) {
-			out.push(
-				p.color(
-					Number(pixels[i]),
-					Number(pixels[i + 1]),
-					Number(pixels[i + 2]),
-					Number(pixels[i + 3]),
-				),
-			);
-		}
-		p.pop();
-		return out;
-	}
-
-	private static intoColorArray(p: p5, url: URL): Promise<ArtMatrix> {
-		return new Promise((resolve, reject) => {
-			const canvas = document.createElement("canvas");
-			const context = expect(canvas.getContext("2d"));
-			const image = new Image();
-
-			image.onload = () => {
-				canvas.width = image.naturalWidth;
-				canvas.height = image.naturalHeight;
-
-				context.drawImage(image, 0, 0);
-
-				const imageData = context.getImageData(
-					0,
-					0,
-					canvas.width,
-					canvas.height,
-				);
-				resolve(
-					new ArtMatrix(canvas.width, Art.pixelsToColors(p, imageData.data)),
-				);
-
-				URL.revokeObjectURL(image.src);
-			};
-
-			image.onerror = (e) => {
-				URL.revokeObjectURL(image.src);
-				reject(e);
-			};
-
-			image.src = url.href;
-		});
-	}
 
 	public static async fromName(p: p5, name: string): Promise<Art> {
 		const location = new URL(`${name}/`, Art.ART_URL);
@@ -96,52 +28,39 @@ export class Art {
 		const canonURL = new URL("canon.png", location);
 		console.debug(canonURL);
 
-		const canonical = await Art.intoColorArray(p, canonURL);
+		const canonical = await p.loadImage(canonURL.href);
 		return new Art(p, location, canonical);
-	}
-
-	private static drawMatrix(
-		p: p5,
-		[x, y]: [number, number],
-		matrix: ArtMatrix,
-		width: number,
-		height: number,
-	) {
-		p.push();
-		const { width: widthInPixels, height: heightInPixels, pixels } = matrix;
-
-		const heightPerPixel = height / heightInPixels;
-		const widthPerPixel = width / widthInPixels;
-
-		p.rectMode(p.CORNERS);
-		for (let i = 0; i < widthInPixels; ++i) {
-			for (let j = 0; j < heightInPixels; ++j) {
-				const color = pixels[widthInPixels * j + i];
-
-				p.noStroke();
-				p.fill(color);
-
-				p.rect(
-					Math.round(x + widthPerPixel * i),
-					Math.round(y + heightPerPixel * j),
-					Math.round(x + widthPerPixel * (i + 1)),
-					Math.round(y + heightPerPixel * (j + 1)),
-				);
-			}
-		}
-		p.pop();
 	}
 
 	private p: p5;
 
 	private location: URL;
 
-	private canonical: ArtMatrix;
+	private canonical: p5.Image;
 	private animations: Map<string, ArtAnimation> = new Map();
 
 	private animation: ArtAnimationState | null = null;
+	private animationCycleCallbacks = [];
 
-	private constructor(p: p5, location: URL, canonical: ArtMatrix) {
+	get appearance(): p5.Image {
+		if (this.animation) {
+			const { identifier, since, looping } = this.animation;
+			const { frames, rate } = expect(this.animations.get(identifier));
+
+			const t = this.p.millis() - since / 1000;
+			const n = Math.floor(t / rate);
+
+			if (n > frames.length && !looping) {
+				this.immediatelyStopAnimating();
+				return this.appearance;
+			}
+
+			return frames[n % frames.length];
+		}
+		return this.canonical;
+	}
+
+	private constructor(p: p5, location: URL, canonical: p5.Image) {
 		this.p = p;
 		this.location = location;
 		this.canonical = canonical;
@@ -165,10 +84,10 @@ export class Art {
 			throw new TypeError();
 		}
 
-		const frames: ArtMatrix[] = [];
+		const frames: p5.Image[] = [];
 		for (let i = 0; i < frameCount; ++i) {
 			const animLocator = new URL(`${i}.png`, animationURL);
-			frames.push(await Art.intoColorArray(this.p, animLocator));
+			frames.push(await this.p.loadImage(animLocator.href));
 		}
 
 		const animation = {
@@ -179,29 +98,53 @@ export class Art {
 		this.animations.set(name, animation);
 	}
 
-	draw([x, y]: [number, number], width: number, height: number) {
-		Art.drawMatrix(this.p, [x, y], this.canonical, width, height);
+	animate(identifier: string, looping: boolean = false) {
+		if (!this.animations.has(identifier)) {
+			throw new TypeError(
+				`No se ha cargado una animación con el identificador "${identifier}".`,
+			);
+		}
+
+		this.animation = {
+			identifier,
+			looping,
+			since: this.p.millis(),
+		};
+	}
+
+	/**
+	 * Inmediatamente regresa la entidad a su apariencia canónica. Esta función
+	 * es idempotente.
+	 */
+	immediatelyStopAnimating() {
+		this.animation = null;
+	}
+
+	draw(
+		[x, y]: [number, number],
+		width: number,
+		height: number,
+		{ fit }: { fit: boolean } = { fit: false },
+	) {
+		this.p.push();
+		this.p.noSmooth();
+
+		let w = width;
+		let h = height;
+
+		if (fit) {
+			// a propósito, las dimensiones se basan en el tamaño canónico
+			const propoW = h * (this.canonical.width / this.canonical.height);
+			const propoH = w * (this.canonical.height / this.canonical.width);
+
+			if (propoW > width) {
+				h = propoH;
+			} else {
+				w = propoW;
+			}
+		}
+
+		this.p.image(this.appearance, x, y, w, h);
+		this.p.pop();
 	}
 }
-
-// export function Art(p: p5, pixels: Uint8ClampedArray, width: number): Art {
-// 	if (pixels.length % width !== 0) {
-// 		throw new Error(
-// 			`El número de pixeles no es divisible por la longitud dada. (${pixels.length}/${width})`,
-// 		);
-// 	}
-
-// 	const height = pixels.length / width;
-
-// 	const colors = pixelsToColors(p, pixels);
-// 	const quadrille = p.createQuadrille(width, colors);
-// 	return (x, y, size) => {
-// 		p.drawQuadrille(quadrille, {
-// 			outlineWeight: 0,
-// 			outline: null,
-// 			x,
-// 			y,
-// 			cellLength: Math.min(size / width, size / height),
-// 		});
-// 	};
-// }
