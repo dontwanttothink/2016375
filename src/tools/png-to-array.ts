@@ -91,7 +91,6 @@ async function intoSource(arr: Uint8ClampedArray) {
 	let out = "new Uint8ClampedArray([";
 	for (const val of arr) {
 		out += `${val},`;
-		await Promise.resolve();
 	}
 	out += "]);";
 	return out;
