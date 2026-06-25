@@ -1,6 +1,7 @@
+import "../../displayErrors";
 import p5 from "p5";
 import { Navigator, Page } from "../../pages";
-import { Art } from "../../pixel-art";
+import { Art } from "./pixel-art";
 
 // nota: iterar sobre entidades para dibujar, en vez de tener un arreglo
 // bidimensional
