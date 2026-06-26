@@ -30,7 +30,11 @@ class WelcomePage extends Page {
 		);
 	}
 
-	mouseClicked(_: p5) {
+	mouseClicked() {
+		this.exampleArt.animate("blink", false);
+	}
+
+	keyPressed() {
 		this.exampleArt.animate("blink", false);
 	}
 }
