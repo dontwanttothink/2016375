@@ -11,19 +11,34 @@ import type { Art } from "./pixel-art";
 export class Stage {
 	p: p5;
 
-	background: Entity;
-	collision: Entity;
+	background: Art;
+	collision: Art;
 
 	entities: Entity[] = [];
 
-	constructor(p: p5, background: Art, collision: Art) {
+	snap: ([x, y]: [number, number]) => [number, number];
+
+	constructor(
+		p: p5,
+		background: Art,
+		collision: Art,
+		snap: ([x, y]: [number, number]) => [number, number],
+	) {
 		this.p = p;
 		this.background = background;
 		this.collision = collision;
+		this.snap = snap;
+	}
+
+	addEntity(entity: Entity) {
+		entity.assignToStage(this);
+		this.entities.push(entity);
 	}
 
 	draw() {
-		// fit the stage space inside
-		// take the coordinates of the entities and map them to screen space
+		for (const entity of this.entities) {
+			entity.draw();
+		}
+		this.background.draw();
 	}
 }
