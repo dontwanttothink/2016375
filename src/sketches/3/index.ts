@@ -31,7 +31,7 @@ class WelcomePage extends Page {
 	}
 
 	mouseClicked(_: p5) {
-		this.exampleArt.animate("blink", true);
+		this.exampleArt.animate("blink", false);
 	}
 }
 
