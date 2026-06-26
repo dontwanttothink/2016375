@@ -1,5 +1,4 @@
 import type p5 from "p5";
-import "p5.quadrille";
 
 function expect<T>(x: T, msg?: string): NonNullable<T> {
 	if (x === null || x === undefined) {
@@ -140,6 +139,9 @@ export class Art {
 				w = propoW;
 			}
 		}
+
+		w *= this.appearance.width / this.canonical.width;
+		h *= this.appearance.height / this.canonical.height;
 
 		this.p.image(this.appearance, x, y, w, h);
 		this.p.pop();
