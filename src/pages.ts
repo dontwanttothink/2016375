@@ -1,6 +1,13 @@
 import type p5 from "p5";
 import targetDimensions from "./dimensions";
 
+function expect<T>(x: T, msg?: string): NonNullable<T> {
+	if (x === null || x === undefined) {
+		throw new Error(msg ?? "expected non-null value");
+	}
+	return x;
+}
+
 /**
  * Un objeto de argumentos posible para pasar a una página.
  */
@@ -62,7 +69,7 @@ export abstract class Page<TArgs extends PageArgs = undefined> {
 	mousePressed(_p: p5, _event: MouseEvent) {}
 	mouseReleased(_p: p5, _event: MouseEvent) {}
 	mouseDragged(_p: p5, _event: MouseEvent) {}
-	keyPressed(_p: p5) {}
+	keyPressed(_p: p5, _event: KeyboardEvent) {}
 }
 
 /**
@@ -166,41 +173,29 @@ export class Navigator {
 				this.#currentPage.draw(p);
 			};
 
+			p.keyPressed = (event) => {
+				this.#currentPage.keyPressed(p, expect(event));
+			};
+
 			p.windowResized = () => {
 				const [width, height] = targetDimensions();
 				p.resizeCanvas(width, height);
 			};
 
 			p.mouseClicked = (event) => {
-				if (!event) {
-					// nunca debería pasar
-					throw new ReferenceError();
-				}
-				this.#currentPage.mouseClicked(p, event);
+				this.#currentPage.mouseClicked(p, expect(event));
 			};
 
 			p.mouseDragged = (event) => {
-				if (!event) {
-					// nunca debería pasar
-					throw new ReferenceError();
-				}
-				this.#currentPage.mouseDragged(p, event);
+				this.#currentPage.mouseDragged(p, expect(event));
 			};
 
 			p.mouseReleased = (event) => {
-				if (!event) {
-					// nunca debería pasar
-					throw new ReferenceError();
-				}
-				this.#currentPage.mouseReleased(p, event);
+				this.#currentPage.mouseReleased(p, expect(event));
 			};
 
 			p.mousePressed = (event) => {
-				if (!event) {
-					// nunca debería pasar
-					throw new ReferenceError();
-				}
-				this.#currentPage.mousePressed(p, event);
+				this.#currentPage.mousePressed(p, expect(event));
 			};
 		};
 	}
