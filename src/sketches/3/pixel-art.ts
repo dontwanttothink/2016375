@@ -44,8 +44,8 @@ export class Art {
 			const { identifier, since, looping } = this.animation;
 			const { frames, rate } = expect(this.animations.get(identifier));
 
-			const t = this.p.millis() - since / 1000;
-			const n = Math.floor(t / rate);
+			const t = (this.p.millis() - since) / 1000;
+			const n = Math.floor(t * rate);
 
 			if (n > frames.length && !looping) {
 				this.immediatelyStopAnimating();
