@@ -11,6 +11,7 @@ class WelcomePage extends Page {
 
 	async preload(p: p5) {
 		this.exampleArt = await Art.fromName(p, "protagonist");
+		await this.exampleArt.loadAnimation("blink");
 	}
 
 	setup(p: p5) {
@@ -23,10 +24,14 @@ class WelcomePage extends Page {
 		p.circle(p.width / 2, p.height / 2, 200);
 		this.exampleArt.draw(
 			[p.mouseX, p.mouseY],
-			400,
-			400 + Math.sin(p.millis() / 200) * 30,
+			100,
+			100 + Math.sin(p.millis() / 200) * 30,
 			{ fit: false },
 		);
+	}
+
+	mouseClicked(_: p5) {
+		this.exampleArt.animate("blink", true);
 	}
 }
 

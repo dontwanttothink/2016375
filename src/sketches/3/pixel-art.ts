@@ -24,9 +24,7 @@ export class Art {
 
 	public static async fromName(p: p5, name: string): Promise<Art> {
 		const location = new URL(`${name}/`, Art.ART_URL);
-		console.debug(location);
 		const canonURL = new URL("canon.png", location);
-		console.debug(canonURL);
 
 		const canonical = await p.loadImage(canonURL.href);
 		return new Art(p, location, canonical);
@@ -40,7 +38,6 @@ export class Art {
 	private animations: Map<string, ArtAnimation> = new Map();
 
 	private animation: ArtAnimationState | null = null;
-	private animationCycleCallbacks = [];
 
 	get appearance(): p5.Image {
 		if (this.animation) {
@@ -67,7 +64,7 @@ export class Art {
 	}
 
 	async loadAnimation(name: string) {
-		const animationURL = new URL(`animations/${name}`, this.location);
+		const animationURL = new URL(`animations/${name}/`, this.location);
 		const manifestURL = new URL("meta.json", animationURL);
 		const manifestResponse = await fetch(manifestURL);
 
