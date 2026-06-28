@@ -46,7 +46,7 @@ type PageConstructor<
  * `this.navigator.switchPage(p: p5, id: string)`
  * para cambiar la página actual a otra. Por ejemplo, la página de
  * bienvenida puede usar esta función para activar la página del juego
- * cuando el usuario hace click en el botón de jugar.
+ * cuando el usuario hace clic en el botón de jugar.
  *
  * Excepto por `preload`, solo se ejecutan métodos de la página actual.
  * Las otras páginas se mantienen en espera.
