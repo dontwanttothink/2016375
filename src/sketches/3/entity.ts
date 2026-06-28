@@ -3,7 +3,16 @@ import type { Stage } from "./stage";
 export class Entity {
 	#stage?: Stage;
 
+	/**
+	 * La ubicación objetivo de esta entidad, en el espacio de escenario. Por
+	 * ejemplo, la entidad podría estar en proceso de desplazarse a esta
+	 * ubicación.
+	 */
 	target?: [number, number];
+
+	/**
+	 * La ubicación actual de esta entidad, en el espacio de escenario.
+	 */
 	location?: [number, number];
 
 	get stage(): Stage {
