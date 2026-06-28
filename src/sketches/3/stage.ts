@@ -52,16 +52,11 @@ export class Stage {
 
 	grid: StageGrid;
 
-	constructor(
-		p: p5,
-		background: Art,
-		collision: Art,
-		snap: ([x, y]: [number, number]) => [number, number],
-	) {
+	constructor(p: p5, background: Art, collision: Art, grid: StageGrid) {
 		this.p = p;
 		this.background = background;
 		this.collision = collision;
-		this.snap = snap;
+		this.grid = grid;
 	}
 
 	addEntity(entity: Entity) {
