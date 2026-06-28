@@ -28,17 +28,19 @@ type PageConstructor<
  * Una página está compuesta de una cosa fundamental:
  * - una función (método), `draw`, que dibuja la página
  *
- * Hay cuatro funciones (métodos) adicionales que una página puede tener:
+ * Hay otras funciones (métodos) adicionales que una página puede tener:
  * - `preload`, que se ejecuta inmediatamente cuando el proyecto empieza.
  * Esta función debe ser asincrónica y se puede usar, por ejemplo, para
  * cargar imágenes. Ninguna página empieza a dibujarse hasta que todas
  * las funciones `preload` hayan terminado.
  * - `setup`, que se ejecuta cuando la página se convierte en la
- *  página actual. La página no empieza a dibujarse hasta que su `setup`
+ * página actual. La página no empieza a dibujarse hasta que su `setup`
  * se haya ejecutado. Esta función no puede ser asincrónica.
  * - `mouseClicked`, que se ejecuta cuando el usuario oprime el botón
  * del ratón.
  * - `keyPressed`, que se ejecuta cuando el usuario oprime una tecla.
+ * - una variedad de métodos similares a `mouseClicked` y `keyPressed` que
+ * comparten su nombre y comportamiento con sus análogos de p5.
  *
  * Las páginas tienen acceso al objeto de navegación. Pueden usar
  * `this.navigator.switchPage(p: p5, id: string)`
