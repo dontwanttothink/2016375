@@ -1,6 +1,8 @@
+import type { Art } from "./pixel-art";
 import type { Stage } from "./stage";
 
 export class Entity {
+	#art: Art;
 	#stage?: Stage;
 
 	/**
@@ -22,10 +24,16 @@ export class Entity {
 		return this.#stage;
 	}
 
+	constructor(art: Art) {
+		this.#art = art;
+	}
+
 	/**
 	 * Intentar mover la entidad. Se comprueba la colisión.
 	 */
-	move(delta: [number, number]) {}
+	move(delta: [number, number]) {
+		// hacer un rayo
+	}
 
 	assignToStage(stage: Stage) {
 		if (this.#stage) {
