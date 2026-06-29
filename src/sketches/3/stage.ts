@@ -28,10 +28,10 @@ export class StageGrid {
 		];
 	}
 
-	toStageSpace(location: [number, number]): [number, number] {
+	toStageSpace(gridLocation: [number, number]): [number, number] {
 		return [
-			this.origin[0] + location[0] * this.cellSize,
-			this.origin[1] + location[1] * this.cellSize,
+			this.origin[0] + gridLocation[0] * this.cellSize,
+			this.origin[1] + gridLocation[1] * this.cellSize,
 		];
 	}
 }
@@ -46,7 +46,7 @@ export class Stage {
 	p: p5;
 
 	background: Art;
-	collision: Art;
+	collision: p5.Image;
 
 	entities: Entity[] = [];
 
@@ -54,8 +54,18 @@ export class Stage {
 
 	constructor(p: p5, background: Art, collision: Art, grid: StageGrid) {
 		this.p = p;
+
+		if (
+			background.appearance.width !== collision.appearance.width ||
+			background.appearance.height !== collision.appearance.height
+		) {
+			throw new TypeError(
+				"Las dimensiones del fondo y de la textura de colisión deben ser iguales.",
+			);
+		}
+
 		this.background = background;
-		this.collision = collision;
+		this.collision = collision.appearance;
 		this.grid = grid;
 	}
 
@@ -64,10 +74,42 @@ export class Stage {
 		this.entities.push(entity);
 	}
 
+	screenDimensions(): [number, number] {
+		const w = this.background.appearance.width;
+		const h = this.background.appearance.width;
+
+		const propoH = this.p.width * (h / w);
+		const propoW = this.p.height * (w / h);
+
+		if (propoH <= this.p.height) {
+			return [this.p.width, propoH];
+		} else {
+			return [propoW, this.p.height];
+		}
+	}
+
+	screenOrigin() {
+		const [w, h] = this.screenDimensions();
+
+		return [(this.p.width - w) / 2, (this.p.height - h) / 2];
+	}
+
+	fromScreenSpace(location: [number, number]) {
+		const [x, y] = this.screenOrigin();
+		const scale = this.screenDimensions()[0] / this.background.appearance.width;
+		return [(location[0] - x) / scale, (location[1] - y) / scale];
+	}
+
+	toScreenSpace(stageLocation: [number, number]) {
+		const [x, y] = this.screenOrigin();
+		const scale = this.screenDimensions()[0] / this.background.appearance.width;
+		return [(x + stageLocation[0]) * scale, (y + stageLocation[1]) * scale];
+	}
+
 	draw() {
+		this.background.draw([0, 0], this.p.width, this.p.height, { fit: true });
 		for (const entity of this.entities) {
 			entity.draw();
 		}
-		this.background.draw();
 	}
 }
