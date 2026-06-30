@@ -229,14 +229,9 @@ class Pingüino extends Warrior {
 		super.display();
 
 		if (this.isDefeatedSince !== null) {
-			this.p.text(
-				`DEFEATED SINCE ${this.isDefeatedSince}`,
-				this.p.mouseX,
-				this.p.mouseY,
-			);
 			const ANIMATION_DURATION = 600;
 			const t = (currentTime() - this.isDefeatedSince) / ANIMATION_DURATION;
-			this.p.fill(0);
+			this.p.fill(t * 255);
 		}
 
 		const cl = cellLength(this.p);
