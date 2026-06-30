@@ -1,27 +1,29 @@
 import "../../displayErrors";
 import p5 from "p5";
 import { Navigator, Page } from "../../pages";
-import { Art } from "./pixel-art";
-
-// nota: iterar sobre entidades para dibujar, en vez de tener un arreglo
-// bidimensional
+import { EntityArt } from "./entity/art";
+import { Stage } from "./stage";
 
 class WelcomePage extends Page {
-	exampleArt!: Art;
+	exampleArt!: EntityArt;
+	exampleStage!: Stage;
 
 	async preload(p: p5) {
-		this.exampleArt = await Art.fromName(p, "protagonist");
+		this.exampleArt = await EntityArt.fromName(p, "example");
 		await this.exampleArt.loadAnimation("blink");
+
+		this.exampleStage = await Stage.fromName(p, "example");
 	}
 
 	setup(p: p5) {
 		p.noStroke();
-		p.fill("rebeccapurple");
 	}
 
 	draw(p: p5) {
 		p.clear();
-		p.circle(p.width / 2, p.height / 2, 200);
+
+		this.exampleStage.draw();
+
 		this.exampleArt.draw(
 			[p.mouseX, p.mouseY],
 			100,

@@ -140,6 +140,7 @@ export class Navigator {
 			);
 		}
 
+		p.clear();
 		page.receive(args as T);
 		page.setup(p);
 		this.#currentPage = page;
@@ -171,7 +172,6 @@ export class Navigator {
 			};
 
 			p.draw = () => {
-				p.clear();
 				this.#currentPage.draw(p);
 			};
 

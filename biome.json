@@ -8,6 +8,14 @@
 			"enabled": true
 		}
 	},
+	"linter": {
+		"domains": {
+			"types": "all"
+		}
+	},
+	"formatter": {
+		"formatWithErrors": true
+	},
 	"vcs": {
 		"enabled": true,
 		"clientKind": "git",

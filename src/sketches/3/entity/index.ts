@@ -1,9 +1,23 @@
-import type { Art } from "./pixel-art";
-import type { Stage } from "./stage";
+import type p5 from "p5";
+import type { Stage } from "../stage";
+import type { EntityArt } from "./art";
 
+/**
+ * Una entidad es algo con una ubicación, una apariencia, y que pertenece a un
+ * escenario.
+ */
 export class Entity {
-	#art: Art;
+	#p: p5;
+
+	#art: EntityArt;
 	#stage?: Stage;
+
+	get stage(): Stage {
+		if (!this.#stage) {
+			throw new Error("Esta entidad no se ha asignado a un escenario.");
+		}
+		return this.#stage;
+	}
 
 	/**
 	 * La ubicación objetivo de esta entidad, en el espacio de escenario. Por
@@ -15,17 +29,20 @@ export class Entity {
 	/**
 	 * La ubicación actual de esta entidad, en el espacio de escenario.
 	 */
-	location?: [number, number];
+	position?: [number, number];
 
-	get stage(): Stage {
-		if (!this.#stage) {
-			throw new Error("Esta entidad no se ha asignado a un escenario.");
-		}
-		return this.#stage;
+	hitbox?: {
+		width: number;
+		height: number;
+	};
+
+	constructor(p: p5, art: EntityArt) {
+		this.#p = p;
+		this.#art = art;
 	}
 
-	constructor(art: Art) {
-		this.#art = art;
+	draw() {
+		this.#art.draw(this.position);
 	}
 
 	/**

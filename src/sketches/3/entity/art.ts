@@ -7,26 +7,37 @@ function expect<T>(x: T, msg?: string): NonNullable<T> {
 	return x;
 }
 
-interface ArtAnimation {
+interface EntityArtAnimation {
 	frames: p5.Image[];
 	rate: number;
 }
 
-interface ArtAnimationState {
+interface EntityArtAnimationState {
 	since: number;
 	looping: boolean;
 	identifier: string;
 }
 
-export class Art {
-	private static ART_URL = new URL("/art/", window.location.origin);
+export class EntityArt {
+	private static ENTITY_ART_URL = new URL(
+		"/art/entities/",
+		window.location.origin,
+	);
 
-	public static async fromName(p: p5, name: string): Promise<Art> {
-		const location = new URL(`${name}/`, Art.ART_URL);
+	public static async fromName(p: p5, name: string): Promise<EntityArt> {
+		const location = new URL(`${name}/`, EntityArt.ENTITY_ART_URL);
 		const canonURL = new URL("canon.png", location);
 
-		const canonical = await p.loadImage(canonURL.href);
-		return new Art(p, location, canonical);
+		let canonical: p5.Image;
+		try {
+			canonical = await p.loadImage(canonURL.href);
+		} catch (e) {
+			throw new TypeError(
+				`No se pudo cargar la imagen "${name}" (es decir, ${canonURL.href})`,
+				{ cause: e },
+			);
+		}
+		return new EntityArt(p, location, canonical);
 	}
 
 	private p: p5;
@@ -34,9 +45,9 @@ export class Art {
 	private location: URL;
 
 	private canonical: p5.Image;
-	private animations: Map<string, ArtAnimation> = new Map();
+	private animations: Map<string, EntityArtAnimation> = new Map();
 
-	private animation: ArtAnimationState | null = null;
+	private animation: EntityArtAnimationState | null = null;
 
 	get appearance(): p5.Image {
 		if (this.animation) {
@@ -83,7 +94,18 @@ export class Art {
 		const frames: p5.Image[] = [];
 		for (let i = 0; i < frameCount; ++i) {
 			const animLocator = new URL(`${i}.png`, animationURL);
-			frames.push(await this.p.loadImage(animLocator.href));
+
+			let frame: p5.Image;
+			try {
+				frame = await this.p.loadImage(animLocator.href);
+			} catch (e) {
+				throw new TypeError(
+					`No se pudo cargar el fotograma ${i} de la animación "${name}" (es decir, ${animLocator.href}). La animación "${name}" dice tener ${frameCount} fotogramas en sus metadatos.`,
+					{ cause: e },
+				);
+			}
+
+			frames.push(frame);
 		}
 
 		const animation = {
