@@ -1,7 +1,65 @@
 import type p5 from "p5";
 import type { Entity } from "./entity";
 
+interface StageGridDescriptor {
+	origin: [number, number];
+	cellSize: number;
+	width: number;
+	height: number;
+}
+
 export class StageGrid {
+	static assertIsValidDescriptor(
+		descriptor: unknown,
+		source: URL,
+	): asserts descriptor is StageGridDescriptor {
+		const MUST = "el descriptor de la cuadrícula debe";
+		const SOURCE = `(en ${source.href})`;
+		const msg = (str: string) => `${MUST} ${str}. ${SOURCE}`;
+
+		if (!descriptor || typeof descriptor !== "object") {
+			throw new TypeError(msg("ser un objeto"));
+		}
+
+		if (!("origin" in descriptor)) {
+			throw new TypeError(msg("indicar un origen (origin)"));
+		}
+
+		if (!("cellSize" in descriptor)) {
+			throw new TypeError(msg("indicar el tamaño de una celda (cellSize)"));
+		}
+
+		if (!("width" in descriptor)) {
+			throw new TypeError(msg("indicar el número de columnas (width)"));
+		}
+
+		if (!("height" in descriptor)) {
+			throw new TypeError(msg("indicar el número de filas (height)"));
+		}
+
+		const { cellSize, width, height, origin } = descriptor;
+
+		if (typeof cellSize !== "number") {
+			throw new TypeError("cellSize debe ser un número.");
+		}
+
+		if (typeof width !== "number") {
+			throw new TypeError("width debe ser un número.");
+		}
+
+		if (typeof height !== "number") {
+			throw new TypeError("height debe ser un número.");
+		}
+
+		if (
+			!Array.isArray(origin) ||
+			origin.length !== 2 ||
+			origin.some((x) => typeof x !== "number")
+		) {
+			throw new TypeError("origin debe ser un arreglo de dos números");
+		}
+	}
+
 	origin: [number, number];
 
 	width: number;
@@ -47,13 +105,27 @@ export class Stage {
 	public static async fromName(p: p5, name: string): Promise<Stage> {
 		const stageURL = new URL(`${name}/`, Stage.STAGE_ART_URL);
 
-		// todo: lidiar con los errores de loadImage
-
 		const backgroundURL = new URL("background.png", stageURL);
-		const background = await p.loadImage(backgroundURL.href);
+		let background: p5.Image;
+		try {
+			background = await p.loadImage(backgroundURL.href);
+		} catch (e) {
+			throw new Error(
+				`no se pudo cargar el fondo de "${name}" (es decir, ${backgroundURL.href})`,
+				{ cause: e },
+			);
+		}
 
 		const collisionURL = new URL("collision.png", stageURL);
-		const collision = await p.loadImage(collisionURL.href);
+		let collision: p5.Image;
+		try {
+			collision = await p.loadImage(collisionURL.href);
+		} catch (e) {
+			throw new Error(
+				`no se pudo cargar la textura de colisión de ${name} (es decir, ${collisionURL.href})`,
+				{ cause: e },
+			);
+		}
 
 		const gridPropertiesURL = new URL("grid.json", stageURL);
 
@@ -73,7 +145,7 @@ export class Stage {
 			);
 		}
 
-		// todo: verificar los datos de gridproperties y crear el objeto de grid
+		StageGrid.assertIsValidDescriptor(gridProperties, gridPropertiesURL);
 
 		const { origin, cellSize, width, height } = gridProperties;
 
