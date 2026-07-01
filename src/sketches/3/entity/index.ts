@@ -9,8 +9,16 @@ import type { EntityArt } from "./art";
 export class Entity {
 	#p: p5;
 
-	#art: EntityArt;
 	#stage?: Stage;
+	#art: EntityArt;
+
+	/**
+	 * Determina si la entidad debería dibujarse dentro de `width` y `height`
+	 * mientras que mantiene su razón de aspecto, o si debería dibujarse con las
+	 * dimensiones exactas dadas en `width` y `height` incluso si eso implica
+	 * distorsionar la imagen.
+	 */
+	fit: boolean = true;
 
 	get stage(): Stage {
 		if (!this.#stage) {
@@ -29,28 +37,50 @@ export class Entity {
 	/**
 	 * La ubicación actual de esta entidad, en el espacio de escenario.
 	 */
-	position?: [number, number];
+	position: [number, number];
+
+	width: number;
+	height: number;
 
 	hitbox?: {
 		width: number;
 		height: number;
 	};
 
-	constructor(p: p5, art: EntityArt) {
-		this.#p = p;
-		this.#art = art;
+	get #hitbox(): { width: number; height: number } {
+		return (
+			this.#hitbox ?? {
+				width: this.width,
+				height: this.height,
+			}
+		);
 	}
 
+	constructor(p: p5, art: EntityArt, position: [number, number]) {
+		this.#p = p;
+		this.#art = art;
+
+		this.width = art.appearance.width;
+		this.height = art.appearance.height;
+
+		this.position = position;
+	}
+
+	/**
+	 * Una función que se ejecuta cada vez que se dibuja un fotograma y que se
+	 * puede usar para actualizar el estado.
+	 */
+	tick() {}
+
 	draw() {
-		this.#art.draw(this.position);
+		this.tick();
+		this.#art.draw(this.position, this.width, this.height, { fit: this.fit });
 	}
 
 	/**
 	 * Intentar mover la entidad. Se comprueba la colisión.
 	 */
-	move(delta: [number, number]) {
-		// hacer un rayo
-	}
+	move(delta: [number, number]) {}
 
 	assignToStage(stage: Stage) {
 		if (this.#stage) {
