@@ -4,7 +4,7 @@ import { Navigator, Page } from "../../pages";
 import { EntityArt } from "./entity/art";
 import { Stage } from "./stage";
 
-class WelcomePage extends Page {
+class GamePage extends Page {
 	exampleArt!: EntityArt;
 	exampleStage!: Stage;
 
@@ -41,7 +41,7 @@ class WelcomePage extends Page {
 	}
 }
 
-const navigator = new Navigator(WelcomePage, []);
+const navigator = new Navigator(GamePage, []);
 
 const canvasParent = document.getElementById("canvas-container");
 if (!canvasParent) {
