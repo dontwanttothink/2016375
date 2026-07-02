@@ -7,8 +7,6 @@ import type { EntityArt } from "./art";
  * escenario.
  */
 export class Entity {
-	#p: p5;
-
 	#stage?: Stage;
 	#art: EntityArt;
 
@@ -56,8 +54,7 @@ export class Entity {
 		);
 	}
 
-	constructor(p: p5, art: EntityArt, position: [number, number]) {
-		this.#p = p;
+	constructor(art: EntityArt, position: [number, number]) {
 		this.#art = art;
 
 		this.width = art.appearance.width;
