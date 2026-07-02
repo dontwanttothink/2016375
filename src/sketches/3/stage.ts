@@ -166,6 +166,13 @@ export class Stage {
 
 	grid: StageGrid;
 
+	get width(): number {
+		return this.background.width;
+	}
+	get height(): number {
+		return this.background.height;
+	}
+
 	private constructor(
 		p: p5,
 		background: p5.Image,
@@ -220,16 +227,25 @@ export class Stage {
 		return [(this.p.width - w) / 2, (this.p.height - h) / 2];
 	}
 
-	fromScreenSpace(location: [number, number]) {
-		const [x, y] = this.screenOrigin();
-		const scale = this.screenDimensions()[0] / this.background.width;
-		return [(location[0] - x) / scale, (location[1] - y) / scale];
+	/**
+	 * La razón actual entre una unidad en el espacio de pantalla y una unidad en el
+	 * espacio del escenario.
+	 */
+	get scale() {
+		return this.screenDimensions()[0] / this.background.width;
 	}
 
-	toScreenSpace(stageLocation: [number, number]) {
+	fromScreenSpace(location: [number, number]): [number, number] {
 		const [x, y] = this.screenOrigin();
-		const scale = this.screenDimensions()[0] / this.background.width;
-		return [(x + stageLocation[0]) * scale, (y + stageLocation[1]) * scale];
+		return [(location[0] - x) / this.scale, (location[1] - y) / this.scale];
+	}
+
+	toScreenSpace(stageLocation: [number, number]): [number, number] {
+		const [x, y] = this.screenOrigin();
+		return [
+			x + stageLocation[0] * this.scale,
+			y + stageLocation[1] * this.scale,
+		];
 	}
 
 	draw() {

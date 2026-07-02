@@ -26,13 +26,6 @@ export class Entity {
 	}
 
 	/**
-	 * La ubicación objetivo de esta entidad, en el espacio de escenario. Por
-	 * ejemplo, la entidad podría estar en proceso de desplazarse a esta
-	 * ubicación.
-	 */
-	target?: [number, number];
-
-	/**
 	 * La ubicación actual de esta entidad, en el espacio de escenario.
 	 */
 	position: [number, number];
@@ -71,13 +64,23 @@ export class Entity {
 
 	draw() {
 		this.tick();
-		this.#art.draw(this.position, this.width, this.height, { fit: this.fit });
+		this.#art.draw(
+			this.stage.toScreenSpace(this.position),
+			this.width * this.stage.scale,
+			this.height * this.stage.scale,
+			{ fit: this.fit },
+		);
 	}
 
 	/**
-	 * Intentar mover la entidad. Se comprueba la colisión.
+	 * Intentar mover la entidad instantáneamente. Se comprueba la colisión.
+	 *
+	 * @argument delta El vector por el que la entidad se quiere mover, en
+	 * términos del espacio de coordenadas del escenario.
 	 */
-	move(delta: [number, number]) {}
+	displace(delta: [number, number]) {
+		// TODO: comprobar hitboxes de las otras entidades
+	}
 
 	assignToStage(stage: Stage) {
 		if (this.#stage) {

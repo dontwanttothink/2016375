@@ -1,18 +1,22 @@
 import "../../displayErrors";
 import p5 from "p5";
 import { Navigator, Page } from "../../pages";
+import { Protagonist, type ProtagonistEntity } from "./characters/protagonist";
 import { EntityArt } from "./entity/art";
 import { Stage } from "./stage";
 
 class GamePage extends Page {
-	exampleArt!: EntityArt;
 	exampleStage!: Stage;
+	exampleEntity!: ProtagonistEntity;
 
 	async preload(p: p5) {
-		this.exampleArt = await EntityArt.fromName(p, "example");
-		await this.exampleArt.loadAnimation("blink");
-
 		this.exampleStage = await Stage.fromName(p, "example");
+
+		this.exampleEntity = await Protagonist(p, [
+			this.exampleStage.width / 2,
+			this.exampleStage.height / 2,
+		]);
+		this.exampleStage.addEntity(this.exampleEntity);
 	}
 
 	setup(p: p5) {
@@ -21,23 +25,28 @@ class GamePage extends Page {
 
 	draw(p: p5) {
 		p.clear();
-
 		this.exampleStage.draw();
-
-		this.exampleArt.draw(
-			[p.mouseX, p.mouseY],
-			100,
-			100 + Math.sin(p.millis() / 200) * 30,
-			{ fit: false },
-		);
+		this.respondToKeyboard(p);
 	}
 
-	mouseClicked() {
-		this.exampleArt.animate("blink", false);
-	}
+	mouseClicked() {}
 
-	keyPressed() {
-		this.exampleArt.animate("blink", false);
+	respondToKeyboard(p: p5) {
+		if (p.keyIsDown(p.UP_ARROW)) {
+			this.exampleEntity.up();
+		}
+
+		if (p.keyIsDown(p.DOWN_ARROW)) {
+			this.exampleEntity.down();
+		}
+
+		if (p.keyIsDown(p.LEFT_ARROW)) {
+			this.exampleEntity.left();
+		}
+
+		if (p.keyIsDown(p.RIGHT_ARROW)) {
+			this.exampleEntity.right();
+		}
 	}
 }
 

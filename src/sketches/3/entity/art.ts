@@ -67,10 +67,13 @@ export class EntityArt {
 		return this.canonical;
 	}
 
+	center: [number, number];
+
 	private constructor(p: p5, location: URL, canonical: p5.Image) {
 		this.p = p;
 		this.location = location;
 		this.canonical = canonical;
+		this.center = [canonical.width / 2, canonical.height / 2];
 	}
 
 	async loadAnimation(name: string) {
@@ -165,7 +168,31 @@ export class EntityArt {
 		w *= this.appearance.width / this.canonical.width;
 		h *= this.appearance.height / this.canonical.height;
 
-		this.p.image(this.appearance, x, y, w, h);
+		this.p.image(
+			this.appearance,
+			x - this.center[0] * (w / this.canonical.width),
+			y - this.center[1] * (h / this.canonical.height),
+			w,
+			h,
+		);
+
+		if (import.meta.env.MODE === "DEBUG") {
+			this.p.push();
+			this.p.stroke(0, 100);
+			this.p.fill(200, 50);
+			this.p.circle(x, y, 10);
+
+			this.p.noFill();
+			this.p.rect(
+				x - this.center[0] * (w / this.canonical.width),
+				y - this.center[1] * (h / this.canonical.height),
+				w,
+				h,
+			);
+
+			this.p.pop();
+		}
+
 		this.p.pop();
 	}
 }

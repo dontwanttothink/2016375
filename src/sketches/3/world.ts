@@ -6,4 +6,7 @@ export class World {
 	constructor(stage: Stage) {
 		this.currentStage = stage;
 	}
+
+	// TODO
+	transitionTo(newStage: Stage) {}
 }
