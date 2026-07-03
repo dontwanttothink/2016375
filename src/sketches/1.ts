@@ -1161,8 +1161,8 @@ function draw(p: p5) {
 function mouseClicked(p: p5, e: MouseEvent) {
 	navigator.currentPage.mouseClicked(p, e);
 }
-function keyPressed(p: p5) {
-	navigator.currentPage.keyPressed(p);
+function keyPressed(p: p5, e: KeyboardEvent) {
+	navigator.currentPage.keyPressed(p, e);
 }
 
 // Restaurar estado
@@ -1207,7 +1207,7 @@ new p5((p) => {
 	p.draw = () => draw(p);
 	p.windowResized = () => windowResized(p);
 	p.mouseClicked = (e) => e && mouseClicked(p, e);
-	p.keyPressed = () => keyPressed(p);
+	p.keyPressed = (e) => e && keyPressed(p, e);
 
 	registerHMR(p);
 }, canvasParent);
