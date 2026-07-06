@@ -2,6 +2,7 @@
 import { readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { visualizer } from "rollup-plugin-visualizer";
+import swc from "unplugin-swc";
 import { defineConfig } from "vite";
 
 const hostname = "https://2016375-f5d5d5.gitlab.io";
@@ -42,6 +43,7 @@ export default defineConfig({
 			output: {
 				postBanner: `/* Consulta la información de derechos de autor de las dependencias incluidas aquí: ${hostname}/licencias.md\nObtén más información sobre el código fuente y las licencias GPL y LGPL en la página principal: ${hostname} */`,
 			},
+			plugins: [swc.rolldown()],
 		},
 		chunkSizeWarningLimit: 1200, // p5.js es grande :(
 	},

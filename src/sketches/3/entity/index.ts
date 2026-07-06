@@ -38,9 +38,13 @@ export class Entity {
 		height: number;
 	};
 
+	/**
+	 * La caja de colisión actual, incluso si no se ha establecido una explícitamente
+	 * con la propiedad pública `hitbox`.
+	 */
 	get #hitbox(): { width: number; height: number } {
 		return (
-			this.#hitbox ?? {
+			this.hitbox ?? {
 				width: this.width,
 				height: this.height,
 			}
@@ -79,7 +83,84 @@ export class Entity {
 	 * términos del espacio de coordenadas del escenario.
 	 */
 	displace(delta: [number, number]) {
-		// TODO: comprobar hitboxes de las otras entidades
+		const target: [number, number] = [
+			this.position[0] + delta[0],
+			this.position[1] + delta[1],
+		];
+
+		const pixels: [number, number] = [
+			Math.abs(
+				Math.floor(this.position[0]) - Math.floor(this.position[0] + delta[0]),
+			),
+			Math.abs(
+				Math.floor(this.position[1]) - Math.floor(this.position[1] + delta[1]),
+			),
+		];
+
+		let wall: [number, number] = target;
+
+		ray: for (let i = 0; i <= pixels[0]; ++i) {
+			const k =
+				Math.floor(
+					this.position[0] + Math.sign(delta[0]) * (this.#hitbox.width / 2),
+				) +
+				Math.sign(delta[0]) * i;
+
+			const x = k - Math.sign(delta[0]) * (this.#hitbox.width / 2);
+			const y =
+				this.position[1] +
+				(i !== 0 ? (x - this.position[0]) * (delta[1] / delta[0]) : 0);
+
+			for (
+				let j = Math.floor(y - this.#hitbox.height / 2);
+				j <= Math.floor(y + this.#hitbox.height / 2);
+				++j
+			) {
+				if (this.stage.collidesAt([k, j], this)) {
+					wall = [x, y];
+					break ray;
+				}
+			}
+		}
+
+		let ceiling: [number, number] = target;
+
+		ray: for (let i = 0; i <= pixels[1]; ++i) {
+			const k =
+				Math.floor(
+					this.position[1] + Math.sign(delta[1]) * (this.#hitbox.height / 2),
+				) +
+				Math.sign(delta[1]) * i;
+
+			const y = k - Math.sign(delta[1]) * (this.#hitbox.height / 2);
+			const x =
+				this.position[0] +
+				(i !== 0 ? (this.position[1] - y) * (delta[0] / delta[1]) : 0);
+
+			for (
+				let j = Math.floor(x - this.#hitbox.width / 2);
+				j <= Math.floor(x + this.#hitbox.width / 2);
+				++j
+			) {
+				if (this.stage.collidesAt([j, k], this)) {
+					ceiling = [x, y];
+					break ray;
+				}
+			}
+		}
+
+		const wallNormSquared =
+			(wall[0] - this.position[0]) ** 2 + (wall[1] - this.position[1]) ** 2;
+
+		const ceilingNormSquared =
+			(ceiling[0] - this.position[0]) ** 2 +
+			(ceiling[1] - this.position[1]) ** 2;
+
+		if (wallNormSquared > ceilingNormSquared) {
+			this.position = ceiling;
+		} else {
+			this.position = wall;
+		}
 	}
 
 	assignToStage(stage: Stage) {

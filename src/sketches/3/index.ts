@@ -2,7 +2,6 @@ import "../../displayErrors";
 import p5 from "p5";
 import { Navigator, Page } from "../../pages";
 import { Protagonist, type ProtagonistEntity } from "./characters/protagonist";
-import { EntityArt } from "./entity/art";
 import { Stage } from "./stage";
 
 class GamePage extends Page {

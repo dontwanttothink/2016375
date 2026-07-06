@@ -197,10 +197,30 @@ export class Stage {
 		this.collision = [];
 		for (let i = 0; i < collision.pixels.length; i += 4) {
 			const pixel = collision.pixels.slice(i, i + 4);
-			this.collision.push(pixel.every((channel) => channel === 0));
+			this.collision.push(
+				pixel.every((channel, i) => channel === 0 || i === 3),
+			);
 		}
 
 		this.grid = grid;
+	}
+
+	collidesAt(position: [number, number], except?: Entity) {
+		if (position.some((v) => !Number.isInteger(v))) {
+			throw new TypeError(`the position ${position} is not valid`);
+		}
+		// TODO: check entities
+
+		const index = position[1] * this.width + position[0];
+		if (
+			position.some((v) => v < 0) ||
+			position[0] >= this.width ||
+			position[1] >= this.height
+		) {
+			return true;
+		}
+
+		return this.collision[index];
 	}
 
 	addEntity(entity: Entity) {
@@ -260,6 +280,47 @@ export class Stage {
 
 		for (const entity of this.entities) {
 			entity.draw();
+		}
+
+		if (import.meta.env.MODE === "DEBUG") {
+			this.p.push();
+			this.p.stroke(0, 100);
+			for (let i = 0; i <= this.height; ++i) {
+				this.p.line(
+					0,
+					this.screenOrigin()[1] + i * this.scale,
+					this.p.width,
+					this.screenOrigin()[1] + i * this.scale,
+				);
+			}
+
+			for (let i = 0; i <= this.width; ++i) {
+				this.p.line(
+					this.screenOrigin()[0] + i * this.scale,
+					0,
+					this.screenOrigin()[0] + i * this.scale,
+					this.p.height,
+				);
+			}
+
+			const stageCoordinates = this.fromScreenSpace([
+				this.p.mouseX,
+				this.p.mouseY,
+			]).map(Math.floor) as [number, number];
+
+			this.p.textAlign(this.p.LEFT, this.p.TOP);
+			this.p.noStroke();
+			this.p.text(
+				`${stageCoordinates} ${this.collidesAt(stageCoordinates)}`,
+				0,
+				0,
+			);
+
+			if (this.collidesAt(stageCoordinates)) {
+				this.p.textAlign(this.p.CENTER);
+				this.p.text("c", this.p.mouseX, this.p.mouseY - 20);
+			}
+			this.p.pop();
 		}
 	}
 }
