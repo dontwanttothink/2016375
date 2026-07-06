@@ -1,4 +1,3 @@
-import type p5 from "p5";
 import type { Stage } from "../stage";
 import type { EntityArt } from "./art";
 
