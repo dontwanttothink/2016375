@@ -112,7 +112,7 @@ export class Entity {
 
 			for (
 				let j = Math.floor(y - this.#hitbox.height / 2);
-				j <= Math.floor(y + this.#hitbox.height / 2);
+				j <= y + this.#hitbox.height / 2;
 				++j
 			) {
 				if (this.stage.collidesAt([k, j], this)) {
@@ -138,7 +138,7 @@ export class Entity {
 
 			for (
 				let j = Math.floor(x - this.#hitbox.width / 2);
-				j <= Math.floor(x + this.#hitbox.width / 2);
+				j <= x + this.#hitbox.width / 2;
 				++j
 			) {
 				if (this.stage.collidesAt([j, k], this)) {

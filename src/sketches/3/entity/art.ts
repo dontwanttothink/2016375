@@ -178,7 +178,7 @@ export class EntityArt {
 
 		if (import.meta.env.MODE === "DEBUG") {
 			this.p.push();
-			this.p.stroke(0, 100);
+			this.p.stroke(255, 0, 0, 100);
 			this.p.fill(200, 50);
 			this.p.circle(x, y, 10);
 

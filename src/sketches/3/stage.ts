@@ -278,6 +278,20 @@ export class Stage {
 		);
 		this.p.pop();
 
+		if (import.meta.env.MODE === "DEBUG") {
+			this.p.push();
+			this.p.fill(255, 255, 255, 255);
+			for (const [i, occupied] of this.collision.entries()) {
+				if (occupied) {
+					this.p.square(
+						...this.toScreenSpace([i % this.width, Math.floor(i / this.width)]),
+						this.scale,
+					);
+				}
+			}
+			this.p.pop();
+		}
+
 		for (const entity of this.entities) {
 			entity.draw();
 		}
