@@ -174,7 +174,6 @@ export class Entity {
 		} else {
 			this.position = wall;
 		}
-		console.log(this.position);
 	}
 
 	assignToStage(stage: Stage) {
