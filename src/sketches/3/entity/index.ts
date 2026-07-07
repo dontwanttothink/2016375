@@ -141,7 +141,7 @@ export class Entity {
 				Math.sign(delta[1]) * i;
 
 			let y = k - Math.sign(delta[1]) * (this.#hitbox.height / 2);
-			if (delta[1] === -1) {
+			if (Math.sign(delta[1]) === -1) {
 				y = y + 1 + FORCE_FIELD;
 			}
 
