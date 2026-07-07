@@ -10,19 +10,19 @@ export class ProtagonistEntity extends Entity {
 	}
 
 	up() {
-		this.displace([0, -0.1]);
+		this.displace([0, -1]);
 	}
 
 	down() {
-		this.displace([0, 0.1]);
+		this.displace([0, 1]);
 	}
 
 	left() {
-		this.displace([-0.1, 0]);
+		this.displace([-1, 0]);
 	}
 
 	right() {
-		this.displace([0.1, 0]);
+		this.displace([1, 0]);
 	}
 }
 

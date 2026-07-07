@@ -1,6 +1,49 @@
 import type p5 from "p5";
 import type { Entity } from "./entity";
 
+interface DebugCellHighlight {
+	location: [number, number];
+	since: number;
+}
+
+class StageDebug {
+	p: p5;
+	stage: Stage;
+	highlights: Set<DebugCellHighlight> = new Set();
+
+	static HIGHLIGHT_DURATION = 100;
+
+	constructor(p: p5, stage: Stage) {
+		this.p = p;
+		this.stage = stage;
+	}
+
+	highlight(location: [number, number]) {
+		this.highlights.add({
+			location,
+			since: this.p.millis(),
+		});
+	}
+
+	draw() {
+		this.p.push();
+		this.p.noStroke();
+
+		for (const highlight of this.highlights) {
+			const { since, location } = highlight;
+			const t = (this.p.millis() - since) / StageDebug.HIGHLIGHT_DURATION;
+			this.p.fill(255, 0, 0, (1 - t) * 230);
+			this.p.square(...this.stage.toScreenSpace(location), this.stage.scale);
+
+			if (t > 1) {
+				this.highlights.delete(highlight);
+			}
+		}
+
+		this.p.pop();
+	}
+}
+
 interface StageGridDescriptor {
 	origin: [number, number];
 	cellSize: number;
@@ -149,15 +192,24 @@ export class Stage {
 
 		const { origin, cellSize, width, height } = gridProperties;
 
-		return new Stage(
+		const stage = new Stage(
 			p,
 			background,
 			collision,
 			new StageGrid(origin, cellSize, width, height),
+			name,
 		);
+		return stage;
 	}
 
 	private p: p5;
+
+	/**
+	 * Se usa solo para dar mejores mensajes diagnósticos.
+	 */
+	name?: string;
+
+	readonly debug: StageDebug;
 
 	private background: p5.Image;
 	private collision: boolean[];
@@ -178,8 +230,10 @@ export class Stage {
 		background: p5.Image,
 		collision: p5.Image,
 		grid: StageGrid,
+		name?: string,
 	) {
 		this.p = p;
+		this.name = name;
 
 		if (
 			background.width !== collision.width ||
@@ -195,14 +249,35 @@ export class Stage {
 		// extraer datos de colisión de la textura
 		collision.loadPixels();
 		this.collision = [];
+
+		const strangePixels = new Set();
+
 		for (let i = 0; i < collision.pixels.length; i += 4) {
-			const pixel = collision.pixels.slice(i, i + 4);
-			this.collision.push(
-				pixel.every((channel, i) => channel === 0 || i === 3),
+			const pixel = collision.pixels.slice(
+				i,
+				i + 4,
+			) as unknown as Uint8ClampedArray; // la definición de p5 no es correcta
+
+			this.collision.push(!pixel.every((channel) => channel > 5));
+
+			if (
+				!pixel.every((c) => c === 255) &&
+				!pixel.every((c, i) => c === 0 || i === 3)
+			) {
+				strangePixels.add(
+					[...pixel].map((p) => String(p).padStart(3, "0")).join(", "),
+				);
+			}
+		}
+
+		if (strangePixels.size > 0) {
+			console.warn(
+				`Hay pixeles extraños en la colisión${this.name ? ` de "${this.name}"` : ""}:\n\n\t${[...strangePixels].join("\n\t")}\n\nChromium (y no Gecko ni WebKit) parece hacer algo que modifica nuestras imágenes antes de que podamos acceder a sus valores exactos por pixel. Si todo parece funcionar bien, lo más probable es que esta advertencia se pueda ignorar.`,
 			);
 		}
 
 		this.grid = grid;
+		this.debug = new StageDebug(this.p, this);
 	}
 
 	collidesAt(position: [number, number], except?: Entity) {
@@ -335,6 +410,8 @@ export class Stage {
 				this.p.text("c", this.p.mouseX, this.p.mouseY - 20);
 			}
 			this.p.pop();
+
+			this.debug.draw();
 		}
 	}
 }

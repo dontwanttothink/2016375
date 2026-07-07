@@ -82,6 +82,9 @@ export class Entity {
 	 * términos del espacio de coordenadas del escenario.
 	 */
 	displace(delta: [number, number]) {
+		// Esto corrige problemas causados por imprecisión, creo
+		const FORCE_FIELD = 0.1;
+
 		const target: [number, number] = [
 			this.position[0] + delta[0],
 			this.position[1] + delta[1],
@@ -105,17 +108,22 @@ export class Entity {
 				) +
 				Math.sign(delta[0]) * i;
 
-			const x = k - Math.sign(delta[0]) * (this.#hitbox.width / 2);
+			let x = k - Math.sign(delta[0]) * (this.#hitbox.width / 2);
+			if (Math.sign(delta[0]) === -1) {
+				x = x + 1 + FORCE_FIELD;
+			}
+
 			const y =
 				this.position[1] +
 				(i !== 0 ? (x - this.position[0]) * (delta[1] / delta[0]) : 0);
 
 			for (
 				let j = Math.floor(y - this.#hitbox.height / 2);
-				j <= y + this.#hitbox.height / 2;
+				j < y + this.#hitbox.height / 2;
 				++j
 			) {
 				if (this.stage.collidesAt([k, j], this)) {
+					this.stage.debug.highlight([k, j]);
 					wall = [x, y];
 					break ray;
 				}
@@ -125,23 +133,29 @@ export class Entity {
 		let ceiling: [number, number] = target;
 
 		ray: for (let i = 0; i <= pixels[1]; ++i) {
+			// La fila que vamos a probar
 			const k =
 				Math.floor(
 					this.position[1] + Math.sign(delta[1]) * (this.#hitbox.height / 2),
 				) +
 				Math.sign(delta[1]) * i;
 
-			const y = k - Math.sign(delta[1]) * (this.#hitbox.height / 2);
+			let y = k - Math.sign(delta[1]) * (this.#hitbox.height / 2);
+			if (delta[1] === -1) {
+				y = y + 1 + FORCE_FIELD;
+			}
+
 			const x =
 				this.position[0] +
 				(i !== 0 ? (this.position[1] - y) * (delta[0] / delta[1]) : 0);
 
 			for (
 				let j = Math.floor(x - this.#hitbox.width / 2);
-				j <= x + this.#hitbox.width / 2;
+				j < x + this.#hitbox.width / 2;
 				++j
 			) {
 				if (this.stage.collidesAt([j, k], this)) {
+					this.stage.debug.highlight([j, k]);
 					ceiling = [x, y];
 					break ray;
 				}
@@ -160,6 +174,7 @@ export class Entity {
 		} else {
 			this.position = wall;
 		}
+		console.log(this.position);
 	}
 
 	assignToStage(stage: Stage) {
