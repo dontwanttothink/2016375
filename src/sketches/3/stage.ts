@@ -25,7 +25,7 @@ class StageDebug {
 		});
 	}
 
-	draw() {
+	drawHighlights() {
 		this.p.push();
 		this.p.noStroke();
 
@@ -40,6 +40,40 @@ class StageDebug {
 			}
 		}
 
+		this.p.pop();
+	}
+
+	drawGrid() {
+		this.p.push();
+		this.p.stroke("red");
+		for (
+			let i = 0;
+			i * this.stage.grid.cellSize <
+			Math.max(this.stage.width, this.stage.height);
+			++i
+		) {
+			this.p.line(
+				...this.stage.toScreenSpace([
+					0,
+					this.stage.grid.origin[1] + i * this.stage.grid.cellSize,
+				]),
+				...this.stage.toScreenSpace([
+					this.stage.width,
+					this.stage.grid.origin[1] + i * this.stage.grid.cellSize,
+				]),
+			);
+
+			this.p.line(
+				...this.stage.toScreenSpace([
+					this.stage.grid.origin[0] + i * this.stage.grid.cellSize,
+					0,
+				]),
+				...this.stage.toScreenSpace([
+					this.stage.grid.origin[0] + i * this.stage.grid.cellSize,
+					this.stage.height,
+				]),
+			);
+		}
 		this.p.pop();
 	}
 }
@@ -107,6 +141,10 @@ export class StageGrid {
 
 	width: number;
 	height: number;
+
+	/**
+	 * en términos de un pixel del escenario
+	 */
 	cellSize: number;
 
 	constructor(
@@ -411,7 +449,8 @@ export class Stage {
 			}
 			this.p.pop();
 
-			this.debug.draw();
+			this.debug.drawHighlights();
+			this.debug.drawGrid();
 		}
 	}
 }
