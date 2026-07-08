@@ -427,7 +427,7 @@ export class Stage {
 			this.p.textAlign(this.p.LEFT, this.p.TOP);
 			this.p.noStroke();
 			this.p.text(
-				`${stageCoordinates} ${this.collidesAt(stageCoordinates)}`,
+				`${stageCoordinates} ${this.collidesAt(stageCoordinates)} ${this.p.deltaTime}`,
 				0,
 				0,
 			);
