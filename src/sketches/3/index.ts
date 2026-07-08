@@ -27,28 +27,9 @@ class GamePage extends Page {
 	draw(p: p5) {
 		p.clear();
 		this.world.draw();
-		this.respondToKeyboard(p);
 	}
 
 	mouseClicked() {}
-
-	respondToKeyboard(p: p5) {
-		if (p.keyIsDown(p.UP_ARROW)) {
-			this.protagonist.up();
-		}
-
-		if (p.keyIsDown(p.DOWN_ARROW)) {
-			this.protagonist.down();
-		}
-
-		if (p.keyIsDown(p.LEFT_ARROW)) {
-			this.protagonist.left();
-		}
-
-		if (p.keyIsDown(p.RIGHT_ARROW)) {
-			this.protagonist.right();
-		}
-	}
 }
 
 const navigator = new Navigator(GamePage, []);
