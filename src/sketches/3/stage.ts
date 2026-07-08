@@ -255,6 +255,11 @@ export class Stage {
 
 	private entities: Entity[] = [];
 
+	/**
+	 * Espacio que reservar bajo el escenario, en pixeles del espacio de la pantalla.
+	 */
+	bottomMargin: number = 0;
+
 	grid: StageGrid;
 
 	get width(): number {
