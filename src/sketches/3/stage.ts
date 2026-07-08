@@ -81,8 +81,6 @@ class StageDebug {
 interface StageGridDescriptor {
 	origin: [number, number];
 	cellSize: number;
-	width: number;
-	height: number;
 }
 
 export class StageGrid {
@@ -106,26 +104,10 @@ export class StageGrid {
 			throw new TypeError(msg("indicar el tamaño de una celda (cellSize)"));
 		}
 
-		if (!("width" in descriptor)) {
-			throw new TypeError(msg("indicar el número de columnas (width)"));
-		}
-
-		if (!("height" in descriptor)) {
-			throw new TypeError(msg("indicar el número de filas (height)"));
-		}
-
-		const { cellSize, width, height, origin } = descriptor;
+		const { cellSize, origin } = descriptor;
 
 		if (typeof cellSize !== "number") {
 			throw new TypeError("cellSize debe ser un número.");
-		}
-
-		if (typeof width !== "number") {
-			throw new TypeError("width debe ser un número.");
-		}
-
-		if (typeof height !== "number") {
-			throw new TypeError("height debe ser un número.");
 		}
 
 		if (
@@ -139,23 +121,13 @@ export class StageGrid {
 
 	origin: [number, number];
 
-	width: number;
-	height: number;
-
 	/**
 	 * en términos de un pixel del escenario
 	 */
 	cellSize: number;
 
-	constructor(
-		origin: [number, number],
-		cellSize: number,
-		width: number,
-		height: number,
-	) {
+	constructor(origin: [number, number], cellSize: number) {
 		this.origin = origin;
-		this.width = width;
-		this.height = height;
 		this.cellSize = cellSize;
 	}
 
@@ -228,13 +200,13 @@ export class Stage {
 
 		StageGrid.assertIsValidDescriptor(gridProperties, gridPropertiesURL);
 
-		const { origin, cellSize, width, height } = gridProperties;
+		const { origin, cellSize } = gridProperties;
 
 		const stage = new Stage(
 			p,
 			background,
 			collision,
-			new StageGrid(origin, cellSize, width, height),
+			new StageGrid(origin, cellSize),
 			name,
 		);
 		return stage;
@@ -393,6 +365,7 @@ export class Stage {
 
 		if (import.meta.env.MODE === "DEBUG") {
 			this.p.push();
+			this.p.noStroke();
 			this.p.fill(255, 255, 255, 255);
 			for (const [i, occupied] of this.collision.entries()) {
 				if (occupied) {
@@ -410,26 +383,6 @@ export class Stage {
 		}
 
 		if (import.meta.env.MODE === "DEBUG") {
-			this.p.push();
-			this.p.stroke(0, 100);
-			for (let i = 0; i <= this.height; ++i) {
-				this.p.line(
-					0,
-					this.screenOrigin()[1] + i * this.scale,
-					this.p.width,
-					this.screenOrigin()[1] + i * this.scale,
-				);
-			}
-
-			for (let i = 0; i <= this.width; ++i) {
-				this.p.line(
-					this.screenOrigin()[0] + i * this.scale,
-					0,
-					this.screenOrigin()[0] + i * this.scale,
-					this.p.height,
-				);
-			}
-
 			const stageCoordinates = this.fromScreenSpace([
 				this.p.mouseX,
 				this.p.mouseY,

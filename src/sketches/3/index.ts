@@ -10,7 +10,7 @@ class GamePage extends Page {
 	protagonist!: ProtagonistEntity;
 
 	async preload(p: p5) {
-		const exampleStage = await Stage.fromName(p, "example");
+		const exampleStage = await Stage.fromName(p, "entrada");
 
 		this.protagonist = await Protagonist(p, [
 			exampleStage.width / 2,

@@ -3,12 +3,6 @@ import { Entity } from "../entity";
 import { EntityArt } from "../entity/art";
 
 export class ProtagonistEntity extends Entity {
-	constructor(art: EntityArt, position: [number, number]) {
-		super(art, position);
-		this.height *= 0.3;
-		this.width *= 0.3;
-	}
-
 	up() {
 		this.displace([0, -1]);
 	}
