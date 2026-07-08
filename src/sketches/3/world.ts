@@ -1,12 +1,22 @@
+import type p5 from "p5";
 import type { Stage } from "./stage";
 
 export class World {
+	p: p5;
+
 	currentStage: Stage;
 
-	constructor(stage: Stage) {
+	constructor(p: p5, stage: Stage) {
+		this.p = p;
 		this.currentStage = stage;
 	}
 
-	// TODO
-	transitionTo(newStage: Stage) {}
+	transitionTo(newStage: Stage) {
+		// TODO: animación
+		this.currentStage = newStage;
+	}
+
+	draw() {
+		this.currentStage.draw();
+	}
 }

@@ -3,19 +3,21 @@ import p5 from "p5";
 import { Navigator, Page } from "../../pages";
 import { Protagonist, type ProtagonistEntity } from "./characters/protagonist";
 import { Stage } from "./stage";
+import { World } from "./world";
 
 class GamePage extends Page {
-	exampleStage!: Stage;
-	exampleEntity!: ProtagonistEntity;
+	world!: World;
+	protagonist!: ProtagonistEntity;
 
 	async preload(p: p5) {
-		this.exampleStage = await Stage.fromName(p, "example");
+		const exampleStage = await Stage.fromName(p, "example");
 
-		this.exampleEntity = await Protagonist(p, [
-			this.exampleStage.width / 2,
-			this.exampleStage.height / 2,
+		this.protagonist = await Protagonist(p, [
+			exampleStage.width / 2,
+			exampleStage.height / 2,
 		]);
-		this.exampleStage.addEntity(this.exampleEntity);
+		exampleStage.addEntity(this.protagonist);
+		this.world = new World(p, exampleStage);
 	}
 
 	setup(p: p5) {
@@ -24,7 +26,7 @@ class GamePage extends Page {
 
 	draw(p: p5) {
 		p.clear();
-		this.exampleStage.draw();
+		this.world.draw();
 		this.respondToKeyboard(p);
 	}
 
@@ -32,19 +34,19 @@ class GamePage extends Page {
 
 	respondToKeyboard(p: p5) {
 		if (p.keyIsDown(p.UP_ARROW)) {
-			this.exampleEntity.up();
+			this.protagonist.up();
 		}
 
 		if (p.keyIsDown(p.DOWN_ARROW)) {
-			this.exampleEntity.down();
+			this.protagonist.down();
 		}
 
 		if (p.keyIsDown(p.LEFT_ARROW)) {
-			this.exampleEntity.left();
+			this.protagonist.left();
 		}
 
 		if (p.keyIsDown(p.RIGHT_ARROW)) {
-			this.exampleEntity.right();
+			this.protagonist.right();
 		}
 	}
 }
