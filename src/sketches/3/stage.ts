@@ -119,6 +119,23 @@ export class StageGrid {
 		}
 	}
 
+	#p?: p5;
+	#stage?: Stage;
+
+	get p(): p5 {
+		if (!this.#p) {
+			throw new ReferenceError();
+		}
+		return this.#p;
+	}
+
+	get stage(): Stage {
+		if (!this.#stage) {
+			throw new ReferenceError();
+		}
+		return this.#stage;
+	}
+
 	origin: [number, number];
 
 	/**
@@ -129,6 +146,11 @@ export class StageGrid {
 	constructor(origin: [number, number], cellSize: number) {
 		this.origin = origin;
 		this.cellSize = cellSize;
+	}
+
+	assignToStage(p: p5, stage: Stage) {
+		this.#p = p;
+		this.#stage = stage;
 	}
 
 	fromStageSpace(location: [number, number]): [number, number] {
@@ -144,6 +166,13 @@ export class StageGrid {
 			this.origin[1] + gridLocation[1] * this.cellSize,
 		];
 	}
+
+	highlight(radius: number, from: [number, number]) {
+		// this.#since;
+		// this.#highlight =
+	}
+
+	drawHighlights() {}
 }
 
 /**
@@ -286,7 +315,9 @@ export class Stage {
 			);
 		}
 
+		grid.assignToStage(p, this);
 		this.grid = grid;
+
 		this.debug = new StageDebug(this.p, this);
 	}
 
