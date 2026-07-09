@@ -284,7 +284,7 @@ export class Stage {
 			background.height !== collision.height
 		) {
 			throw new TypeError(
-				`Las dimensiones del fondo y de la textura de colisión deben ser iguales. ("${name ?? "ningún nombre proporcionado"}")`,
+				`Las dimensiones del fondo y de la textura de colisión deben ser iguales. (${name ? `"${name}"` : "ningún nombre proporcionado"})`,
 			);
 		}
 
