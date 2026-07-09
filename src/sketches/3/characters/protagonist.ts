@@ -4,7 +4,7 @@ import { EntityArt } from "../entity/art";
 
 export class ProtagonistEntity extends Entity {}
 
-export async function Protagonist(p: p5, location: [number, number]) {
+export async function Protagonist(p: p5, location: [number, number] = [0, 0]) {
 	const art = await EntityArt.fromName(p, "protagonist");
 	art.center[1] = 15;
 

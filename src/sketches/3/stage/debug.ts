@@ -78,6 +78,7 @@ export class StageDebug {
 	}
 
 	drawCollision(collision: boolean[]) {
+		this.p.push();
 		if (!this.p.keyIsDown("C")) {
 			return;
 		}
@@ -97,5 +98,28 @@ export class StageDebug {
 			}
 		}
 		this.p.pop();
+	}
+
+	drawPerformance() {
+		this.p.textFont("monospace");
+		this.p.textAlign(this.p.LEFT, this.p.TOP);
+		this.p.noStroke();
+		this.p.text(`${this.p.deltaTime.toFixed(2)} ms`, 0, 0);
+	}
+
+	drawPositions() {
+		const stageCoordinates = this.stage
+			.fromScreenSpace([this.p.mouseX, this.p.mouseY])
+			.map(Math.floor) as [number, number];
+
+		this.p.textAlign(this.p.LEFT, this.p.TOP);
+		this.p.noStroke();
+		this.p.text(
+			`${this.stage.collidesAt(stageCoordinates) ? "c" : "∅"} ${stageCoordinates.join(", ")} (${this.stage.grid
+				.fromStageSpace(stageCoordinates)
+				.join(", ")})`,
+			0,
+			16,
+		);
 	}
 }

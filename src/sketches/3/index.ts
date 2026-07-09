@@ -2,7 +2,7 @@ import "../../displayErrors";
 import p5 from "p5";
 import { Navigator, Page } from "../../pages";
 import { Protagonist, type ProtagonistEntity } from "./characters/protagonist";
-import { Stage } from "./stage";
+import { Entrada } from "./scenes/entrada";
 import { World } from "./world";
 
 class GamePage extends Page {
@@ -10,14 +10,8 @@ class GamePage extends Page {
 	protagonist!: ProtagonistEntity;
 
 	async preload(p: p5) {
-		const exampleStage = await Stage.fromName(p, "entrada");
-
-		this.protagonist = await Protagonist(p, [
-			exampleStage.width / 2,
-			exampleStage.height / 2,
-		]);
-		exampleStage.addEntity(this.protagonist);
-		this.world = new World(p, exampleStage);
+		this.protagonist = await Protagonist(p);
+		this.world = new World(p, await Entrada(p, this.protagonist));
 	}
 
 	setup(p: p5) {

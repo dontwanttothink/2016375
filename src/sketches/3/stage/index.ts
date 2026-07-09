@@ -86,8 +86,8 @@ export class StageGrid {
 
 	toStageSpace(gridLocation: [number, number]): [number, number] {
 		return [
-			this.origin[0] + gridLocation[0] * this.cellSize,
-			this.origin[1] + gridLocation[1] * this.cellSize,
+			this.origin[0] + (gridLocation[0] + 0.5) * this.cellSize,
+			this.origin[1] + (gridLocation[1] + 0.5) * this.cellSize,
 		];
 	}
 
@@ -329,28 +329,12 @@ export class Stage {
 
 		if (import.meta.env.MODE === "DEBUG") {
 			this.p.push();
-			const stageCoordinates = this.fromScreenSpace([
-				this.p.mouseX,
-				this.p.mouseY,
-			]).map(Math.floor) as [number, number];
-
-			this.p.textAlign(this.p.LEFT, this.p.TOP);
-			this.p.noStroke();
-			this.p.text(
-				`${stageCoordinates} ${this.collidesAt(stageCoordinates)} ${this.p.deltaTime.toFixed(2)}`,
-				0,
-				0,
-			);
-
-			if (this.collidesAt(stageCoordinates)) {
-				this.p.textAlign(this.p.CENTER);
-				this.p.text("c", this.p.mouseX, this.p.mouseY - 20);
-			}
-			this.p.pop();
-
 			this.debug.drawCollision(this.collision);
 			this.debug.drawHighlights();
 			this.debug.drawGrid();
+			this.debug.drawPerformance();
+			this.debug.drawPositions();
+			this.p.pop();
 		}
 	}
 }
