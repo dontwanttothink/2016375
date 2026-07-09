@@ -15,8 +15,7 @@ class GamePage extends Page {
 	}
 
 	setup(p: p5) {
-		// quizá tener un máximo de 120 fotogramas por segundo
-		p.frameRate(120);
+		p.frameRate(Infinity);
 		p.noStroke();
 	}
 
