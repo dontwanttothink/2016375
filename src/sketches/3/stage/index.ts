@@ -1,82 +1,6 @@
 import type p5 from "p5";
-import type { Entity } from "./entity";
-
-interface DebugCellHighlight {
-	location: [number, number];
-	since: number;
-}
-
-class StageDebug {
-	p: p5;
-	stage: Stage;
-	highlights: Set<DebugCellHighlight> = new Set();
-
-	static HIGHLIGHT_DURATION = 100;
-
-	constructor(p: p5, stage: Stage) {
-		this.p = p;
-		this.stage = stage;
-	}
-
-	highlight(location: [number, number]) {
-		this.highlights.add({
-			location,
-			since: this.p.millis(),
-		});
-	}
-
-	drawHighlights() {
-		this.p.push();
-		this.p.noStroke();
-
-		for (const highlight of this.highlights) {
-			const { since, location } = highlight;
-			const t = (this.p.millis() - since) / StageDebug.HIGHLIGHT_DURATION;
-			this.p.fill(255, 0, 0, (1 - t) * 230);
-			this.p.square(...this.stage.toScreenSpace(location), this.stage.scale);
-
-			if (t > 1) {
-				this.highlights.delete(highlight);
-			}
-		}
-
-		this.p.pop();
-	}
-
-	drawGrid() {
-		this.p.push();
-		this.p.stroke("red");
-		for (
-			let i = 0;
-			i * this.stage.grid.cellSize <
-			Math.max(this.stage.width, this.stage.height);
-			++i
-		) {
-			this.p.line(
-				...this.stage.toScreenSpace([
-					0,
-					this.stage.grid.origin[1] + i * this.stage.grid.cellSize,
-				]),
-				...this.stage.toScreenSpace([
-					this.stage.width,
-					this.stage.grid.origin[1] + i * this.stage.grid.cellSize,
-				]),
-			);
-
-			this.p.line(
-				...this.stage.toScreenSpace([
-					this.stage.grid.origin[0] + i * this.stage.grid.cellSize,
-					0,
-				]),
-				...this.stage.toScreenSpace([
-					this.stage.grid.origin[0] + i * this.stage.grid.cellSize,
-					this.stage.height,
-				]),
-			);
-		}
-		this.p.pop();
-	}
-}
+import type { Entity } from "../entity";
+import { StageDebug } from "./debug";
 
 interface StageGridDescriptor {
 	origin: [number, number];
@@ -399,26 +323,12 @@ export class Stage {
 		);
 		this.p.pop();
 
-		if (import.meta.env.MODE === "DEBUG") {
-			this.p.push();
-			this.p.noStroke();
-			this.p.fill(255, 255, 255, 255);
-			for (const [i, occupied] of this.collision.entries()) {
-				if (occupied) {
-					this.p.square(
-						...this.toScreenSpace([i % this.width, Math.floor(i / this.width)]),
-						this.scale,
-					);
-				}
-			}
-			this.p.pop();
-		}
-
 		for (const entity of this.entities) {
 			entity.draw();
 		}
 
 		if (import.meta.env.MODE === "DEBUG") {
+			this.p.push();
 			const stageCoordinates = this.fromScreenSpace([
 				this.p.mouseX,
 				this.p.mouseY,
@@ -427,7 +337,7 @@ export class Stage {
 			this.p.textAlign(this.p.LEFT, this.p.TOP);
 			this.p.noStroke();
 			this.p.text(
-				`${stageCoordinates} ${this.collidesAt(stageCoordinates)} ${this.p.deltaTime}`,
+				`${stageCoordinates} ${this.collidesAt(stageCoordinates)} ${this.p.deltaTime.toFixed(2)}`,
 				0,
 				0,
 			);
@@ -438,6 +348,7 @@ export class Stage {
 			}
 			this.p.pop();
 
+			this.debug.drawCollision(this.collision);
 			this.debug.drawHighlights();
 			this.debug.drawGrid();
 		}

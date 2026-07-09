@@ -176,23 +176,6 @@ export class EntityArt {
 			h,
 		);
 
-		if (import.meta.env.MODE === "DEBUG") {
-			this.p.push();
-			this.p.stroke(255, 0, 0, 100);
-			this.p.fill(200, 50);
-			this.p.circle(x, y, 10);
-
-			this.p.noFill();
-			this.p.rect(
-				x - this.center[0] * (w / this.canonical.width),
-				y - this.center[1] * (h / this.canonical.height),
-				w,
-				h,
-			);
-
-			this.p.pop();
-		}
-
 		this.p.pop();
 	}
 }

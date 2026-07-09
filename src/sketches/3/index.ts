@@ -21,6 +21,8 @@ class GamePage extends Page {
 	}
 
 	setup(p: p5) {
+		// quizá tener un máximo de 120 fotogramas por segundo
+		p.frameRate(120);
 		p.noStroke();
 	}
 
@@ -30,6 +32,8 @@ class GamePage extends Page {
 	}
 
 	mouseClicked() {}
+
+	keyPressed(p: p5, event: KeyboardEvent): void {}
 }
 
 const navigator = new Navigator(GamePage, []);

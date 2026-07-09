@@ -5,8 +5,12 @@ import { EntityArt } from "../entity/art";
 export class ProtagonistEntity extends Entity {}
 
 export async function Protagonist(p: p5, location: [number, number]) {
-	const art = await EntityArt.fromName(p, "example");
-	art.loadAnimation("blink");
+	const art = await EntityArt.fromName(p, "protagonist");
+	art.center[1] = 15;
 
-	return new ProtagonistEntity(art, location);
+	const protagonist = new ProtagonistEntity(p, art, location);
+	protagonist.hitbox = {
+		height: 14,
+	};
+	return protagonist;
 }

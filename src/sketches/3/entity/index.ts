@@ -1,3 +1,4 @@
+import type p5 from "p5";
 import type { Stage } from "../stage";
 import type { EntityArt } from "./art";
 
@@ -6,6 +7,8 @@ import type { EntityArt } from "./art";
  * escenario.
  */
 export class Entity {
+	p: p5;
+
 	#stage?: Stage;
 	#art: EntityArt;
 
@@ -29,28 +32,42 @@ export class Entity {
 	 */
 	position: [number, number];
 
+	/**
+	 * El ancho con que se debe dibujar la entidad, en términos del tamaño de un pixel
+	 * del escenario.
+	 */
 	width: number;
+
+	/**
+	 * La altura con que se debe dibujar la entidad, en términos del tamaño de un pixel
+	 * del escenario.
+	 */
 	height: number;
 
-	hitbox?: {
-		width: number;
-		height: number;
-	};
+	/**
+	 * El espacio ocupado por la entidad, en términos del tamaño de un pixel del
+	 * escenario.
+	 */
+	hitbox: {
+		width?: number;
+		height?: number;
+	} = {};
 
 	/**
 	 * La caja de colisión actual, incluso si no se ha establecido una explícitamente
 	 * con la propiedad pública `hitbox`.
 	 */
 	get #hitbox(): { width: number; height: number } {
-		return (
-			this.hitbox ?? {
-				width: this.width,
-				height: this.height,
-			}
-		);
+		return {
+			width: this.width,
+			height: this.height,
+			...this.hitbox,
+		};
 	}
 
-	constructor(art: EntityArt, position: [number, number]) {
+	constructor(p: p5, art: EntityArt, position: [number, number]) {
+		this.p = p;
+
 		this.#art = art;
 
 		this.width = art.appearance.width;
@@ -73,6 +90,23 @@ export class Entity {
 			this.height * this.stage.scale,
 			{ fit: this.fit },
 		);
+
+		if (import.meta.env.MODE === "DEBUG") {
+			this.p.push();
+			this.p.stroke(255, 0, 0, 100);
+			this.p.fill(200, 50);
+			this.p.circle(...this.stage.toScreenSpace(this.position), 10);
+
+			this.p.noFill();
+			this.p.rectMode(this.p.CENTER);
+			this.p.rect(
+				...this.stage.toScreenSpace(this.position),
+				this.#hitbox.width * this.stage.scale,
+				this.#hitbox.height * this.stage.scale,
+			);
+
+			this.p.pop();
+		}
 	}
 
 	/**
