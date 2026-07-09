@@ -26,8 +26,6 @@ class GamePage extends Page {
 	}
 
 	mouseClicked() {}
-
-	keyPressed(p: p5, event: KeyboardEvent): void {}
 }
 
 const navigator = new Navigator(GamePage, []);
