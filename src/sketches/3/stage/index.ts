@@ -197,18 +197,26 @@ export class Stage {
 	}
 
 	/**
-	 * La razón actual entre una unidad en el espacio de pantalla y una unidad en el
-	 * espacio del escenario.
+	 * La razón actual entre una unidad en el espacio de la pantalla y una unidad en
+	 * el espacio del escenario.
 	 */
 	get scale() {
 		return this.screenDimensions()[0] / this.background.width;
 	}
 
+	/**
+	 * Convierte una posición absoluta en el espacio de la pantalla a una posición
+	 * absoluta en el espacio del escenario.
+	 */
 	fromScreenSpace(location: [number, number]): [number, number] {
 		const [x, y] = this.screenOrigin();
 		return [(location[0] - x) / this.scale, (location[1] - y) / this.scale];
 	}
 
+	/**
+	 * Convierte una posición absoluta en el espacio del escenario a una posición
+	 * absoluta en el espacio de la pantalla.
+	 */
 	toScreenSpace(stageLocation: [number, number]): [number, number] {
 		const [x, y] = this.screenOrigin();
 		return [
