@@ -1,4 +1,5 @@
 import type p5 from "p5";
+import { expect, IntegerPairMap } from "../utils";
 import type { Stage } from ".";
 
 interface StageGridDescriptor {
@@ -7,6 +8,8 @@ interface StageGridDescriptor {
 }
 
 export class StageGrid {
+	static HIGHLIGHT_ANIMATION_DURATION: number = 200;
+
 	static assertIsValidDescriptor(
 		descriptor: unknown,
 		source: URL,
@@ -59,6 +62,17 @@ export class StageGrid {
 		return this.#stage;
 	}
 
+	#highlight: {
+		radius: number;
+		from: [number, number];
+		color: p5.Color;
+	} | null = null;
+
+	#highlightedCells: IntegerPairMap<{
+		opacity: number;
+		color: p5.Color;
+	}> = new IntegerPairMap();
+
 	origin: [number, number];
 
 	/**
@@ -90,10 +104,96 @@ export class StageGrid {
 		];
 	}
 
-	highlight(radius: number, from: [number, number]) {
-		// this.#since;
-		// this.#highlight =
+	highlight(radius: number, from: [number, number], color: p5.Color) {
+		this.#highlight = {
+			radius,
+			from,
+			color,
+		};
 	}
 
-	drawHighlights() {}
+	stopHighlighting() {
+		this.#highlight = null;
+	}
+
+	drawHighlights() {
+		if (!this.#highlight && this.#highlightedCells.size === 0) {
+			return;
+		}
+
+		const [startX, startY] = this.fromStageSpace([0, 0]);
+		const [endX, endY] = this.fromStageSpace([
+			this.stage.width,
+			this.stage.height,
+		]);
+
+		this.p.push();
+		this.p.rectMode(this.p.CENTER);
+
+		this.p.noStroke();
+
+		// actualizar estado
+
+		for (let i = startX; i < endX; ++i) {
+			for (let j = startY; j < endY; ++j) {
+				if (this.#isHighlighting([i, j])) {
+					const { color } = expect(this.#highlight);
+					const cellState = this.#highlightedCells.getOrInsert([i, j], {
+						opacity: 0,
+						color,
+					});
+
+					cellState.opacity = Math.min(
+						cellState.opacity +
+							(200 / StageGrid.HIGHLIGHT_ANIMATION_DURATION) * this.p.deltaTime,
+						200,
+					);
+				} else {
+					const cellState = this.#highlightedCells.get([i, j]);
+					if (cellState) {
+						cellState.opacity = Math.max(
+							cellState.opacity -
+								(200 / (StageGrid.HIGHLIGHT_ANIMATION_DURATION / 2)) *
+									this.p.deltaTime,
+							0,
+						);
+
+						if (cellState.opacity === 0) {
+							this.#highlightedCells.delete([i, j]);
+						}
+					}
+				}
+			}
+		}
+
+		// dibujar el estado actual
+
+		for (const [[i, j], cellState] of this.#highlightedCells) {
+			const currentColor = this.p.color(cellState.color);
+			currentColor.setAlpha(cellState.opacity);
+
+			this.p.fill(currentColor);
+			this.p.square(
+				...this.stage.toScreenSpace(this.toStageSpace([i, j])),
+				(this.cellSize - 5) * this.stage.scale,
+				5,
+			);
+		}
+
+		this.p.pop();
+	}
+
+	#isHighlighting(cell: [number, number]) {
+		const [i, j] = cell;
+		if (this.#highlight) {
+			const { from, radius } = this.#highlight;
+			const distance = Math.abs(from[0] - i) + Math.abs(from[1] - j);
+			return (
+				distance <= radius &&
+				distance !== 0 &&
+				!this.stage.collidesAt(this.toStageSpace([i, j]))
+			);
+		}
+		return false;
+	}
 }

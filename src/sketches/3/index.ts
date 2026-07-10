@@ -22,9 +22,37 @@ class GamePage extends Page {
 	draw(p: p5) {
 		p.clear();
 		this.world.draw();
+
+		if (import.meta.env.MODE !== "DEBUG") {
+			return;
+		}
+
+		if (p.keyIsDown(p.UP_ARROW)) {
+			this.protagonist.displace([0, -0.5]);
+		}
+
+		if (p.keyIsDown(p.DOWN_ARROW)) {
+			this.protagonist.displace([0, 0.5]);
+		}
+
+		if (p.keyIsDown(p.LEFT_ARROW)) {
+			this.protagonist.displace([-0.5, 0]);
+		}
+
+		if (p.keyIsDown(p.RIGHT_ARROW)) {
+			this.protagonist.displace([0.5, 0]);
+		}
 	}
 
-	mouseClicked() {}
+	mouseClicked(p: p5) {
+		if (
+			this.protagonist.intersects(
+				this.world.currentStage.fromScreenSpace([p.mouseX, p.mouseY]),
+			)
+		) {
+			this.protagonist.userInteracted();
+		}
+	}
 }
 
 const navigator = new Navigator(GamePage, []);

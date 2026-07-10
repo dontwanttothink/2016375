@@ -227,6 +227,8 @@ export class Stage {
 		);
 		this.p.pop();
 
+		this.grid.drawHighlights();
+
 		for (const entity of this.entities) {
 			entity.draw();
 		}

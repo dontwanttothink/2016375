@@ -51,16 +51,23 @@ export class Entity {
 	hitbox: {
 		width?: number;
 		height?: number;
+
+		/**
+		 * El centro de la caja de colisión, como un delta desde el centro de la
+		 * entidad y en términos de los pixeles del escenario.
+		 */
+		center?: [number, number];
 	} = {};
 
 	/**
 	 * La caja de colisión actual, incluso si no se ha establecido una explícitamente
 	 * con la propiedad pública `hitbox`.
 	 */
-	get #hitbox(): { width: number; height: number } {
+	get #hitbox(): { width: number; height: number; center: [number, number] } {
 		return {
 			width: this.width,
 			height: this.height,
+			center: [0, 0],
 			...this.hitbox,
 		};
 	}
@@ -100,7 +107,10 @@ export class Entity {
 			this.p.noFill();
 			this.p.rectMode(this.p.CENTER);
 			this.p.rect(
-				...this.stage.toScreenSpace(this.position),
+				...this.stage.toScreenSpace([
+					this.position[0] + this.#hitbox.center[0],
+					this.position[1] + this.#hitbox.center[1],
+				]),
 				this.#hitbox.width * this.stage.scale,
 				this.#hitbox.height * this.stage.scale,
 			);
@@ -136,13 +146,12 @@ export class Entity {
 		let wall: [number, number] = target;
 
 		ray: for (let i = 0; i <= pixels[0]; ++i) {
-			const k =
-				Math.floor(
-					this.position[0] + Math.sign(delta[0]) * (this.#hitbox.width / 2),
-				) +
-				Math.sign(delta[0]) * i;
+			const d =
+				this.#hitbox.center[0] + Math.sign(delta[0]) * (this.#hitbox.width / 2);
 
-			let x = k - Math.sign(delta[0]) * (this.#hitbox.width / 2);
+			const k = Math.floor(this.position[0] + d) + Math.sign(delta[0]) * i;
+
+			let x = k - d;
 			if (Math.sign(delta[0]) === -1) {
 				x = x + 1 + FORCE_FIELD;
 			}
@@ -152,8 +161,10 @@ export class Entity {
 				(i !== 0 ? (x - this.position[0]) * (delta[1] / delta[0]) : 0);
 
 			for (
-				let j = Math.floor(y - this.#hitbox.height / 2);
-				j < y + this.#hitbox.height / 2;
+				let j = Math.floor(
+					y + this.#hitbox.center[1] - this.#hitbox.height / 2,
+				);
+				j < y + this.#hitbox.center[1] + this.#hitbox.height / 2;
 				++j
 			) {
 				if (this.stage.collidesAt([k, j], this)) {
@@ -167,14 +178,14 @@ export class Entity {
 		let ceiling: [number, number] = target;
 
 		ray: for (let i = 0; i <= pixels[1]; ++i) {
-			// La fila que vamos a probar
-			const k =
-				Math.floor(
-					this.position[1] + Math.sign(delta[1]) * (this.#hitbox.height / 2),
-				) +
-				Math.sign(delta[1]) * i;
+			const d =
+				this.#hitbox.center[1] +
+				Math.sign(delta[1]) * (this.#hitbox.height / 2);
 
-			let y = k - Math.sign(delta[1]) * (this.#hitbox.height / 2);
+			// La fila que vamos a probar
+			const k = Math.floor(this.position[1] + d) + Math.sign(delta[1]) * i;
+
+			let y = k - d;
 			if (Math.sign(delta[1]) === -1) {
 				y = y + 1 + FORCE_FIELD;
 			}
@@ -184,8 +195,8 @@ export class Entity {
 				(i !== 0 ? (this.position[1] - y) * (delta[0] / delta[1]) : 0);
 
 			for (
-				let j = Math.floor(x - this.#hitbox.width / 2);
-				j < x + this.#hitbox.width / 2;
+				let j = Math.floor(x + this.#hitbox.center[0] - this.#hitbox.width / 2);
+				j < x + this.#hitbox.center[0] + this.#hitbox.width / 2;
 				++j
 			) {
 				if (this.stage.collidesAt([j, k], this)) {
@@ -218,5 +229,13 @@ export class Entity {
 		}
 
 		this.#stage = stage;
+	}
+
+	intersects(location: [number, number]) {
+		return true;
+		return (
+			Math.abs(location[0] - this.#art.center[0]) < this.width &&
+			Math.abs(location[1] - this.#art.center[1]) < this.height
+		);
 	}
 }

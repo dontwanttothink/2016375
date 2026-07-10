@@ -1,11 +1,5 @@
 import type p5 from "p5";
-
-function expect<T>(x: T, msg?: string): NonNullable<T> {
-	if (x === null || x === undefined) {
-		throw new Error(msg ?? "expected non-null value");
-	}
-	return x;
-}
+import { expect } from "../utils";
 
 interface EntityArtAnimation {
 	frames: p5.Image[];
@@ -168,13 +162,15 @@ export class EntityArt {
 		w *= this.appearance.width / this.canonical.width;
 		h *= this.appearance.height / this.canonical.height;
 
-		this.p.image(
-			this.appearance,
-			x - this.center[0] * (w / this.canonical.width),
-			y - this.center[1] * (h / this.canonical.height),
-			w,
-			h,
-		);
+		const scaleX = w / this.canonical.width;
+		const scaleY = h / this.canonical.height;
+
+		const origin: [number, number] = [
+			x - this.center[0] * scaleX,
+			y - this.center[1] * scaleY,
+		];
+
+		this.p.image(this.appearance, ...origin, w, h);
 
 		this.p.pop();
 	}
