@@ -143,12 +143,27 @@ export class EntityArt {
 	) {
 		this.p.push();
 		this.p.noSmooth();
+		const { origin, w, h } = this.properties([x, y], width, height, { fit });
+		this.p.image(this.appearance, ...origin, w, h);
+		this.p.pop();
+	}
 
+	/**
+	 * Proporciona información geométrica sobre esta imagen dados parámetros
+	 * idénticos a los usados al dibujar.
+	 *
+	 * Las unidades están dadas en pixeles del espacio del escenario.
+	 */
+	properties(
+		[positionX, positionY]: [number, number],
+		width: number,
+		height: number,
+		{ fit }: { fit: boolean },
+	) {
 		let w = width;
 		let h = height;
 
 		if (fit) {
-			// a propósito, las dimensiones se basan en el tamaño canónico
 			const propoW = h * (this.canonical.width / this.canonical.height);
 			const propoH = w * (this.canonical.height / this.canonical.width);
 
@@ -166,12 +181,10 @@ export class EntityArt {
 		const scaleY = h / this.canonical.height;
 
 		const origin: [number, number] = [
-			x - this.center[0] * scaleX,
-			y - this.center[1] * scaleY,
+			positionX - this.center[0] * scaleX,
+			positionY - this.center[1] * scaleY,
 		];
 
-		this.p.image(this.appearance, ...origin, w, h);
-
-		this.p.pop();
+		return { origin, w, h, scaleX, scaleY };
 	}
 }
