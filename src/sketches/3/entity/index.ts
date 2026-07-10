@@ -231,11 +231,13 @@ export class Entity {
 		this.#stage = stage;
 	}
 
+	/**
+	 *	@param location Una ubicación absoluta en el espacio del escenario.
+	 */
 	intersects(location: [number, number]) {
-		return true;
 		return (
-			Math.abs(location[0] - this.#art.center[0]) < this.width &&
-			Math.abs(location[1] - this.#art.center[1]) < this.height
+			Math.abs(location[0] - this.position[0]) < this.width / 2 &&
+			Math.abs(location[1] - this.position[1]) < this.height / 2
 		);
 	}
 }
