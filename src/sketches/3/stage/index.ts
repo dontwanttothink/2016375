@@ -86,7 +86,7 @@ export class Stage {
 	/**
 	 * Espacio que reservar bajo el escenario, en pixeles del espacio de la pantalla.
 	 */
-	bottomMargin: number = 0;
+	bottomMargin: number = 100;
 
 	grid: StageGrid;
 
@@ -181,19 +181,23 @@ export class Stage {
 		const w = this.background.width;
 		const h = this.background.height;
 
-		const proportionalHeight = this.p.width * (h / w);
-		const proportionalWidth = this.p.height * (w / h);
+		const availableHeight = this.p.height - this.bottomMargin;
 
-		if (proportionalHeight <= this.p.height) {
+		const proportionalHeight = this.p.width * (h / w);
+		const proportionalWidth = availableHeight * (w / h);
+
+		if (proportionalHeight <= availableHeight) {
 			return [this.p.width, proportionalHeight];
 		} else {
-			return [proportionalWidth, this.p.height];
+			return [proportionalWidth, availableHeight];
 		}
 	}
 
 	screenOrigin(): [number, number] {
+		const availableHeight = this.p.height - this.bottomMargin;
 		const [w, h] = this.screenDimensions();
-		return [(this.p.width - w) / 2, (this.p.height - h) / 2];
+
+		return [(this.p.width - w) / 2, (availableHeight - h) / 2];
 	}
 
 	/**
