@@ -175,8 +175,7 @@ export class StageGrid {
 			this.p.fill(currentColor);
 			this.p.square(
 				...this.stage.toScreenSpace(this.toStageSpace([i, j])),
-				(this.cellSize - 5) * this.stage.scale,
-				5,
+				(this.cellSize - 3) * this.stage.scale,
 			);
 		}
 
