@@ -25,9 +25,24 @@ export class StageInteraction extends StageComponent {
 		if (entity) {
 			return entity.isInteractive;
 		}
+
+		if (
+			this.phase.kind === Phase.Selecting &&
+			this.stage.grid.reachable(
+				this.phase.entity.reach,
+				this.stage.grid.fromStageSpace(this.phase.entity.position),
+				this.stage.grid.fromStageSpace(location),
+			)
+		) {
+			return true;
+		}
+
 		return false;
 	}
 
+	/**
+	 * @param location en términos del espacio del escenario
+	 */
 	clickedAt(location: [number, number]) {
 		const entity = this.stage.intersectsWithEntityAt(location);
 		if (this.phase.kind === Phase.Idle && entity?.isMovable) {
@@ -42,6 +57,20 @@ export class StageInteraction extends StageComponent {
 			entity === this.phase.entity
 		) {
 			// cancelamos la interacción
+			this.phase = { kind: Phase.Idle };
+			this.stage.grid.stopHighlighting();
+		} else if (
+			this.phase.kind === Phase.Selecting &&
+			!entity &&
+			this.stage.grid.reachable(
+				this.phase.entity.reach,
+				this.stage.grid.fromStageSpace(this.phase.entity.position),
+				this.stage.grid.fromStageSpace(location),
+			)
+		) {
+			this.phase.entity.position =
+				this.stage.grid.normalizeStageSpace(location);
+
 			this.phase = { kind: Phase.Idle };
 			this.stage.grid.stopHighlighting();
 		}

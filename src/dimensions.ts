@@ -5,7 +5,7 @@
 export default function targetDimensions(): [number, number] {
 	const MIN_WIDTH = 200;
 	const MAX_WIDTH = Infinity;
-	const MIN_HEIGHT = 200;
+	const MIN_HEIGHT = 300;
 	const MAX_HEIGHT = Infinity;
 
 	const main = document.getElementsByTagName("main")[0];
