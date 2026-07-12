@@ -1,12 +1,12 @@
 import type p5 from "p5";
 import type { Stage } from "./stage";
-import { Panel } from "./Interaction/panel";
+import { Textbox } from "./textbox";
 
 export class World {
 	p: p5;
 	stage: Stage;
-	Panel: Panel;
-	
+	panel: Textbox;
+
 	/**
 	 * El escenario activo actual.
 	 */
@@ -14,7 +14,7 @@ export class World {
 	constructor(p: p5, stage: Stage) {
 		this.p = p;
 		this.stage = stage;
-		this.Panel = new Panel(p);
+		this.panel = new Textbox(p);
 	}
 
 	transitionTo(newStage: Stage) {
@@ -24,6 +24,6 @@ export class World {
 
 	draw() {
 		this.stage.draw();
-		this.Panel.draw(this.stage.bottomMargin);
+		this.panel.draw(this.stage.bottomMargin);
 	}
 }

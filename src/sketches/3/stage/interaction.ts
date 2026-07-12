@@ -22,19 +22,20 @@ export class StageInteraction extends StageComponent {
 		return false;
 	}
 
-	get selectedEntity(): Entity | null{
+	get selectedEntity(): Entity | null {
 		return this.phase.kind !== Phase.Idle ? this.phase.entity : null;
 	}
 
-	get isMoving(): boolean{
+	get isMoving(): boolean {
 		return this.phase.kind === Phase.Moving;
 	}
-	startMoving(){
-		if (this.phase.kind===Phase.Idle){
+
+	startMoving() {
+		if (this.phase.kind === Phase.Idle) {
 			throw new Error("no hay ninguna entidad seleccionada.");
 		}
 
-		const { entity }=this.phase;
+		const { entity } = this.phase;
 		this.phase = { kind: Phase.Moving, entity };
 		this.stage.grid.highlight(
 			entity.reach,
@@ -43,16 +44,16 @@ export class StageInteraction extends StageComponent {
 		);
 	}
 
-	deselect(){
-		this.phase={ kind: Phase.Idle };
+	deselect() {
+		this.phase = { kind: Phase.Idle };
 		this.stage.grid.stopHighlighting();
 	}
 
-	clickedAt(location: [number, number]){
+	clickedAt(location: [number, number]) {
 		const entity = this.stage.intersectsWithEntityAt(location);
 
 		if (this.phase.kind === Phase.Idle && entity?.isMovable) {
-			this.phase={ kind: Phase.Selected, entity };
+			this.phase = { kind: Phase.Selected, entity };
 			return;
 		}
 
@@ -61,11 +62,11 @@ export class StageInteraction extends StageComponent {
 			return;
 		}
 
-		if (this.phase.kind===Phase.Moving){
+		if (this.phase.kind === Phase.Moving) {
 			const gridLocation = this.stage.grid.fromStageSpace(location);
 
-			if (this.stage.grid.isHighlighting(gridLocation)){
-				const { entity: selected }=this.phase;
+			if (this.stage.grid.isHighlighting(gridLocation)) {
+				const { entity: selected } = this.phase;
 				const destination = this.stage.grid.toStageSpace(gridLocation);
 
 				selected.displace([

@@ -37,9 +37,9 @@ class GamePage extends Page {
 		}
 	}
 
-	mouseClicked(p: p5){
+	mouseClicked(p: p5) {
 		if (
-			this.world.Panel.clickedAt(
+			this.world.panel.clickedAt(
 				p.mouseX,
 				p.mouseY,
 				this.world.stage.bottomMargin,
@@ -52,24 +52,27 @@ class GamePage extends Page {
 			this.world.stage.fromScreenSpace([p.mouseX, p.mouseY]),
 		);
 
-		const { interaction }=this.world.stage;
-		const selected=interaction.selectedEntity;
+		const { interaction } = this.world.stage;
+		const selected = interaction.selectedEntity;
 
-		if (selected===this.protagonist && !interaction.isMoving){
-			this.world.Panel.show([
+		if (selected === this.protagonist && !interaction.isMoving) {
+			this.world.panel.show([
 				{
 					label: "Mover",
-					onClick: () =>{
+					onClick: () => {
 						interaction.startMoving();
-						this.world.Panel.hide();
+						this.world.panel.hide();
 					},
 				},
 				{ label: "Atacar", onClick: () => console.log("atacar") },
 				{ label: "Ultimate", onClick: () => console.log("ulti") },
-				{ label: "Fin del turno",onClick: () => console.log("Turno terminado")},
+				{
+					label: "Fin del turno",
+					onClick: () => console.log("Turno terminado"),
+				},
 			]);
 		} else if (!selected) {
-			this.world.Panel.hide();
+			this.world.panel.hide();
 		}
 	}
 }
