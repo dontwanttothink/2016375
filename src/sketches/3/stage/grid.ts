@@ -179,4 +179,7 @@ export class StageGrid extends StageComponent {
 		}
 		return false;
 	}
+	isHighlighting(cell: [number, number]): boolean {
+		return this.#isHighlighting(cell);
+	}
 }

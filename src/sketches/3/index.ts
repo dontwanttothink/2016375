@@ -37,10 +37,40 @@ class GamePage extends Page {
 		}
 	}
 
-	mouseClicked(p: p5) {
+	mouseClicked(p: p5){
+		if (
+			this.world.Panel.clickedAt(
+				p.mouseX,
+				p.mouseY,
+				this.world.stage.bottomMargin,
+			)
+		) {
+			return;
+		}
+
 		this.world.stage.interaction.clickedAt(
 			this.world.stage.fromScreenSpace([p.mouseX, p.mouseY]),
 		);
+
+		const { interaction }=this.world.stage;
+		const selected=interaction.selectedEntity;
+
+		if (selected===this.protagonist && !interaction.isMoving){
+			this.world.Panel.show([
+				{
+					label: "Mover",
+					onClick: () =>{
+						interaction.startMoving();
+						this.world.Panel.hide();
+					},
+				},
+				{ label: "Atacar", onClick: () => console.log("atacar") },
+				{ label: "Ultimate", onClick: () => console.log("ulti") },
+				{ label: "Fin del turno",onClick: () => console.log("Turno terminado")},
+			]);
+		} else if (!selected) {
+			this.world.Panel.hide();
+		}
 	}
 }
 
