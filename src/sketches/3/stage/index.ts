@@ -2,6 +2,7 @@ import type p5 from "p5";
 import type { Entity } from "../entity";
 import { StageDebug } from "./debug";
 import { StageGrid } from "./grid";
+import { StageInteraction } from "./interaction";
 
 /**
  * Una habitación o área, incluida su cuadrícula y sus datos de colisión.
@@ -64,6 +65,7 @@ export class Stage {
 			background,
 			collision,
 			new StageGrid(origin, cellSize),
+			new StageInteraction(),
 			name,
 		);
 		return stage;
@@ -97,11 +99,14 @@ export class Stage {
 		return this.background.height;
 	}
 
+	interaction: StageInteraction;
+
 	private constructor(
 		p: p5,
 		background: p5.Image,
 		collision: p5.Image,
 		grid: StageGrid,
+		interaction: StageInteraction,
 		name?: string,
 	) {
 		this.p = p;
@@ -151,9 +156,15 @@ export class Stage {
 		grid.assignToStage(p, this);
 		this.grid = grid;
 
+		interaction.assignToStage(p, this);
+		this.interaction = interaction;
+
 		this.debug = new StageDebug(this.p, this);
 	}
 
+	/**
+	 * @param position En el espacio del escenario
+	 */
 	collidesAt(position: [number, number], except?: Entity) {
 		if (position.some((v) => !Number.isInteger(v))) {
 			throw new TypeError(`the position ${position} is not valid`);
@@ -170,6 +181,13 @@ export class Stage {
 		}
 
 		return this.collision[index];
+	}
+
+	/**
+	 * @param position En el espacio del escenario
+	 */
+	intersectsWithEntityAt(location: [number, number]) {
+		return this.entities.findLast((e) => e.intersects(location)) ?? null;
 	}
 
 	addEntity(entity: Entity) {

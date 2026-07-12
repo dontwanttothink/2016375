@@ -3,21 +3,16 @@ import { Entity } from "../entity";
 import { EntityArt } from "../entity/art";
 
 export class ProtagonistEntity extends Entity {
-	movement: boolean = false;
+	energy = 3;
 
-	userInteracted() {
-		if (this.movement) {
-			this.stage.grid.stopHighlighting();
-			this.movement = false;
-		} else {
-			this.stage.grid.highlight(
-				5,
-				this.stage.grid.fromStageSpace(this.position),
-				this.p.color("red"),
-			);
-			this.movement = true;
-		}
+	get reach() {
+		return this.energy;
 	}
+
+	isInteractive: boolean = true;
+	isMovable: boolean = true;
+
+	userInteracted() {}
 }
 
 export async function Protagonist(p: p5, location: [number, number] = [0, 0]) {

@@ -72,6 +72,13 @@ export class Entity {
 		};
 	}
 
+	isInteractive: boolean = false;
+
+	isMovable: boolean = false;
+	get reach() {
+		return 1;
+	}
+
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
 		this.p = p;
 

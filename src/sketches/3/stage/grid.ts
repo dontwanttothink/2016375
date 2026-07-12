@@ -1,13 +1,13 @@
 import type p5 from "p5";
 import { expect, IntegerPairMap } from "../utils";
-import type { Stage } from ".";
+import { StageComponent } from "./component";
 
 interface StageGridDescriptor {
 	origin: [number, number];
 	cellSize: number;
 }
 
-export class StageGrid {
+export class StageGrid extends StageComponent {
 	static HIGHLIGHT_ANIMATION_DURATION: number = 200;
 
 	static assertIsValidDescriptor(
@@ -45,23 +45,6 @@ export class StageGrid {
 		}
 	}
 
-	#p?: p5;
-	#stage?: Stage;
-
-	get p(): p5 {
-		if (!this.#p) {
-			throw new ReferenceError();
-		}
-		return this.#p;
-	}
-
-	get stage(): Stage {
-		if (!this.#stage) {
-			throw new ReferenceError();
-		}
-		return this.#stage;
-	}
-
 	#highlight: {
 		radius: number;
 		from: [number, number];
@@ -81,13 +64,9 @@ export class StageGrid {
 	cellSize: number;
 
 	constructor(origin: [number, number], cellSize: number) {
+		super();
 		this.origin = origin;
 		this.cellSize = cellSize;
-	}
-
-	assignToStage(p: p5, stage: Stage) {
-		this.#p = p;
-		this.#stage = stage;
 	}
 
 	fromStageSpace(location: [number, number]): [number, number] {
@@ -104,6 +83,11 @@ export class StageGrid {
 		];
 	}
 
+	/**
+	 * @param radius
+	 * @param from en términos del espacio de la cuadrícula
+	 * @param color
+	 */
 	highlight(radius: number, from: [number, number], color: p5.Color) {
 		this.#highlight = {
 			radius,

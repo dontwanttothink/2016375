@@ -4,19 +4,22 @@ import type { Stage } from "./stage";
 export class World {
 	p: p5;
 
-	currentStage: Stage;
+	/**
+	 * El escenario activo actual.
+	 */
+	stage: Stage;
 
 	constructor(p: p5, stage: Stage) {
 		this.p = p;
-		this.currentStage = stage;
+		this.stage = stage;
 	}
 
 	transitionTo(newStage: Stage) {
 		// TODO: animación
-		this.currentStage = newStage;
+		this.stage = newStage;
 	}
 
 	draw() {
-		this.currentStage.draw();
+		this.stage.draw();
 	}
 }
