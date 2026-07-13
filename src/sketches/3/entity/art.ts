@@ -88,21 +88,20 @@ export class EntityArt {
 			throw new TypeError();
 		}
 
-		const frames: p5.Image[] = [];
+		const promisedFrames = [];
 		for (let i = 0; i < frameCount; ++i) {
 			const animLocator = new URL(`${i}.png`, animationURL);
+			promisedFrames.push(this.p.loadImage(animLocator.href));
+		}
 
-			let frame: p5.Image;
-			try {
-				frame = await this.p.loadImage(animLocator.href);
-			} catch (e) {
-				throw new TypeError(
-					`No se pudo cargar el fotograma ${i} de la animación "${name}" (es decir, ${animLocator.href}). La animación "${name}" dice tener ${frameCount} fotogramas en sus metadatos.`,
-					{ cause: e },
-				);
-			}
-
-			frames.push(frame);
+		let frames: p5.Image[];
+		try {
+			frames = await Promise.all(promisedFrames);
+		} catch (e) {
+			throw new TypeError(
+				`No se pudo al menos un fotograma de la animación "${name}". La animación "${name}" dice tener ${frameCount} fotogramas en sus metadatos.`,
+				{ cause: e },
+			);
 		}
 
 		const animation = {
