@@ -17,44 +17,52 @@ export class Stage {
 		const stageURL = new URL(`${name}/`, Stage.STAGE_ART_URL);
 
 		const backgroundURL = new URL("background.png", stageURL);
-		let background: p5.Image;
-		try {
-			background = await p.loadImage(backgroundURL.href);
-		} catch (e) {
-			throw new Error(
-				`no se pudo cargar el fondo de "${name}" (es decir, ${backgroundURL.href})`,
-				{ cause: e },
-			);
-		}
+		const loadBackground = async (): Promise<p5.Image> => {
+			try {
+				return await p.loadImage(backgroundURL.href);
+			} catch (e) {
+				throw new Error(
+					`no se pudo cargar el fondo de "${name}" (es decir, ${backgroundURL.href})`,
+					{ cause: e },
+				);
+			}
+		};
 
 		const collisionURL = new URL("collision.png", stageURL);
-		let collision: p5.Image;
-		try {
-			collision = await p.loadImage(collisionURL.href);
-		} catch (e) {
-			throw new Error(
-				`no se pudo cargar la textura de colisión de ${name} (es decir, ${collisionURL.href})`,
-				{ cause: e },
-			);
-		}
+		const loadCollision = async (): Promise<p5.Image> => {
+			try {
+				return await p.loadImage(collisionURL.href);
+			} catch (e) {
+				throw new Error(
+					`no se pudo cargar la textura de colisión de ${name} (es decir, ${collisionURL.href})`,
+					{ cause: e },
+				);
+			}
+		};
 
 		const gridPropertiesURL = new URL("grid.json", stageURL);
+		const loadGridProperties = async (): Promise<unknown> => {
+			try {
+				const response = await fetch(gridPropertiesURL);
 
-		let gridProperties: unknown;
-		try {
-			const response = await fetch(gridPropertiesURL);
-
-			if (response.ok) {
-				gridProperties = await response.json();
-			} else {
-				throw new Error(response.statusText);
+				if (response.ok) {
+					return await response.json();
+				} else {
+					throw new Error(response.statusText);
+				}
+			} catch (e) {
+				throw new Error(
+					`no se pudieron obtener las propiedades de la matriz asociada con el escenario ${name} (es decir, ${gridPropertiesURL.href})`,
+					{ cause: e },
+				);
 			}
-		} catch (e) {
-			throw new Error(
-				`no se pudieron obtener las propiedades de la matriz asociada con el escenario ${name} (es decir, ${gridPropertiesURL.href})`,
-				{ cause: e },
-			);
-		}
+		};
+
+		const [background, collision, gridProperties] = await Promise.all([
+			loadBackground(),
+			loadCollision(),
+			loadGridProperties(),
+		]);
 
 		StageGrid.assertIsValidDescriptor(gridProperties, gridPropertiesURL);
 
