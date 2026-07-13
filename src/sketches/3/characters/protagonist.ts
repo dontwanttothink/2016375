@@ -27,6 +27,7 @@ export class ProtagonistEntity extends Entity {
 
 export async function Protagonist(p: p5, location: [number, number] = [0, 0]) {
 	const art = await EntityArt.fromName(p, "protagonist");
+	await art.loadAnimation("walk_forward");
 
 	const protagonist = new ProtagonistEntity(p, art, location);
 	protagonist.hitbox = {
