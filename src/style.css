@@ -1,3 +1,5 @@
+@import url("@fontsource-variable/pixelify-sans");
+
 :root {
 	--content-padding: 2rem;
 	--foreground: light-dark(#213547, rgba(255, 255, 255, 0.87));

@@ -5,6 +5,7 @@
     "": {
       "name": "2016375",
       "dependencies": {
+        "@fontsource-variable/pixelify-sans": "^5.2.7",
         "p5": "^2.3.0",
         "p5.quadrille": "^3.4.13",
         "prettier": "^3.9.5",
@@ -167,6 +168,8 @@
     "@eslint/object-schema": ["@eslint/object-schema@2.1.7", "", {}, "sha512-VtAOaymWVfZcmZbp6E2mympDIHvyjXs/12LqWYjVw6qjrfF+VK+fyG33kChz3nnK+SU5/NeHOqrTEHS8sXO3OA=="],
 
     "@eslint/plugin-kit": ["@eslint/plugin-kit@0.3.5", "", { "dependencies": { "@eslint/core": "^0.15.2", "levn": "^0.4.1" } }, "sha512-Z5kJ+wU3oA7MMIqVR9tyZRtjYPr4OC004Q4Rw7pgOKUOKkJfZ3O24nz3WYfGRpMDNmcOi3TwQOmgm7B7Tpii0w=="],
+
+    "@fontsource-variable/pixelify-sans": ["@fontsource-variable/pixelify-sans@5.2.7", "", {}, "sha512-IbQ7po3a7bQuguwyGQ7x7kMUCYvHjzxTdc7lYAcqzgR87MQb+vf8fuu4hjGyFLlWaDhS6QEe0jrS9dmCJ9ZlYw=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.2", "", { "dependencies": { "@humanfs/types": "^0.15.0" } }, "sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA=="],
 

@@ -31,6 +31,10 @@ export class IntegerPairMap<T> {
 		return this.#data.get(IntegerPairMap.#intoKey(key));
 	}
 
+	has(key: [number, number]) {
+		return this.#data.has(IntegerPairMap.#intoKey(key));
+	}
+
 	set(key: [number, number], value: T) {
 		if (!key.every((n) => Number.isSafeInteger(n))) {
 			throw new TypeError();
@@ -52,7 +56,6 @@ export class IntegerPairMap<T> {
 		if (!key.every((n) => Number.isSafeInteger(n))) {
 			throw new TypeError();
 		}
-
 		return this.#data.getOrInsert(IntegerPairMap.#intoKey(key), or);
 	}
 

@@ -1,92 +1,158 @@
 import type p5 from "p5";
+import type { Entity } from "./entity";
+import { expect } from "./utils";
 
-export interface PanelButton {
+export interface TextboxButton {
 	label: string;
-	onClick: () => void;
+	id: number;
 }
 
 export class Textbox {
-	p: p5;
-	buttons: PanelButton[] = [];
-
-	static MARGIN = 5;
+	static MARGIN = 10;
 
 	static PADDING = 12;
 	static GAP = 12;
+
+	p: p5;
+
+	#isVisible: boolean = false;
+	#lastActiveInteraction: {
+		buttons: TextboxButton[];
+		entity: Entity;
+	} | null = null;
+
+	width?: number;
+	height?: number;
+	origin?: [number, number];
+
+	#opacity: number = 0;
 
 	constructor(p: p5) {
 		this.p = p;
 	}
 
-	show(buttons: PanelButton[]) {
-		this.buttons = buttons;
+	show(buttons: Iterable<[number, string]>, onBehalfOf: Entity) {
+		this.#lastActiveInteraction = {
+			buttons: [...buttons].map(([id, label]) => ({
+				id,
+				label,
+			})),
+			entity: onBehalfOf,
+		};
+		this.#isVisible = true;
 	}
 
 	hide() {
-		this.buttons = [];
+		this.#isVisible = false;
 	}
 
-	get visible() {
-		return this.buttons.length > 0;
-	}
-
-	#buttonRects(height: number) {
-		const p = this.p;
-		const panelTop = p.height - height;
-		const n = this.buttons.length;
-		if (n === 0) return [];
+	*#buttonRects(): Generator<
+		[number, { x: number; y: number; w: number; h: number }]
+	> {
+		const n = expect(this.#lastActiveInteraction).buttons.length;
 
 		const totalGap = Textbox.GAP * (n - 1);
-		const w = (p.width - Textbox.PADDING * 2 - totalGap) / n;
-		const h = height - Textbox.PADDING * 2;
+		const availableWidth = expect(this.width) - totalGap - Textbox.PADDING * 2;
+		const availableHeight =
+			expect(this.height) - Textbox.MARGIN - Textbox.PADDING * 2;
 
-		return this.buttons.map((_, i) => ({
-			x: Textbox.PADDING + i * (w + Textbox.GAP),
-			y: panelTop + Textbox.PADDING,
-			w,
-			h,
-		}));
+		const w = availableWidth / n;
+		const h = availableHeight;
+
+		for (let i = 0; i < n; ++i) {
+			yield [
+				i,
+				{
+					x: expect(this.origin)[0] + Textbox.PADDING + Textbox.GAP * i + w * i,
+					y: expect(this.origin)[1] + Textbox.MARGIN + Textbox.PADDING,
+					h,
+					w,
+				},
+			];
+		}
 	}
 
-	draw(height: number) {
-		const p = this.p;
-		const panelTop = p.height - height;
+	draw(origin: [number, number], width: number, height: number) {
+		// actualizar geometría
+		this.origin = origin;
+		this.width = width;
+		this.height = height;
 
-		p.push();
-		p.noStroke();
-		p.fill(30, 30, 30, 230);
-		p.rect(0, panelTop, p.width, height);
+		// actualizar opacidad
+		if (this.#isVisible) {
+			this.#opacity = Math.min(1, this.#opacity + this.p.deltaTime / 100);
+		} else {
+			this.#opacity = Math.max(0, this.#opacity - this.p.deltaTime / 100);
+		}
 
-		if (this.visible) {
-			const rects = this.#buttonRects(height);
-			p.textAlign(p.CENTER, p.CENTER);
+		// dibujar
+		this.p.push();
+		this.p.noStroke();
+		this.p.fill(86, 60, 17, this.#opacity * 255);
+		this.p.rectMode(this.p.CORNER);
 
-			for (const [i, { x, y, w, h }] of rects.entries()) {
+		this.p.rect(
+			origin[0],
+			origin[1] + Textbox.MARGIN,
+			width,
+			height - Textbox.MARGIN,
+		);
+
+		this.p.textFont("Pixelify Sans Variable");
+		this.p.textSize(16);
+
+		const activeInteraction = this.#lastActiveInteraction;
+
+		if (activeInteraction) {
+			this.p.textAlign(this.p.CENTER, this.p.CENTER);
+
+			for (const [i, { x, y, w, h }] of this.#buttonRects()) {
 				const hovering =
-					p.mouseX >= x &&
-					p.mouseX <= x + w &&
-					p.mouseY >= y &&
-					p.mouseY <= y + h;
+					this.p.mouseX >= x &&
+					this.p.mouseX <= x + w &&
+					this.p.mouseY >= y &&
+					this.p.mouseY <= y + h;
 
-				p.fill(hovering ? 90 : 60);
-				p.rect(x, y, w, h, 6);
+				this.p.fill(
+					255,
+					this.p.constrain(
+						(this.#opacity - 0.7) * ((hovering ? 70 : 60) / (1 - 0.7)),
+						0,
+						255,
+					),
+				);
+				this.p.rect(x, y, w, h);
 
-				p.fill(255);
-				p.text(this.buttons[i].label, x + w / 2, y + h / 2);
+				this.p.fill(255, this.#opacity * 255);
+				this.p.text(activeInteraction.buttons[i].label, x + w / 2, y + h / 2);
 			}
 		}
-		p.pop();
+
+		this.p.pop();
 	}
-	clickedAt(x: number, y: number, height: number): boolean {
-		if (!this.visible) return false;
 
-		const rects = this.#buttonRects(height);
-		for (const [i, { x: rx, y: ry, w, h }] of rects.entries()) {
+	#buttonAt([x, y]: [number, number]) {
+		if (!this.#isVisible || !this.#lastActiveInteraction) return null;
+
+		for (const [i, { x: rx, y: ry, w, h }] of this.#buttonRects()) {
 			if (x >= rx && x <= rx + w && y >= ry && y <= ry + h) {
-				this.buttons[i].onClick();
-				return true;
+				return expect(this.#lastActiveInteraction.buttons.at(i));
 			}
 		}
-		return false;
+
+		return null;
+	}
+
+	interactiveAt(location: [number, number]) {
+		return !!this.#buttonAt(location);
+	}
+
+	clickedAt(location: [number, number]) {
+		if (!this.#isVisible || !this.#lastActiveInteraction) return null;
+
+		const target = this.#buttonAt(location);
+		if (target) {
+			this.#lastActiveInteraction.entity.interacted(target.id);
+		}
 	}
 }

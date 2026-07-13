@@ -1,81 +1,89 @@
 import type { Entity } from "../entity";
+import type { Textbox } from "../textbox";
 import { StageComponent } from "./component";
 
-export enum Phase {
+enum Phase {
 	Idle,
 	Selected,
-	Moving,
 }
 
 type PhaseState =
-	| { kind: Phase.Idle }
-	| { kind: Phase.Selected; entity: Entity }
-	| { kind: Phase.Moving; entity: Entity };
+	| {
+			kind: Phase.Idle;
+	  }
+	| { kind: Phase.Selected; entity: Entity };
 
 export class StageInteraction extends StageComponent {
 	phase: PhaseState = { kind: Phase.Idle };
+
+	/**
+	 * Indica si hay algo con lo que interactuar en este momento en esta ubicación.
+	 *
+	 * @param location en el espacio del escenario
+	 */
 	enabledAt(location: [number, number]): boolean {
 		const entity = this.stage.intersectsWithEntityAt(location);
 		if (entity) {
 			return entity.isInteractive;
 		}
+
+		if (
+			this.phase.kind === Phase.Selected &&
+			this.stage.grid.reachable(
+				this.phase.entity.reach,
+				this.stage.grid.fromStageSpace(this.phase.entity.position),
+				this.stage.grid.fromStageSpace(location),
+			)
+		) {
+			return true;
+		}
+
 		return false;
 	}
 
-	get selectedEntity(): Entity | null {
-		return this.phase.kind !== Phase.Idle ? this.phase.entity : null;
-	}
-
-	get isMoving(): boolean {
-		return this.phase.kind === Phase.Moving;
-	}
-
-	startMoving() {
-		if (this.phase.kind === Phase.Idle) {
-			throw new Error("no hay ninguna entidad seleccionada.");
-		}
-
-		const { entity } = this.phase;
-		this.phase = { kind: Phase.Moving, entity };
-		this.stage.grid.highlight(
-			entity.reach,
-			this.stage.grid.fromStageSpace(entity.position),
-			this.p.color("red"),
-		);
-	}
-
-	deselect() {
-		this.phase = { kind: Phase.Idle };
-		this.stage.grid.stopHighlighting();
-	}
-
-	clickedAt(location: [number, number]) {
+	/**
+	 * @param location en términos del espacio del escenario
+	 */
+	clickedAt(location: [number, number], textbox: Textbox) {
 		const entity = this.stage.intersectsWithEntityAt(location);
-
 		if (this.phase.kind === Phase.Idle && entity?.isMovable) {
+			// se seleccionó una entidad
 			this.phase = { kind: Phase.Selected, entity };
-			return;
+			this.stage.grid.highlight(
+				entity.reach,
+				this.stage.grid.fromStageSpace(entity.position),
+				this.p.color("red"),
+			);
+
+			// le preguntamos a la entidad qué opciones quiere ofrecer
+			textbox.show(entity.interactionOptions(), entity);
+		} else if (
+			this.phase.kind === Phase.Selected &&
+			entity === this.phase.entity
+		) {
+			// cancelamos la interacción
+			this.phase = { kind: Phase.Idle };
+			this.stage.grid.stopHighlighting();
+			textbox.hide();
+		} else if (
+			this.phase.kind === Phase.Selected &&
+			!entity &&
+			this.stage.grid.reachable(
+				this.phase.entity.reach,
+				this.stage.grid.fromStageSpace(this.phase.entity.position),
+				this.stage.grid.fromStageSpace(location),
+			)
+		) {
+			// movemos la entidad y acabamos la interacción
+
+			this.phase.entity.position =
+				this.stage.grid.normalizeStageSpace(location);
+
+			this.phase = { kind: Phase.Idle };
+			this.stage.grid.stopHighlighting();
+			textbox.hide();
 		}
 
-		if (this.phase.kind !== Phase.Idle && entity === this.phase.entity) {
-			this.deselect();
-			return;
-		}
-
-		if (this.phase.kind === Phase.Moving) {
-			const gridLocation = this.stage.grid.fromStageSpace(location);
-
-			if (this.stage.grid.isHighlighting(gridLocation)) {
-				const { entity: selected } = this.phase;
-				const destination = this.stage.grid.toStageSpace(gridLocation);
-
-				selected.displace([
-					destination[0] - selected.position[0],
-					destination[1] - selected.position[1],
-				]);
-
-				this.deselect();
-			}
-		}
+		textbox.clickedAt(location);
 	}
 }

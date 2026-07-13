@@ -26,11 +26,7 @@ class GamePage extends Page {
 	}
 
 	updateCursor(p: p5) {
-		if (
-			this.world.stage.interaction.enabledAt(
-				this.world.stage.fromScreenSpace([p.mouseX, p.mouseY]),
-			)
-		) {
+		if (this.world.interactiveAt([p.mouseX, p.mouseY])) {
 			p.cursor(p.HAND);
 		} else {
 			p.cursor(p.ARROW);
@@ -38,42 +34,7 @@ class GamePage extends Page {
 	}
 
 	mouseClicked(p: p5) {
-		if (
-			this.world.panel.clickedAt(
-				p.mouseX,
-				p.mouseY,
-				this.world.stage.bottomMargin,
-			)
-		) {
-			return;
-		}
-
-		this.world.stage.interaction.clickedAt(
-			this.world.stage.fromScreenSpace([p.mouseX, p.mouseY]),
-		);
-
-		const { interaction } = this.world.stage;
-		const selected = interaction.selectedEntity;
-
-		if (selected === this.protagonist && !interaction.isMoving) {
-			this.world.panel.show([
-				{
-					label: "Mover",
-					onClick: () => {
-						interaction.startMoving();
-						this.world.panel.hide();
-					},
-				},
-				{ label: "Atacar", onClick: () => console.log("atacar") },
-				{ label: "Ultimate", onClick: () => console.log("ulti") },
-				{
-					label: "Fin del turno",
-					onClick: () => console.log("Turno terminado"),
-				},
-			]);
-		} else if (!selected) {
-			this.world.panel.hide();
-		}
+		this.world.clickedAt([p.mouseX, p.mouseY]);
 	}
 }
 
