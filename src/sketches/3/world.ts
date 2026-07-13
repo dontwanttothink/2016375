@@ -1,12 +1,12 @@
 import type p5 from "p5";
 import type { Stage } from "./stage";
-import { Panel } from "./Interaction/panel";
+import { Textbox } from "./textbox";
 
 export class World {
 	p: p5;
 	stage: Stage;
-	Panel: Panel;
-	
+	textbox: Textbox;
+
 	/**
 	 * El escenario activo actual.
 	 */
@@ -14,7 +14,7 @@ export class World {
 	constructor(p: p5, stage: Stage) {
 		this.p = p;
 		this.stage = stage;
-		this.Panel = new Panel(p);
+		this.textbox = new Textbox(p);
 	}
 
 	transitionTo(newStage: Stage) {
@@ -22,8 +22,37 @@ export class World {
 		this.stage = newStage;
 	}
 
+	/**
+	 * @param location en términos del espacio de la pantalla
+	 */
+	clickedAt(location: [number, number]) {
+		this.stage.interaction.clickedAt(
+			this.stage.fromScreenSpace(location),
+			this.textbox,
+		);
+		this.textbox.clickedAt(location);
+	}
+
+	/**
+	 * @param location en términos del espacio de la pantalla
+	 */
+	interactiveAt(location: [number, number]) {
+		return (
+			this.stage.interaction.enabledAt(this.stage.fromScreenSpace(location)) ||
+			this.textbox.interactiveAt(location)
+		);
+	}
+
 	draw() {
 		this.stage.draw();
-		this.Panel.draw(this.stage.bottomMargin);
+
+		const origin = this.stage.screenOrigin();
+		const dimensions = this.stage.screenDimensions();
+
+		this.textbox.draw(
+			[origin[0], origin[1] + dimensions[1]],
+			dimensions[0],
+			this.stage.bottomMargin,
+		);
 	}
 }

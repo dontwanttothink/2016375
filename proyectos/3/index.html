@@ -8,14 +8,18 @@
 		<link rel="icon" href="/favicon.png" type="image/png">
 		<style>
 		#canvas-container canvas {
-			border-radius: 0;
+			/* biome-ignore lint/complexity/noImportantStyles: este lienzo específico no debería tener un radio */
+			border-radius: 0 !important;
 		}
 		</style>
 		<title>Proyecto 3</title>
 	</head>
 	<body>
 		<main>
-			<h1>dungeon crawl</h1>
+			<h1>
+				Dungeon
+				<span style="font-family: 'Pixelify Sans Variable', serif">Crawl</span>
+			</h1>
 			<p class="subtitle">Proyecto 3</p>
 			<nav style="opacity: 80%">
 				<p><a href="/">Regresar</a></p>

@@ -69,6 +69,10 @@ export class StageGrid extends StageComponent {
 		this.cellSize = cellSize;
 	}
 
+	normalizeStageSpace(location: [number, number]): [number, number] {
+		return this.toStageSpace(this.fromStageSpace(location));
+	}
+
 	fromStageSpace(location: [number, number]): [number, number] {
 		return [
 			Math.floor((location[0] - this.origin[0]) / this.cellSize),
@@ -166,16 +170,39 @@ export class StageGrid extends StageComponent {
 		this.p.pop();
 	}
 
+	/**
+	 * Distancia taxicab en términos del espacio de la cuadrícula.
+	 */
+	static distance(location1: [number, number], location2: [number, number]) {
+		return (
+			Math.abs(location1[0] - location2[0]) +
+			Math.abs(location1[1] - location2[1])
+		);
+	}
+
+	/**
+	 * @param within radio taxicab, en términos del espacio de la cuadrícula
+	 * @param from en el espacio de la cuadrícula
+	 * @param cell en el espacio de la cuadrícula
+	 */
+	reachable(
+		within: number,
+		from: [number, number],
+		cell: [number, number],
+	): boolean {
+		const distance = StageGrid.distance(from, cell);
+		return (
+			distance <= within &&
+			distance !== 0 &&
+			!this.stage.collidesAt(this.toStageSpace(cell)) &&
+			!this.stage.intersectsWithEntityAt(this.toStageSpace(cell))
+		);
+	}
+
 	#isHighlighting(cell: [number, number]) {
-		const [i, j] = cell;
 		if (this.#highlight) {
-			const { from, radius } = this.#highlight;
-			const distance = Math.abs(from[0] - i) + Math.abs(from[1] - j);
-			return (
-				distance <= radius &&
-				distance !== 0 &&
-				!this.stage.collidesAt(this.toStageSpace([i, j]))
-			);
+			const { radius, from } = this.#highlight;
+			return this.reachable(radius, from, cell);
 		}
 		return false;
 	}

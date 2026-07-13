@@ -1,5 +1,6 @@
 import type p5 from "p5";
 import type { Stage } from "../stage";
+import { expect, IntegerPairMap } from "../utils";
 import type { EntityArt } from "./art";
 
 /**
@@ -30,7 +31,88 @@ export class Entity {
 	/**
 	 * La ubicación actual de esta entidad, en el espacio de escenario.
 	 */
-	position: [number, number];
+	get position() {
+		return this.#position;
+	}
+
+	set position(location: [number, number]) {
+		if (!this.#stage) {
+			this.#position = location;
+			return;
+		}
+
+		const path = this.pathTo(this.#stage.grid.fromStageSpace(location));
+		this.#position = location;
+
+		if (path) {
+			this.#positionAnimationState = {
+				path,
+				progress: 0,
+			};
+		} else {
+			this.#positionAnimationState = null;
+		}
+	}
+
+	#position: [number, number];
+	#positionAnimationState: {
+		path: [number, number][];
+		progress: number;
+	} | null = null;
+
+	get #visiblePosition(): [number, number] {
+		if (!this.#positionAnimationState) {
+			return this.#position;
+		}
+
+		if (this.#positionAnimationState.progress === 1) {
+			this.#positionAnimationState = null;
+			return this.#visiblePosition;
+		}
+
+		this.#positionAnimationState.progress = Math.min(
+			1,
+			this.#positionAnimationState.progress +
+				((1 - this.#positionAnimationState.progress) / 120) * this.p.deltaTime,
+		);
+
+		const cellProgress =
+			this.#positionAnimationState.progress *
+			(this.#positionAnimationState.path.length - 1);
+		const newCellIndex = Math.floor(cellProgress);
+		const intracellProgress = cellProgress - newCellIndex;
+
+		const newCellCoordinates = this.stage.grid.toStageSpace(
+			this.#positionAnimationState.path[newCellIndex],
+		);
+
+		const nextCell = this.#positionAnimationState.path.at(newCellIndex + 1);
+		if (nextCell) {
+			const nextCellCoordinates = this.stage.grid.toStageSpace(nextCell);
+			newCellCoordinates[0] +=
+				(nextCellCoordinates[0] - newCellCoordinates[0]) * intracellProgress;
+			newCellCoordinates[1] +=
+				(nextCellCoordinates[1] - newCellCoordinates[1]) * intracellProgress;
+		}
+
+		const normalizedTarget = this.stage.grid.normalizeStageSpace(
+			this.#position,
+		);
+		const offset = [
+			this.#position[0] - normalizedTarget[0],
+			this.#position[1] - normalizedTarget[1],
+		];
+
+		newCellCoordinates[0] += this.#positionAnimationState.progress * offset[0];
+		newCellCoordinates[1] += this.#positionAnimationState.progress * offset[1];
+
+		return newCellCoordinates;
+	}
+
+	teleport(to: [number, number]) {
+		this.#position = to;
+		this.#positionAnimationState = null;
+	}
 
 	/**
 	 * El ancho con que se debe dibujar la entidad, en términos del tamaño de un pixel
@@ -87,19 +169,77 @@ export class Entity {
 		this.width = art.appearance.width;
 		this.height = art.appearance.height;
 
-		this.position = position;
+		this.#position = position;
 	}
 
 	/**
-	 * Una función que se ejecuta cada vez que se dibuja un fotograma y que se
-	 * puede usar para actualizar el estado.
+	 * Θ(n) con n = el número de celdas
 	 */
-	tick() {}
+	protected pathTo(position: [number, number]): [number, number][] | null {
+		const neighborsOf = (location: [number, number]) =>
+			[
+				[location[0] + 1, location[1]],
+				[location[0] - 1, location[1]],
+				[location[0], location[1] + 1],
+				[location[0], location[1] - 1],
+			] as [number, number][];
+
+		const root = this.#stage?.grid.fromStageSpace(this.#position);
+		if (!root) {
+			return null;
+		}
+
+		let sources = [root];
+
+		const seen = new IntegerPairMap<{ from: [number, number] | null }>();
+		seen.set(root, { from: null });
+
+		bfs: while (sources.length > 0) {
+			const newSources: [number, number][] = [];
+			for (const source of sources) {
+				if (source[0] === position[0] && source[1] === position[1]) {
+					break bfs;
+				}
+
+				for (const neighbor of neighborsOf(source)) {
+					if (seen.has(neighbor)) {
+						continue;
+					}
+
+					if (
+						this.stage.collidesAt(this.stage.grid.toStageSpace(neighbor), this)
+					) {
+						continue;
+					}
+
+					seen.set(neighbor, { from: source });
+					newSources.push(neighbor);
+				}
+			}
+			sources = newSources;
+		}
+
+		const destination = seen.get(position);
+		if (!destination) {
+			return null;
+		}
+
+		const path: [number, number][] = [position];
+
+		let current = destination;
+		while (current.from) {
+			path.push(current.from);
+
+			const previous = expect(seen.get(current.from));
+			current = previous;
+		}
+
+		return path.reverse();
+	}
 
 	draw() {
-		this.tick();
 		this.#art.draw(
-			this.stage.toScreenSpace(this.position),
+			this.stage.toScreenSpace(this.#visiblePosition),
 			this.width * this.stage.scale,
 			this.height * this.stage.scale,
 			{ fit: this.fit },
@@ -109,14 +249,14 @@ export class Entity {
 			this.p.push();
 			this.p.stroke(255, 0, 0, 100);
 			this.p.fill(200, 50);
-			this.p.circle(...this.stage.toScreenSpace(this.position), 10);
+			this.p.circle(...this.stage.toScreenSpace(this.#position), 10);
 
 			this.p.noFill();
 			this.p.rectMode(this.p.CENTER);
 			this.p.rect(
 				...this.stage.toScreenSpace([
-					this.position[0] + this.#hitbox.center[0],
-					this.position[1] + this.#hitbox.center[1],
+					this.#position[0] + this.#hitbox.center[0],
+					this.#position[1] + this.#hitbox.center[1],
 				]),
 				this.#hitbox.width * this.stage.scale,
 				this.#hitbox.height * this.stage.scale,
@@ -137,16 +277,18 @@ export class Entity {
 		const FORCE_FIELD = 0.1;
 
 		const target: [number, number] = [
-			this.position[0] + delta[0],
-			this.position[1] + delta[1],
+			this.#position[0] + delta[0],
+			this.#position[1] + delta[1],
 		];
 
 		const pixels: [number, number] = [
 			Math.abs(
-				Math.floor(this.position[0]) - Math.floor(this.position[0] + delta[0]),
+				Math.floor(this.#position[0]) -
+					Math.floor(this.#position[0] + delta[0]),
 			),
 			Math.abs(
-				Math.floor(this.position[1]) - Math.floor(this.position[1] + delta[1]),
+				Math.floor(this.#position[1]) -
+					Math.floor(this.#position[1] + delta[1]),
 			),
 		];
 
@@ -156,7 +298,7 @@ export class Entity {
 			const d =
 				this.#hitbox.center[0] + Math.sign(delta[0]) * (this.#hitbox.width / 2);
 
-			const k = Math.floor(this.position[0] + d) + Math.sign(delta[0]) * i;
+			const k = Math.floor(this.#position[0] + d) + Math.sign(delta[0]) * i;
 
 			let x = k - d;
 			if (Math.sign(delta[0]) === -1) {
@@ -164,8 +306,8 @@ export class Entity {
 			}
 
 			const y =
-				this.position[1] +
-				(i !== 0 ? (x - this.position[0]) * (delta[1] / delta[0]) : 0);
+				this.#position[1] +
+				(i !== 0 ? (x - this.#position[0]) * (delta[1] / delta[0]) : 0);
 
 			for (
 				let j = Math.floor(
@@ -190,7 +332,7 @@ export class Entity {
 				Math.sign(delta[1]) * (this.#hitbox.height / 2);
 
 			// La fila que vamos a probar
-			const k = Math.floor(this.position[1] + d) + Math.sign(delta[1]) * i;
+			const k = Math.floor(this.#position[1] + d) + Math.sign(delta[1]) * i;
 
 			let y = k - d;
 			if (Math.sign(delta[1]) === -1) {
@@ -198,8 +340,8 @@ export class Entity {
 			}
 
 			const x =
-				this.position[0] +
-				(i !== 0 ? (this.position[1] - y) * (delta[0] / delta[1]) : 0);
+				this.#position[0] +
+				(i !== 0 ? (this.#position[1] - y) * (delta[0] / delta[1]) : 0);
 
 			for (
 				let j = Math.floor(x + this.#hitbox.center[0] - this.#hitbox.width / 2);
@@ -215,16 +357,16 @@ export class Entity {
 		}
 
 		const wallNormSquared =
-			(wall[0] - this.position[0]) ** 2 + (wall[1] - this.position[1]) ** 2;
+			(wall[0] - this.#position[0]) ** 2 + (wall[1] - this.#position[1]) ** 2;
 
 		const ceilingNormSquared =
-			(ceiling[0] - this.position[0]) ** 2 +
-			(ceiling[1] - this.position[1]) ** 2;
+			(ceiling[0] - this.#position[0]) ** 2 +
+			(ceiling[1] - this.#position[1]) ** 2;
 
 		if (wallNormSquared > ceilingNormSquared) {
-			this.position = ceiling;
+			this.#position = ceiling;
 		} else {
-			this.position = wall;
+			this.#position = wall;
 		}
 	}
 
@@ -243,8 +385,17 @@ export class Entity {
 	 */
 	intersects(location: [number, number]) {
 		return (
-			Math.abs(location[0] - this.position[0]) < this.width / 2 &&
-			Math.abs(location[1] - this.position[1]) < this.height / 2
+			Math.abs(location[0] - this.#position[0]) < this.width / 2 &&
+			Math.abs(location[1] - this.#position[1]) < this.height / 2
 		);
 	}
+
+	/**
+	 * Las opciones que deberían ofrecerse
+	 */
+	interactionOptions(): Map<number, string> {
+		return new Map();
+	}
+
+	interacted(option: number) {}
 }
