@@ -17,8 +17,6 @@ export class ProtagonistEntity extends Entity {
 	isInteractive: boolean = true;
 	isMovable: boolean = true;
 
-	userInteracted() {}
-
 	interactionOptions(): Map<number, string> {
 		return new Map([
 			[ProtagonistInteractions.Example, "Ejemplo"],
