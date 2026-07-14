@@ -17,12 +17,6 @@ export class ProtagonistEntity extends CombatantEntity {
 		};
 	}
 
-	energy = 3;
-
-	get reach() {
-		return this.energy;
-	}
-
 	isMovable: boolean = true;
 
 	interactionOptions(): Map<number, string> {
