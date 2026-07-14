@@ -61,6 +61,18 @@ export class Entity {
 		progress: number;
 	} | null = null;
 
+	protected tick() {
+		if (!this.#positionAnimationState) {
+			return;
+		}
+
+		this.#positionAnimationState.progress = Math.min(
+			1,
+			this.#positionAnimationState.progress +
+				((1 - this.#positionAnimationState.progress) / 120) * this.p.deltaTime,
+		);
+	}
+
 	get #visiblePosition(): [number, number] {
 		if (!this.#positionAnimationState) {
 			return this.#position;
@@ -72,12 +84,6 @@ export class Entity {
 
 			return this.#visiblePosition;
 		}
-
-		this.#positionAnimationState.progress = Math.min(
-			1,
-			this.#positionAnimationState.progress +
-				((1 - this.#positionAnimationState.progress) / 120) * this.p.deltaTime,
-		);
 
 		const cellProgress =
 			this.#positionAnimationState.progress *
@@ -259,6 +265,8 @@ export class Entity {
 	}
 
 	draw() {
+		this.tick();
+
 		this.art.draw(
 			this.stage.toScreenSpace(this.#visiblePosition),
 			this.width * this.stage.scale,
