@@ -1,20 +1,26 @@
 import type p5 from "p5";
-import type { Stage } from "./stage";
-import { Textbox } from "./textbox";
+import type { ProtagonistEntity } from "../characters/protagonist";
+import type { Stage } from "../stage";
+import { Textbox } from "../textbox";
 
 export class World {
 	p: p5;
 	stage: Stage;
 	textbox: Textbox;
 
+	protagonist: ProtagonistEntity;
+
 	/**
 	 * El escenario activo actual.
 	 */
 
-	constructor(p: p5, stage: Stage) {
+	constructor(p: p5, protagonist: ProtagonistEntity, stage: Stage) {
 		this.p = p;
 		this.stage = stage;
 		this.textbox = new Textbox(p);
+
+		protagonist.assignToWorld(this);
+		this.protagonist = protagonist;
 	}
 
 	transitionTo(newStage: Stage) {

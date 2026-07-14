@@ -1,5 +1,7 @@
 import type p5 from "p5";
 import { EntityArt } from "../entity/art";
+import { expect } from "../utils";
+import type { World } from "../world";
 import { CombatantEntity } from "./combatant";
 
 enum ProtagonistInteractions {
@@ -18,6 +20,18 @@ export class ProtagonistEntity extends CombatantEntity {
 	}
 
 	isMovable: boolean = true;
+
+	#world?: World;
+	get world() {
+		return expect(this.#world);
+	}
+
+	assignToWorld(world: World) {
+		if (this.#world) {
+			throw new Error("El protagonista solo puede pertenecer a un mundo.");
+		}
+		this.#world = world;
+	}
 
 	interactionOptions(): Map<number, string> {
 		return new Map([
@@ -42,8 +56,20 @@ export class ProtagonistEntity extends CombatantEntity {
 		this.art.animate("walk_backward", true);
 	}
 
-	onStoppedMoving(): void {
+	async onStoppedMoving() {
 		this.art.immediatelyStopAnimating();
+
+		const newStage = this.stage.grid.transitions.get(
+			this.stage.grid.fromStageSpace(this.position),
+		);
+
+		// nótese que si se tarda mucho tiempo en cargar la siguiente escena, puede
+		// ser que el usuario tenga la oportunidad de interactuar con la escena
+		// actual antes de ser teletransportado
+
+		if (newStage) {
+			this.world.transitionTo(await newStage(this.p, this));
+		}
 	}
 }
 

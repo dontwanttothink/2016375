@@ -138,8 +138,7 @@ export class StageInteraction extends StageComponent {
 			)
 		) {
 			// movemos la entidad y acabamos la interacción
-			this.phase.entity.position =
-				this.stage.grid.normalizeStageSpace(location);
+			this.phase.entity.move(this.stage.grid.normalizeStageSpace(location));
 
 			this.phase = { kind: Phase.Idle };
 			this.stage.grid.stopHighlighting();

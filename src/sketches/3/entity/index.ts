@@ -36,14 +36,14 @@ export class Entity {
 		return this.#position;
 	}
 
-	set position(location: [number, number]) {
+	move(to: [number, number]) {
 		if (!this.#stage) {
-			this.#position = location;
+			this.#position = to;
 			return;
 		}
 
-		const path = this.pathTo(this.#stage.grid.fromStageSpace(location));
-		this.#position = location;
+		const path = this.pathTo(this.#stage.grid.fromStageSpace(to));
+		this.#position = to;
 
 		if (path) {
 			this.#positionAnimationState = {
@@ -236,7 +236,10 @@ export class Entity {
 					}
 
 					if (
-						this.stage.collidesAt(this.stage.grid.toStageSpace(neighbor), this)
+						this.stage.collidesAt(
+							this.stage.grid.toStageSpace(neighbor, true),
+							this,
+						)
 					) {
 						continue;
 					}
@@ -431,12 +434,6 @@ export class Entity {
 	}
 
 	assignToStage(stage: Stage) {
-		if (this.#stage) {
-			throw new Error(
-				"una entidad solo se puede asignar a un escenario una vez.",
-			);
-		}
-
 		this.#stage = stage;
 	}
 
@@ -457,7 +454,7 @@ export class Entity {
 		return new Map();
 	}
 
-	onInteracted(option: number, textbox: Textbox) {}
+	onInteracted(_option: number, _textbox: Textbox) {}
 
 	onMovingDownward() {}
 	onMovingUpward() {}

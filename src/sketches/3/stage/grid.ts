@@ -1,5 +1,7 @@
 import type p5 from "p5";
+import type { ProtagonistEntity } from "../characters/protagonist";
 import { expect, IntegerPairMap } from "../utils";
+import type { Stage } from ".";
 import { StageComponent } from "./component";
 
 interface StageGridDescriptor {
@@ -57,6 +59,10 @@ export class StageGrid extends StageComponent {
 		color: p5.Color;
 	}> = new IntegerPairMap();
 
+	transitions: IntegerPairMap<
+		(p: p5, protagonist: ProtagonistEntity) => Promise<Stage>
+	> = new IntegerPairMap();
+
 	origin: [number, number];
 
 	/**
@@ -81,11 +87,20 @@ export class StageGrid extends StageComponent {
 		];
 	}
 
-	toStageSpace(gridLocation: [number, number]): [number, number] {
-		return [
+	toStageSpace(
+		gridLocation: [number, number],
+		whole: boolean = false,
+	): [number, number] {
+		const out: [number, number] = [
 			this.origin[0] + (gridLocation[0] + 0.5) * this.cellSize,
 			this.origin[1] + (gridLocation[1] + 0.5) * this.cellSize,
 		];
+
+		if (whole) {
+			return out.map((p) => Math.floor(p)) as [number, number];
+		} else {
+			return out;
+		}
 	}
 
 	/**

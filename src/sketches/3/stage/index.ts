@@ -9,6 +9,8 @@ import { StageInteraction } from "./interaction";
  *
  * Las instancias de esta clase se encargan de gestionar las entidades dentro del
  * escenario.
+ *
+ * Esta clase no tiene subclases.
  */
 export class Stage {
 	static STAGE_ART_URL = new URL("/art/stages/", window.location.origin);
@@ -73,7 +75,6 @@ export class Stage {
 			background,
 			collision,
 			new StageGrid(origin, cellSize),
-			new StageInteraction(),
 			name,
 		);
 		return stage;
@@ -114,7 +115,6 @@ export class Stage {
 		background: p5.Image,
 		collision: p5.Image,
 		grid: StageGrid,
-		interaction: StageInteraction,
 		name?: string,
 	) {
 		this.p = p;
@@ -164,6 +164,7 @@ export class Stage {
 		grid.assignToStage(p, this);
 		this.grid = grid;
 
+		const interaction = new StageInteraction();
 		interaction.assignToStage(p, this);
 		this.interaction = interaction;
 
