@@ -136,7 +136,7 @@ export class StageGrid extends StageComponent {
 
 					cellState.opacity = Math.min(
 						cellState.opacity +
-						(200 / StageGrid.HIGHLIGHT_ANIMATION_DURATION) * this.p.deltaTime,
+							(200 / StageGrid.HIGHLIGHT_ANIMATION_DURATION) * this.p.deltaTime,
 						200,
 					);
 				} else {
@@ -144,8 +144,8 @@ export class StageGrid extends StageComponent {
 					if (cellState) {
 						cellState.opacity = Math.max(
 							cellState.opacity -
-							(200 / (StageGrid.HIGHLIGHT_ANIMATION_DURATION / 2)) *
-							this.p.deltaTime,
+								(200 / (StageGrid.HIGHLIGHT_ANIMATION_DURATION / 2)) *
+									this.p.deltaTime,
 							0,
 						);
 
