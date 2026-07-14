@@ -1,7 +1,7 @@
 import type p5 from "p5";
 import type { Stage } from "../stage";
 import type { Textbox } from "../textbox";
-import { expect, IntegerPairMap } from "../utils";
+import { expect, IntegerPairMap, shuffle } from "../utils";
 import type { EntityArt } from "./art";
 
 /**
@@ -202,16 +202,17 @@ export class Entity {
 	}
 
 	/**
-	 * Θ(n) con n = el número de celdas
+	 * peor caso Θ(n) con n = el número de celdas
 	 */
 	protected pathTo(position: [number, number]): [number, number][] | null {
+		// cambiar el orden aleatoriamente produce caminos más interesantes
 		const neighborsOf = (location: [number, number]) =>
-			[
+			shuffle([
 				[location[0] + 1, location[1]],
 				[location[0] - 1, location[1]],
 				[location[0], location[1] + 1],
 				[location[0], location[1] - 1],
-			] as [number, number][];
+			] as [number, number][]);
 
 		const root = this.#stage?.grid.fromStageSpace(this.#position);
 		if (!root) {

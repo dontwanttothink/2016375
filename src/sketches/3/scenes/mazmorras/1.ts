@@ -1,4 +1,5 @@
 import type p5 from "p5";
+import { Musgo } from "../../characters/musgo";
 import type { ProtagonistEntity } from "../../characters/protagonist";
 import { Stage } from "../../stage";
 
@@ -12,6 +13,9 @@ export function Mazmorra1(position: 0 | 1) {
 		} else {
 			protagonist.teleport(stage.grid.toStageSpace([0, 7]));
 		}
+
+		const musgo = await Musgo(p, stage.grid.toStageSpace([6, 2]));
+		stage.addEntity(musgo);
 
 		return stage;
 	};

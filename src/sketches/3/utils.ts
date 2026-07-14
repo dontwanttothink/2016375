@@ -71,3 +71,15 @@ export class IntegerPairMap<T> {
 		}
 	}
 }
+
+/**
+ * https://en.wikipedia.org/wiki/Fisher–Yates_shuffle: uniforme y Θ(n)
+ * el arreglo se modifica in-place
+ */
+export function shuffle<T extends unknown[]>(arr: T): T {
+	for (let i = 1; i < arr.length; ++i) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[arr[i], arr[j]] = [arr[j], arr[i]];
+	}
+	return arr;
+}
