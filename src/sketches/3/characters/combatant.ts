@@ -18,7 +18,7 @@ export class CombatantEntity extends Entity {
 		return new Map([[CombatantInteractions.Atacar, "Atacar"]]);
 	}
 
-	interacted(option: number) {
+	onInteracted(option: number) {
 		if (option === CombatantInteractions.Atacar) {
 			this.stage.interaction.startTargeting(this);
 		}

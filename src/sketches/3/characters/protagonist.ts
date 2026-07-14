@@ -47,9 +47,8 @@ export class ProtagonistEntity extends CombatantEntity {
 	}
 }
 
-export async function Protagonist(p: p5, location: [number, number] = [0, 0]) {
+export async function Protagonist(p: p5, position: [number, number] = [0, 0]) {
 	const art = await EntityArt.fromName(p, "protagonist");
-
 	await Promise.all([
 		art.loadAnimation("walk_forward"),
 		art.loadAnimation("walk_backward"),
@@ -57,5 +56,5 @@ export async function Protagonist(p: p5, location: [number, number] = [0, 0]) {
 		art.loadAnimation("walk_right"),
 	]);
 
-	return new ProtagonistEntity(p, art, location);
+	return new ProtagonistEntity(p, art, position);
 }

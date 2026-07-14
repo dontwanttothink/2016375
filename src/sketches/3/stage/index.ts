@@ -177,7 +177,10 @@ export class Stage {
 		if (position.some((v) => !Number.isInteger(v))) {
 			throw new TypeError(`the position ${position} is not valid`);
 		}
-		// TODO: check entities
+
+		if (this.intersectsWithEntityAt(position, except)) {
+			return true;
+		}
 
 		const index = position[1] * this.width + position[0];
 		if (
@@ -194,8 +197,12 @@ export class Stage {
 	/**
 	 * @param position En el espacio del escenario
 	 */
-	intersectsWithEntityAt(location: [number, number]) {
-		return this.entities.findLast((e) => e.intersects(location)) ?? null;
+	intersectsWithEntityAt(position: [number, number], except?: Entity) {
+		return (
+			this.entities
+				.filter((e) => e !== except)
+				.findLast((e) => e.intersects(position)) ?? null
+		);
 	}
 
 	addEntity(entity: Entity) {

@@ -10,7 +10,7 @@ export class MusgoEntity extends CombatantEntity {
 	}
 }
 
-export async function Musgo(p: p5, location: [number, number] = [0, 0]) {
+export async function Musgo(p: p5, position: [number, number] = [0, 0]) {
 	const art = await EntityArt.fromName(p, "musgo");
-	return new MusgoEntity(p, art, location);
+	return new MusgoEntity(p, art, position);
 }

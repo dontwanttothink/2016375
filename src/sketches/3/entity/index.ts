@@ -69,7 +69,7 @@ export class Entity {
 		this.#positionAnimationState.progress = Math.min(
 			1,
 			this.#positionAnimationState.progress +
-				((1 - this.#positionAnimationState.progress) / 150) * this.p.deltaTime,
+				((1 - this.#positionAnimationState.progress) / 130) * this.p.deltaTime,
 		);
 	}
 
