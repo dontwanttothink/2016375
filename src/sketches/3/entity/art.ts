@@ -152,6 +152,12 @@ export class EntityArt {
 		this.p.noSmooth();
 		const { origin, w, h } = this.properties([x, y], width, height, { fit });
 		this.p.image(this.appearance, ...origin, w, h);
+
+		if (import.meta.env.MODE === "DEBUG") {
+			this.p.noFill();
+			this.p.stroke(0, 100);
+			this.p.rect(...origin, w, h);
+		}
 		this.p.pop();
 	}
 
