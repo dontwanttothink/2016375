@@ -1,5 +1,6 @@
 import type p5 from "p5";
 import type { Stage } from "../stage";
+import type { Textbox } from "../textbox";
 import { expect, IntegerPairMap } from "../utils";
 import type { EntityArt } from "./art";
 
@@ -11,7 +12,7 @@ export class Entity {
 	p: p5;
 
 	#stage?: Stage;
-	#art: EntityArt;
+	protected art: EntityArt;
 
 	/**
 	 * Determina si la entidad debería dibujarse dentro de `width` y `height`
@@ -65,8 +66,10 @@ export class Entity {
 			return this.#position;
 		}
 
-		if (this.#positionAnimationState.progress === 1) {
+		if (this.#positionAnimationState.progress > 0.99) {
 			this.#positionAnimationState = null;
+			this.onStoppedMoving();
+
 			return this.#visiblePosition;
 		}
 
@@ -82,9 +85,11 @@ export class Entity {
 		const newCellIndex = Math.floor(cellProgress);
 		const intracellProgress = cellProgress - newCellIndex;
 
-		const newCellCoordinates = this.stage.grid.toStageSpace(
-			this.#positionAnimationState.path[newCellIndex],
-		);
+		const newCell = this.#positionAnimationState.path[newCellIndex];
+		const newCellCoordinates = this.stage.grid.toStageSpace(newCell);
+
+		// nótese que la única situación en que no existe un `nextCell` es cuando ya
+		// se acabó la animación de todas formas
 
 		const nextCell = this.#positionAnimationState.path.at(newCellIndex + 1);
 		if (nextCell) {
@@ -93,6 +98,17 @@ export class Entity {
 				(nextCellCoordinates[0] - newCellCoordinates[0]) * intracellProgress;
 			newCellCoordinates[1] +=
 				(nextCellCoordinates[1] - newCellCoordinates[1]) * intracellProgress;
+
+			// ¿en qué dirección nos estamos moviendo?
+			if (nextCell[0] < newCell[0]) {
+				this.onMovingLeft();
+			} else if (nextCell[0] > newCell[0]) {
+				this.onMovingRight();
+			} else if (nextCell[1] > newCell[1]) {
+				this.onMovingDownward();
+			} else if (nextCell[1] < newCell[1]) {
+				this.onMovingUpward();
+			}
 		}
 
 		const normalizedTarget = this.stage.grid.normalizeStageSpace(
@@ -164,7 +180,7 @@ export class Entity {
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
 		this.p = p;
 
-		this.#art = art;
+		this.art = art;
 
 		this.width = art.appearance.width;
 		this.height = art.appearance.height;
@@ -238,7 +254,7 @@ export class Entity {
 	}
 
 	draw() {
-		this.#art.draw(
+		this.art.draw(
 			this.stage.toScreenSpace(this.#visiblePosition),
 			this.width * this.stage.scale,
 			this.height * this.stage.scale,
@@ -397,5 +413,11 @@ export class Entity {
 		return new Map();
 	}
 
-	interacted(option: number) {}
+	onInteracted(option: number, textbox: Textbox) {}
+
+	onMovingDownward() {}
+	onMovingUpward() {}
+	onMovingLeft() {}
+	onMovingRight() {}
+	onStoppedMoving() {}
 }

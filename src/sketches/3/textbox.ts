@@ -152,7 +152,7 @@ export class Textbox {
 
 		const target = this.#buttonAt(location);
 		if (target) {
-			this.#lastActiveInteraction.entity.interacted(target.id);
+			this.#lastActiveInteraction.entity.onInteracted(target.id);
 		}
 	}
 }
