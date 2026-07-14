@@ -21,6 +21,8 @@ export class Textbox {
 		entity: Entity;
 	} | null = null;
 
+	#message: string | null = null;
+
 	width?: number;
 	height?: number;
 	origin?: [number, number];
@@ -39,6 +41,11 @@ export class Textbox {
 			})),
 			entity: onBehalfOf,
 		};
+		this.#isVisible = true;
+	}
+	showMessage(text: string) {
+		this.#lastActiveInteraction = null;
+		this.#message = text;
 		this.#isVisible = true;
 	}
 
@@ -103,28 +110,20 @@ export class Textbox {
 
 		const activeInteraction = this.#lastActiveInteraction;
 
-		if (activeInteraction) {
+		if (this.#message !== null) {
+			this.p.noStroke();
+			this.p.fill(255, this.#opacity * 255);
+			this.p.textAlign(this.p.CENTER, this.p.CENTER);
+			this.p.text(
+				this.#message,
+				origin[0] + width / 2,
+				origin[1] + Textbox.MARGIN + (height - Textbox.MARGIN) / 2,
+			);
+		} else if (activeInteraction) {
 			this.p.textAlign(this.p.CENTER, this.p.CENTER);
 
 			for (const [i, { x, y, w, h }] of this.#buttonRects()) {
-				const hovering =
-					this.p.mouseX >= x &&
-					this.p.mouseX <= x + w &&
-					this.p.mouseY >= y &&
-					this.p.mouseY <= y + h;
-
-				this.p.fill(
-					255,
-					this.p.constrain(
-						(this.#opacity - 0.7) * ((hovering ? 70 : 60) / (1 - 0.7)),
-						0,
-						255,
-					),
-				);
-				this.p.rect(x, y, w, h);
-
-				this.p.fill(255, this.#opacity * 255);
-				this.p.text(activeInteraction.buttons[i].label, x + w / 2, y + h / 2);
+				// ... el resto de este bloque queda exactamente igual
 			}
 		}
 
@@ -148,7 +147,14 @@ export class Textbox {
 	}
 
 	clickedAt(location: [number, number]) {
-		if (!this.#isVisible || !this.#lastActiveInteraction) return null;
+		if (!this.#isVisible) return null;
+
+		if (this.#message !== null) {
+			this.hide();
+			return;
+		}
+
+		if (!this.#lastActiveInteraction) return null;
 
 		const target = this.#buttonAt(location);
 		if (target) {

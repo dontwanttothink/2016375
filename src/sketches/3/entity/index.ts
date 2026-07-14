@@ -73,7 +73,7 @@ export class Entity {
 		this.#positionAnimationState.progress = Math.min(
 			1,
 			this.#positionAnimationState.progress +
-				((1 - this.#positionAnimationState.progress) / 120) * this.p.deltaTime,
+			((1 - this.#positionAnimationState.progress) / 120) * this.p.deltaTime,
 		);
 
 		const cellProgress =
@@ -157,6 +157,11 @@ export class Entity {
 	isInteractive: boolean = false;
 
 	isMovable: boolean = false;
+
+	name: string = "Entidad";
+
+	health?: number;
+	maxHealth?: number;
 	get reach() {
 		return 1;
 	}
@@ -245,6 +250,8 @@ export class Entity {
 			{ fit: this.fit },
 		);
 
+		this.#drawHealthBar();
+
 		if (import.meta.env.MODE === "DEBUG") {
 			this.p.push();
 			this.p.stroke(255, 0, 0, 100);
@@ -266,6 +273,34 @@ export class Entity {
 		}
 	}
 
+	#drawHealthBar() {
+		if (this.maxHealth === undefined || this.health === undefined) return;
+		if (this.maxHealth <= 0) return;
+
+		const screenPosition = this.stage.toScreenSpace(this.#visiblePosition);
+		const barWidth = this.width * this.stage.scale;
+		const barHeight = 4;
+		const barY =
+			screenPosition[1] - (this.height * this.stage.scale) / 2 - barHeight - 4;
+		const barX = screenPosition[0] - barWidth / 2;
+
+		const ratio = Math.max(0, Math.min(1, this.health / this.maxHealth));
+
+		this.p.push();
+		this.p.noStroke();
+		this.p.rectMode(this.p.CORNER);
+
+		this.p.fill(40);
+		this.p.rect(barX, barY, barWidth, barHeight);
+
+		this.p.fill(
+			this.p.lerpColor(this.p.color("red"), this.p.color("limegreen"), ratio),
+		);
+		this.p.rect(barX, barY, barWidth * ratio, barHeight);
+
+		this.p.pop();
+	}
+
 	/**
 	 * Intentar mover la entidad instantáneamente. Se comprueba la colisión.
 	 *
@@ -284,11 +319,11 @@ export class Entity {
 		const pixels: [number, number] = [
 			Math.abs(
 				Math.floor(this.#position[0]) -
-					Math.floor(this.#position[0] + delta[0]),
+				Math.floor(this.#position[0] + delta[0]),
 			),
 			Math.abs(
 				Math.floor(this.#position[1]) -
-					Math.floor(this.#position[1] + delta[1]),
+				Math.floor(this.#position[1] + delta[1]),
 			),
 		];
 
@@ -397,5 +432,5 @@ export class Entity {
 		return new Map();
 	}
 
-	interacted(option: number) {}
+	interacted(option: number) { }
 }

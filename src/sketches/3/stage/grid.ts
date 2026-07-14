@@ -49,6 +49,7 @@ export class StageGrid extends StageComponent {
 		radius: number;
 		from: [number, number];
 		color: p5.Color;
+		mode: "move" | "attack";
 	} | null = null;
 
 	#highlightedCells: IntegerPairMap<{
@@ -91,13 +92,15 @@ export class StageGrid extends StageComponent {
 	 * @param radius
 	 * @param from en términos del espacio de la cuadrícula
 	 * @param color
+	 * @param mode
 	 */
-	highlight(radius: number, from: [number, number], color: p5.Color) {
-		this.#highlight = {
-			radius,
-			from,
-			color,
-		};
+	highlight(
+		radius: number,
+		from: [number, number],
+		color: p5.Color,
+		mode: "move" | "attack" = "move",
+	) {
+		this.#highlight = { radius, from, color, mode };
 	}
 
 	stopHighlighting() {
@@ -133,7 +136,7 @@ export class StageGrid extends StageComponent {
 
 					cellState.opacity = Math.min(
 						cellState.opacity +
-							(200 / StageGrid.HIGHLIGHT_ANIMATION_DURATION) * this.p.deltaTime,
+						(200 / StageGrid.HIGHLIGHT_ANIMATION_DURATION) * this.p.deltaTime,
 						200,
 					);
 				} else {
@@ -141,8 +144,8 @@ export class StageGrid extends StageComponent {
 					if (cellState) {
 						cellState.opacity = Math.max(
 							cellState.opacity -
-								(200 / (StageGrid.HIGHLIGHT_ANIMATION_DURATION / 2)) *
-									this.p.deltaTime,
+							(200 / (StageGrid.HIGHLIGHT_ANIMATION_DURATION / 2)) *
+							this.p.deltaTime,
 							0,
 						);
 
@@ -185,6 +188,18 @@ export class StageGrid extends StageComponent {
 	 * @param from en el espacio de la cuadrícula
 	 * @param cell en el espacio de la cuadrícula
 	 */
+	attackable(
+		within: number,
+		from: [number, number],
+		cell: [number, number],
+	): boolean {
+		const distance = StageGrid.distance(from, cell);
+		return (
+			distance <= within &&
+			distance !== 0 &&
+			!this.stage.collidesAt(this.toStageSpace(cell))
+		);
+	}
 	reachable(
 		within: number,
 		from: [number, number],
@@ -201,8 +216,10 @@ export class StageGrid extends StageComponent {
 
 	#isHighlighting(cell: [number, number]) {
 		if (this.#highlight) {
-			const { radius, from } = this.#highlight;
-			return this.reachable(radius, from, cell);
+			const { radius, from, mode } = this.#highlight;
+			return mode === "attack"
+				? this.attackable(radius, from, cell)
+				: this.reachable(radius, from, cell);
 		}
 		return false;
 	}
