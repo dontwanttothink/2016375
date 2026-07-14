@@ -43,6 +43,7 @@ export class Textbox {
 		};
 		this.#isVisible = true;
 	}
+
 	showMessage(text: string) {
 		this.#lastActiveInteraction = null;
 		this.#message = text;
@@ -158,7 +159,7 @@ export class Textbox {
 
 		const target = this.#buttonAt(location);
 		if (target) {
-			this.#lastActiveInteraction.entity.onInteracted(target.id);
+			this.#lastActiveInteraction.entity.onInteracted(target.id, this);
 		}
 	}
 }
