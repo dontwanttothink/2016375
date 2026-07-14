@@ -8,6 +8,15 @@ enum ProtagonistInteractions {
 }
 
 export class ProtagonistEntity extends CombatantEntity {
+	constructor(p: p5, art: EntityArt, position: [number, number]) {
+		super(p, art, position);
+		this.name = "Protagonista";
+		this.hitbox = {
+			height: 14,
+			center: [0, 4],
+		};
+	}
+
 	energy = 3;
 
 	get reach() {
@@ -55,11 +64,5 @@ export async function Protagonist(p: p5, location: [number, number] = [0, 0]) {
 		art.loadAnimation("walk_right"),
 	]);
 
-	const protagonist = new ProtagonistEntity(p, art, location);
-	protagonist.name = "Protagonista";
-	protagonist.hitbox = {
-		height: 14,
-		center: [0, 4],
-	};
-	return protagonist;
+	return new ProtagonistEntity(p, art, location);
 }
