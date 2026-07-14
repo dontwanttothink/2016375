@@ -10,8 +10,8 @@ enum Phase {
 
 type PhaseState =
 	| {
-		kind: Phase.Idle;
-	}
+			kind: Phase.Idle;
+	  }
 	| { kind: Phase.Selected; entity: Entity }
 	| { kind: Phase.Targeting; attacker: Entity };
 
@@ -87,7 +87,9 @@ export class StageInteraction extends StageComponent {
 			const attackerCell = this.stage.grid.fromStageSpace(attacker.position);
 			const targetCell = this.stage.grid.fromStageSpace(location);
 
-			if (this.stage.grid.attackable(attacker.reach, attackerCell, targetCell)) {
+			if (
+				this.stage.grid.attackable(attacker.reach, attackerCell, targetCell)
+			) {
 				entity.health = (entity.health ?? 0) - 1;
 
 				this.phase = { kind: Phase.Idle };
@@ -135,7 +137,8 @@ export class StageInteraction extends StageComponent {
 			)
 		) {
 			// movemos la entidad y acabamos la interacción
-			this.phase.entity.position = this.stage.grid.normalizeStageSpace(location);
+			this.phase.entity.position =
+				this.stage.grid.normalizeStageSpace(location);
 
 			this.phase = { kind: Phase.Idle };
 			this.stage.grid.stopHighlighting();
