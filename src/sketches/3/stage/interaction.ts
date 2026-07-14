@@ -25,6 +25,7 @@ export class StageInteraction extends StageComponent {
 	 */
 	enabledAt(location: [number, number]): boolean {
 		const entity = this.stage.intersectsWithEntityAt(location);
+
 		if (this.phase.kind === Phase.Targeting) {
 			if (entity === this.phase.attacker) return true;
 
@@ -41,8 +42,9 @@ export class StageInteraction extends StageComponent {
 			}
 			return false;
 		}
+
 		if (entity) {
-			return entity.isInteractive;
+			return entity.isInteractive();
 		}
 
 		if (
@@ -96,7 +98,6 @@ export class StageInteraction extends StageComponent {
 				this.stage.grid.stopHighlighting();
 
 				if (entity.health <= 0) {
-					entity.isInteractive = false;
 					entity.isMovable = false;
 					textbox.showMessage(`${entity.name} ha muerto.`);
 				} else {

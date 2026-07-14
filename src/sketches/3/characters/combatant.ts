@@ -14,9 +14,6 @@ export class CombatantEntity extends Entity {
 		return this.energy;
 	}
 
-	isInteractive: boolean = true;
-	isMovable: boolean = true;
-
 	interactionOptions(): Map<number, string> {
 		return new Map([[CombatantInteractions.Atacar, "Atacar"]]);
 	}

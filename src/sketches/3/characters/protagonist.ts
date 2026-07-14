@@ -23,7 +23,6 @@ export class ProtagonistEntity extends CombatantEntity {
 		return this.energy;
 	}
 
-	isInteractive: boolean = true;
 	isMovable: boolean = true;
 
 	interactionOptions(): Map<number, string> {

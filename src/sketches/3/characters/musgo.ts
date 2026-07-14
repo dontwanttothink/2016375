@@ -6,6 +6,7 @@ export class MusgoEntity extends CombatantEntity {
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
 		super(p, art, position);
 		this.name = "Musgo";
+		this.isMovable = false;
 	}
 }
 

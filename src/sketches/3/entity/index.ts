@@ -176,8 +176,9 @@ export class Entity {
 		};
 	}
 
-	isInteractive: boolean = false;
-
+	isInteractive() {
+		return this.isMovable;
+	}
 	isMovable: boolean = false;
 
 	name: string = "Entidad";
