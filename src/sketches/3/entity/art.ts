@@ -112,18 +112,26 @@ export class EntityArt {
 		this.animations.set(name, animation);
 	}
 
-	animate(identifier: string, looping: boolean = false) {
+	animate(identifier: string, looping: boolean = false, restart = false) {
 		if (!this.animations.has(identifier)) {
 			throw new TypeError(
 				`No se ha cargado una animación con el identificador "${identifier}".`,
 			);
 		}
 
-		this.animation = {
-			identifier,
-			looping,
-			since: this.p.millis(),
-		};
+		if (this.animation?.identifier === identifier && !restart) {
+			this.animation = {
+				identifier,
+				looping,
+				since: this.animation.since,
+			};
+		} else {
+			this.animation = {
+				identifier,
+				looping,
+				since: this.p.millis(),
+			};
+		}
 	}
 
 	/**

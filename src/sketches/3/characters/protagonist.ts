@@ -1,12 +1,59 @@
 import type p5 from "p5";
-import { CombatantEntity } from "./combatant";
 import { EntityArt } from "../entity/art";
+import { CombatantEntity } from "./combatant";
 
-export class ProtagonistEntity extends CombatantEntity { }
+enum ProtagonistInteractions {
+	Example,
+	Example2,
+}
+
+export class ProtagonistEntity extends CombatantEntity {
+	energy = 3;
+
+	get reach() {
+		return this.energy;
+	}
+
+	isInteractive: boolean = true;
+	isMovable: boolean = true;
+
+	interactionOptions(): Map<number, string> {
+		return new Map([
+			[ProtagonistInteractions.Example, "Ejemplo"],
+			[ProtagonistInteractions.Example2, "Ejemplo 2"],
+		]);
+	}
+
+	onMovingDownward() {
+		this.art.animate("walk_forward", true);
+	}
+
+	onMovingLeft() {
+		this.art.animate("walk_left", true);
+	}
+
+	onMovingRight(): void {
+		this.art.animate("walk_right", true);
+	}
+
+	onMovingUpward(): void {
+		this.art.animate("walk_backward", true);
+	}
+
+	onStoppedMoving(): void {
+		this.art.immediatelyStopAnimating();
+	}
+}
 
 export async function Protagonist(p: p5, location: [number, number] = [0, 0]) {
 	const art = await EntityArt.fromName(p, "protagonist");
-	await art.loadAnimation("walk_forward");
+
+	await Promise.all([
+		art.loadAnimation("walk_forward"),
+		art.loadAnimation("walk_backward"),
+		art.loadAnimation("walk_left"),
+		art.loadAnimation("walk_right"),
+	]);
 
 	const protagonist = new ProtagonistEntity(p, art, location);
 	protagonist.name = "Protagonista";
