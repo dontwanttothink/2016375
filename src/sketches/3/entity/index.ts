@@ -69,7 +69,7 @@ export class Entity {
 		this.#positionAnimationState.progress = Math.min(
 			1,
 			this.#positionAnimationState.progress +
-				((1 - this.#positionAnimationState.progress) / 120) * this.p.deltaTime,
+				((1 - this.#positionAnimationState.progress) / 150) * this.p.deltaTime,
 		);
 	}
 
@@ -183,8 +183,9 @@ export class Entity {
 
 	name: string = "Entidad";
 
-	health?: number;
-	maxHealth?: number;
+	maxHealth: number = 1;
+	health: number = 1;
+
 	get reach() {
 		return 1;
 	}
@@ -299,14 +300,13 @@ export class Entity {
 	}
 
 	#drawHealthBar() {
-		if (this.maxHealth === undefined || this.health === undefined) return;
 		if (this.maxHealth <= 0) return;
 
 		const screenPosition = this.stage.toScreenSpace(this.#visiblePosition);
 		const barWidth = this.width * this.stage.scale;
 		const barHeight = 4;
 		const barY =
-			screenPosition[1] - (this.height * this.stage.scale) / 2 - barHeight - 4;
+			screenPosition[1] + (this.height * this.stage.scale) / 2 - barHeight - 4;
 		const barX = screenPosition[0] - barWidth / 2;
 
 		const ratio = Math.max(0, Math.min(1, this.health / this.maxHealth));
