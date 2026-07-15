@@ -15,7 +15,7 @@ type PhaseState =
 	| {
 			kind: Phase.Idle;
 	  }
-	| { kind: Phase.Selected; entity: Entity };
+	| { kind: Phase.Selected; entity: ProtagonistEntity };
 
 export class StageInteraction extends StageComponent {
 	phase: PhaseState = { kind: Phase.Idle };
@@ -90,6 +90,8 @@ export class StageInteraction extends StageComponent {
 			)
 		) {
 			this.phase.entity.move(this.stage.grid.normalizeStageSpace(location));
+
+			this.phase.entity.energy = Math.max(0, this.phase.entity.energy - 3);
 
 			this.phase = { kind: Phase.Idle };
 			this.stage.grid.stopHighlighting();
