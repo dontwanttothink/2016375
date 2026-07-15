@@ -1,6 +1,5 @@
 import { EnemyEntity } from "../characters/enemy";
 import { ProtagonistEntity } from "../characters/protagonist";
-import type { Entity } from "../entity";
 import type { Textbox } from "../textbox";
 import { StageComponent } from "./component";
 import { StageGrid } from "./grid";
