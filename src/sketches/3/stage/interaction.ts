@@ -18,6 +18,13 @@ enum RestingPhaseStep {
 	Reloading,
 }
 
+/** Lo que hizo un enemigo en su turno (véase {@link StageInteraction.actEnemy}). */
+enum EnemyAction {
+	Attacked,
+	Moved,
+	Idle,
+}
+
 type PhaseState =
 	| {
 			kind: Phase.Idle;
@@ -257,9 +264,9 @@ export class StageInteraction extends StageComponent {
 		// el enemigo actúa; esperamos según lo que haya hecho (atacar o moverse)
 		const enemy = phase.enemies[phase.index];
 		const action = this.#actEnemy(enemy, textbox);
-		if (action === "moved") {
+		if (action === EnemyAction.Moved) {
 			phase.moving = enemy;
-		} else if (action === "attacked") {
+		} else if (action === EnemyAction.Attacked) {
 			phase.attacking = this.p.millis();
 		} else {
 			phase.index += 1;
@@ -328,30 +335,35 @@ export class StageInteraction extends StageComponent {
 	 * más de la mitad de la vida) o huye. Devuelve qué hizo, para que el turno
 	 * espere el mensaje de ataque o la animación de movimiento.
 	 */
-	#actEnemy(
-		enemy: EnemyEntity,
-		textbox: Textbox,
-	): "attacked" | "moved" | "idle" {
+	#actEnemy(enemy: EnemyEntity, textbox: Textbox): EnemyAction {
 		if (this.phase.kind !== Phase.BeingAttacked) {
-			return "idle";
+			return EnemyAction.Idle;
 		}
 
 		const protagonist = this.phase.protagonist;
 
 		if (protagonist.attackable(enemy) && Math.random() < 0.5) {
 			protagonist.health = Math.max(0, protagonist.health - enemy.attackPower);
-			textbox.showMessage(`¡${enemy.name} te atacó!`);
-			return "attacked";
+
+			// un ataque desde más de una celda de distancia es «telepático»
+			const distance = StageInteraction.#taxicab(
+				this.stage.grid.fromStageSpace(enemy.position),
+				this.stage.grid.fromStageSpace(protagonist.position),
+			);
+			const fromAfar = distance > 1 ? " desde lejos" : "";
+			textbox.showMessage(`¡${enemy.name} te atacó${fromAfar}!`);
+
+			return EnemyAction.Attacked;
 		}
 
 		const approaching = enemy.health > enemy.maxHealth / 2;
 		const target = this.#chooseEnemyMove(enemy, approaching);
 		if (!target) {
-			return "idle";
+			return EnemyAction.Idle;
 		}
 
 		enemy.move(this.stage.grid.toStageSpace(target));
-		return enemy.isMoving ? "moved" : "idle";
+		return enemy.isMoving ? EnemyAction.Moved : EnemyAction.Idle;
 	}
 
 	/**
