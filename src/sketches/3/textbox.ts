@@ -38,6 +38,9 @@ export class Textbox {
 	static PADDING = 12;
 	static GAP = 12;
 
+	static EXHAUSTING_HEADING = "Estar en un lugar así puede ser agotador.";
+	static EXHAUSTING_SUBHEADING = "Échale un vistazo a tu energía.";
+
 	p: p5;
 
 	#isVisibleUntil: number = -Infinity;
@@ -136,6 +139,8 @@ export class Textbox {
 		}
 	}
 
+	batteryTextDimensions() {}
+
 	draw(origin: [number, number], width: number, height: number) {
 		// actualizar geometría
 		this.origin = origin;
@@ -196,9 +201,9 @@ export class Textbox {
 			const contentTop = origin[1] + Textbox.MARGIN + Textbox.PADDING;
 			const contentHeight = height - Textbox.MARGIN - Textbox.PADDING * 2;
 
-			// reservamos un recuadro a la derecha para la batería, que se ajusta a
-			// su interior conservando sus proporciones
-			const batteryBoxWidth = contentHeight * 1.5;
+			// la batería puede ocupar un máximo de un cuarto del espacio
+			const batteryBoxWidth = Math.min(contentHeight * 1.5, width / 4);
+
 			activeInteraction.batteryDisplay.tick();
 			activeInteraction.batteryDisplay.draw(
 				[
@@ -219,13 +224,26 @@ export class Textbox {
 				width - Textbox.PADDING * 2 - batteryBoxWidth - Textbox.GAP;
 			let y = contentTop;
 
-			const heading = "Estar en un lugar así puede ser agotador.";
-			this.p.textSize(20);
-			this.p.text(heading, x, y, maxWidth);
-			y += this.p.textBounds(heading, x, y, maxWidth).h + Textbox.GAP;
+			const heading = Textbox.EXHAUSTING_HEADING;
+			const subheading = Textbox.EXHAUSTING_SUBHEADING;
 
-			this.p.textSize(13);
-			this.p.text("Échale un vistazo a tu energía.", x, y, maxWidth);
+			this.p.textSize(20);
+			if (
+				this.p.textBounds(heading, x, y, maxWidth).h / contentHeight >
+				3 / 4
+			) {
+				this.p.textSize(14);
+			}
+
+			const headingHeight =
+				this.p.textBounds(heading, x, y, maxWidth).h + Textbox.GAP;
+			this.p.text(heading, x, y, maxWidth);
+
+			y += headingHeight;
+			this.p.textSize(
+				Math.min(contentHeight - headingHeight, this.p.textSize() * 0.8),
+			);
+			this.p.text(subheading, x, y, maxWidth);
 		} else if (activeInteraction?.kind === TextboxDisplayKind.Message) {
 			this.p.textAlign(this.p.LEFT, this.p.TOP);
 			this.p.fill(255, this.#opacity * 255);
