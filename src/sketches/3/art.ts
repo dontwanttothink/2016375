@@ -47,6 +47,10 @@ export class Art {
 	private canonical: p5.Image;
 	private animations: Map<string, ArtAnimation> = new Map();
 
+	getAnimationProperties(identifier: string) {
+		return this.animations.get(identifier);
+	}
+
 	private animation: ArtAnimationState | null = null;
 	private override: ArtOverrideState | null = null;
 
@@ -69,7 +73,7 @@ export class Art {
 		if (this.override) {
 			const { identifier, frame } = this.override;
 			const { frames } = expect(this.animations.get(identifier));
-			return frames[frame];
+			return expect(frames.at(frame));
 		}
 
 		return this.canonical;
@@ -191,12 +195,18 @@ export class Art {
 		[x, y]: [number, number],
 		width: number,
 		height: number,
-		{ fit }: { fit: boolean } = { fit: false },
+		{ fit = false, opacity = 1 }: { fit?: boolean; opacity?: number } = {},
 	) {
 		this.p.push();
 		this.p.noSmooth();
+
 		const { origin, w, h } = this.properties([x, y], width, height, { fit });
+
+		// tint() no funciona por un bug de p5, creo
+		const ctx = this.p.drawingContext as CanvasRenderingContext2D;
+		ctx.globalAlpha = opacity;
 		this.p.image(this.appearance, ...origin, w, h);
+		ctx.globalAlpha = 1;
 
 		if (import.meta.env.MODE === "DEBUG") {
 			this.p.noFill();

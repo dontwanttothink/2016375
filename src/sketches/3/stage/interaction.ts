@@ -3,6 +3,7 @@ import { ProtagonistEntity } from "../characters/protagonist";
 import type { Entity } from "../entity";
 import type { Textbox } from "../textbox";
 import { StageComponent } from "./component";
+import { StageGrid } from "./grid";
 
 export enum Phase {
 	Idle,
@@ -89,13 +90,24 @@ export class StageInteraction extends StageComponent {
 				this.stage.grid.fromStageSpace(location),
 			)
 		) {
+			// la distancia recorrida se calcula antes de mover a la entidad
+			const distance = StageGrid.distance(
+				this.stage.grid.fromStageSpace(this.phase.entity.position),
+				this.stage.grid.fromStageSpace(location),
+			);
+
 			this.phase.entity.move(this.stage.grid.normalizeStageSpace(location));
 
-			this.phase.entity.energy = Math.max(0, this.phase.entity.energy - 3);
+			if (this.stage.isExhausting) {
+				this.phase.entity.energy = Math.max(
+					0,
+					this.phase.entity.energy - distance,
+				);
+			}
 
 			this.phase = { kind: Phase.Idle };
 			this.stage.grid.stopHighlighting();
-			textbox.hide();
+			textbox.hide(this.p.millis() + 1000);
 			return;
 		}
 

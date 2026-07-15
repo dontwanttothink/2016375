@@ -35,7 +35,7 @@ export class Textbox {
 
 	p: p5;
 
-	#isVisible: boolean = false;
+	#isVisibleUntil: number = -Infinity;
 	#lastActiveTextboxDisplay: TextboxDisplay | null = null;
 
 	width?: number;
@@ -59,6 +59,14 @@ export class Textbox {
 		this.p = p;
 	}
 
+	/**
+	 * Indica si el cuadro debería estar visible en este instante, según el
+	 * momento programado para su desaparición.
+	 */
+	get #isVisible(): boolean {
+		return this.p.millis() < this.#isVisibleUntil;
+	}
+
 	showButtons(buttons: Iterable<[number, string]>, onBehalfOf: Entity) {
 		this.#lastActiveTextboxDisplay = {
 			kind: TextboxDisplayKind.Buttons,
@@ -68,20 +76,22 @@ export class Textbox {
 			})),
 			entity: onBehalfOf,
 		};
-		this.#isVisible = true;
+		this.#isVisibleUntil = Infinity;
 	}
 
 	showEnergy(entity: ProtagonistEntity) {
 		this.#lastActiveTextboxDisplay = {
 			kind: TextboxDisplayKind.Energy,
 			entity,
-			batteryDisplay: new BatteryDisplay(this.#batteryArt, entity),
+			batteryDisplay: new BatteryDisplay(this.p, this.#batteryArt, entity),
 		};
-		this.#isVisible = true;
+		this.#isVisibleUntil = Infinity;
 	}
 
-	hide() {
-		this.#isVisible = false;
+	hide(at: number = -Infinity) {
+		if (this.#isVisible) {
+			this.#isVisibleUntil = at;
+		}
 	}
 
 	*#buttonRects(
@@ -165,12 +175,31 @@ export class Textbox {
 				this.p.text(activeInteraction.buttons[i].label, x + w / 2, y + h / 2);
 			}
 		} else if (activeInteraction?.kind === TextboxDisplayKind.Energy) {
+			const contentTop = origin[1] + Textbox.MARGIN + Textbox.PADDING;
+			const contentHeight = height - Textbox.MARGIN - Textbox.PADDING * 2;
+
+			// reservamos un recuadro a la derecha para la batería, que se ajusta a
+			// su interior conservando sus proporciones
+			const batteryBoxWidth = contentHeight * 1.5;
+			activeInteraction.batteryDisplay.tick();
+			activeInteraction.batteryDisplay.draw(
+				[
+					origin[0] + width - Textbox.PADDING - batteryBoxWidth / 2,
+					contentTop + contentHeight / 2,
+				],
+				batteryBoxWidth,
+				contentHeight,
+				this.#opacity,
+			);
+
+			// el texto ocupa el espacio a la izquierda del recuadro de la batería
 			this.p.textAlign(this.p.LEFT, this.p.TOP);
 			this.p.fill(255, this.#opacity * 255);
 
 			const x = origin[0] + Textbox.PADDING;
-			const maxWidth = width - Textbox.PADDING * 2;
-			let y = origin[1] + Textbox.MARGIN + Textbox.PADDING;
+			const maxWidth =
+				width - Textbox.PADDING * 2 - batteryBoxWidth - Textbox.GAP;
+			let y = contentTop;
 
 			const heading = "Estar en un lugar así puede ser agotador.";
 			this.p.textSize(20);
