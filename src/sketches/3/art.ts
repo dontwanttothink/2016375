@@ -201,9 +201,10 @@ export class Art {
 
 		// tint() no funciona por un bug de p5, creo
 		const ctx = this.p.drawingContext as CanvasRenderingContext2D;
+		const previousGlobalAlpha = ctx.globalAlpha;
 		ctx.globalAlpha = opacity;
 		this.p.image(this.appearance, ...origin, w, h);
-		ctx.globalAlpha = 1;
+		ctx.globalAlpha = previousGlobalAlpha;
 
 		if (import.meta.env.MODE === "DEBUG") {
 			this.p.noFill();
