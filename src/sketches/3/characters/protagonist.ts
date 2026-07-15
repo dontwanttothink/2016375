@@ -19,6 +19,9 @@ export class ProtagonistEntity extends Entity {
 		};
 	}
 
+	maxHealth: number = 7;
+	health = 7;
+
 	energy: number = ProtagonistEntity.MAX_ENERGY;
 
 	get reach(): number {
