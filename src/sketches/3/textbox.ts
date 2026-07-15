@@ -13,6 +13,7 @@ export interface TextboxButton {
 export enum TextboxDisplayKind {
 	Buttons,
 	Energy,
+	Message,
 }
 
 type TextboxDisplay =
@@ -25,6 +26,10 @@ type TextboxDisplay =
 			kind: TextboxDisplayKind.Energy;
 			entity: Entity;
 			batteryDisplay: BatteryDisplay;
+	  }
+	| {
+			kind: TextboxDisplayKind.Message;
+			message: string;
 	  };
 
 export class Textbox {
@@ -84,6 +89,14 @@ export class Textbox {
 			kind: TextboxDisplayKind.Energy,
 			entity,
 			batteryDisplay: new BatteryDisplay(this.p, this.#batteryArt, entity),
+		};
+		this.#isVisibleUntil = Infinity;
+	}
+
+	showMessage(message: string) {
+		this.#lastActiveTextboxDisplay = {
+			kind: TextboxDisplayKind.Message,
+			message,
 		};
 		this.#isVisibleUntil = Infinity;
 	}
@@ -208,6 +221,16 @@ export class Textbox {
 
 			this.p.textSize(13);
 			this.p.text("Échale un vistazo a tu energía.", x, y, maxWidth);
+		} else if (activeInteraction?.kind === TextboxDisplayKind.Message) {
+			this.p.textAlign(this.p.LEFT, this.p.TOP);
+			this.p.fill(255, this.#opacity * 255);
+
+			this.p.text(
+				activeInteraction.message,
+				origin[0] + Textbox.PADDING,
+				origin[1] + Textbox.MARGIN + Textbox.PADDING,
+				width - Textbox.PADDING * 2,
+			);
 		}
 
 		this.p.pop();
