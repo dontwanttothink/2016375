@@ -20,7 +20,7 @@ export class ProtagonistEntity extends Entity {
 		};
 	}
 
-	energy: number = 5;
+	energy: number = 10;
 
 	isInteractive(): boolean {
 		return (
