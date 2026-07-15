@@ -6,7 +6,7 @@ export class ArañaEntity extends CombatantEntity {
     constructor(p: p5, art: EntityArt, position: [number, number]) {
         super(p, art, position);
         this.name = "Araña";
-        this.isMovable = false;
+        this.isPlayerControlled = false;
     }
 }
 
