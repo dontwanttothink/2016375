@@ -96,6 +96,12 @@ export class Stage {
 
 	private entities: Entity[] = [];
 
+	public *getEntities() {
+		for (const entity of this.entities) {
+			yield entity;
+		}
+	}
+
 	/**
 	 * Espacio que reservar bajo el escenario, en pixeles del espacio de la pantalla.
 	 */
