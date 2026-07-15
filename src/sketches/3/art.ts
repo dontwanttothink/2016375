@@ -79,13 +79,10 @@ export class Art {
 		return this.canonical;
 	}
 
-	center: [number, number];
-
 	protected constructor(p: p5, location: URL, canonical: p5.Image) {
 		this.p = p;
 		this.location = location;
 		this.canonical = canonical;
-		this.center = [canonical.width / 2, canonical.height / 2];
 	}
 
 	async loadAnimation(name: string) {
@@ -228,29 +225,36 @@ export class Art {
 		height: number,
 		{ fit }: { fit: boolean },
 	) {
-		let w = width;
-		let h = height;
+		// dimensiones con las que se dibujaría la apariencia canónica
+		let canonicalWidth = width;
+		let canonicalHeight = height;
 
 		if (fit) {
-			const propoW = h * (this.canonical.width / this.canonical.height);
-			const propoH = w * (this.canonical.height / this.canonical.width);
+			const propoW =
+				canonicalHeight * (this.canonical.width / this.canonical.height);
+			const propoH =
+				canonicalWidth * (this.canonical.height / this.canonical.width);
 
 			if (propoW > width) {
-				h = propoH;
+				canonicalHeight = propoH;
 			} else {
-				w = propoW;
+				canonicalWidth = propoW;
 			}
 		}
 
-		w *= this.appearance.width / this.canonical.width;
-		h *= this.appearance.height / this.canonical.height;
+		// cada pixel de la apariencia actual conserva el mismo tamaño en pantalla
+		// que tendría un pixel de la apariencia canónica
+		const scaleX = canonicalWidth / this.canonical.width;
+		const scaleY = canonicalHeight / this.canonical.height;
 
-		const scaleX = w / this.canonical.width;
-		const scaleY = h / this.canonical.height;
+		const w = this.appearance.width * scaleX;
+		const h = this.appearance.height * scaleY;
 
+		// centrada horizontalmente en la posición, y con su borde inferior donde
+		// estaría el de la apariencia canónica
 		const origin: [number, number] = [
-			positionX - this.center[0] * scaleX,
-			positionY - this.center[1] * scaleY,
+			positionX - w / 2,
+			positionY + canonicalHeight / 2 - h,
 		];
 
 		return { origin, w, h, scaleX, scaleY };
