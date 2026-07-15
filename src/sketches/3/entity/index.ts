@@ -237,7 +237,7 @@ export class Entity {
 					}
 
 					if (
-						this.stage.collidesAt(
+						!this.stage.emptyAt(
 							this.stage.grid.toStageSpace(neighbor, true),
 							this,
 						)
@@ -380,7 +380,10 @@ export class Entity {
 				j < y + this.#hitbox.center[1] + this.#hitbox.height / 2;
 				++j
 			) {
-				if (this.stage.collidesAt([k, j], this)) {
+				if (
+					this.stage.collidesAt([k, j]) ||
+					this.stage.intersectsWithEntityAt([k, j], this)
+				) {
 					this.stage.debug.highlight([k, j]);
 					wall = [x, y];
 					break ray;
@@ -412,7 +415,10 @@ export class Entity {
 				j < x + this.#hitbox.center[0] + this.#hitbox.width / 2;
 				++j
 			) {
-				if (this.stage.collidesAt([j, k], this)) {
+				if (
+					this.stage.collidesAt([j, k]) ||
+					this.stage.intersectsWithEntityAt([j, k], this)
+				) {
 					this.stage.debug.highlight([j, k]);
 					ceiling = [x, y];
 					break ray;
@@ -462,4 +468,12 @@ export class Entity {
 	onMovingLeft() {}
 	onMovingRight() {}
 	onStoppedMoving() {}
+
+	attackable(by: Entity) {
+		return this.stage.grid.attackable(
+			by.reach,
+			this.stage.grid.fromStageSpace(by.position),
+			this.stage.grid.fromStageSpace(this.position),
+		);
+	}
 }

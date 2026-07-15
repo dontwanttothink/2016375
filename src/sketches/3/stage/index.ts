@@ -174,13 +174,9 @@ export class Stage {
 	/**
 	 * @param position En el espacio del escenario
 	 */
-	collidesAt(position: [number, number], except?: Entity) {
+	collidesAt(position: [number, number]) {
 		if (position.some((v) => !Number.isInteger(v))) {
 			throw new TypeError(`the position ${position} is not valid`);
-		}
-
-		if (this.intersectsWithEntityAt(position, except)) {
-			return true;
 		}
 
 		const index = position[1] * this.width + position[0];
@@ -193,6 +189,13 @@ export class Stage {
 		}
 
 		return this.collision[index];
+	}
+
+	emptyAt(position: [number, number], except?: Entity) {
+		return (
+			!this.collidesAt(position) &&
+			!this.intersectsWithEntityAt(position, except)
+		);
 	}
 
 	/**

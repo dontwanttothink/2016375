@@ -1,5 +1,6 @@
 import type p5 from "p5";
 import { EntityArt } from "../entity/art";
+import { Phase } from "../stage/interaction";
 import { expect } from "../utils";
 import type { World } from "../world";
 import { CombatantEntity } from "./combatant";
@@ -19,6 +20,13 @@ export class ProtagonistEntity extends CombatantEntity {
 		};
 	}
 
+	isInteractive(): boolean {
+		return (
+			this.stage.interaction.phase.kind === Phase.Idle ||
+			(this.stage.interaction.phase.kind === Phase.Selected &&
+				this.stage.interaction.phase.entity === this)
+		);
+	}
 	isMovable: boolean = true;
 
 	#world?: World;

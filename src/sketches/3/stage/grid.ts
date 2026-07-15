@@ -51,7 +51,6 @@ export class StageGrid extends StageComponent {
 		radius: number;
 		from: [number, number];
 		color: p5.Color;
-		mode: "move" | "attack";
 	} | null = null;
 
 	#highlightedCells: IntegerPairMap<{
@@ -109,13 +108,8 @@ export class StageGrid extends StageComponent {
 	 * @param color
 	 * @param mode
 	 */
-	highlight(
-		radius: number,
-		from: [number, number],
-		color: p5.Color,
-		mode: "move" | "attack" = "move",
-	) {
-		this.#highlight = { radius, from, color, mode };
+	highlight(radius: number, from: [number, number], color: p5.Color) {
+		this.#highlight = { radius, from, color };
 	}
 
 	stopHighlighting() {
@@ -209,32 +203,31 @@ export class StageGrid extends StageComponent {
 		cell: [number, number],
 	): boolean {
 		const distance = StageGrid.distance(from, cell);
-		return (
-			distance <= within &&
-			distance !== 0 &&
-			!this.stage.collidesAt(this.toStageSpace(cell))
-		);
+		return distance <= within && distance !== 0;
 	}
+
+	/**
+	 * Si la entidad se puede mover a esta celda
+	 *
+	 * @param within radio taxicab, en términos del espacio de la cuadrícula
+	 * @param from en el espacio de la cuadrícula
+	 * @param cell en el espacio de la cuadrícula
+	 */
 	reachable(
 		within: number,
 		from: [number, number],
 		cell: [number, number],
 	): boolean {
-		const distance = StageGrid.distance(from, cell);
 		return (
-			distance <= within &&
-			distance !== 0 &&
-			!this.stage.collidesAt(this.toStageSpace(cell)) &&
-			!this.stage.intersectsWithEntityAt(this.toStageSpace(cell))
+			this.attackable(within, from, cell) &&
+			this.stage.emptyAt(this.toStageSpace(cell, true))
 		);
 	}
 
 	#isHighlighting(cell: [number, number]) {
 		if (this.#highlight) {
-			const { radius, from, mode } = this.#highlight;
-			return mode === "attack"
-				? this.attackable(radius, from, cell)
-				: this.reachable(radius, from, cell);
+			const { radius, from } = this.#highlight;
+			return this.reachable(radius, from, cell);
 		}
 		return false;
 	}

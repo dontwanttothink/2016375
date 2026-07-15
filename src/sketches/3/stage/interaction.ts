@@ -2,7 +2,7 @@ import type { Entity } from "../entity";
 import type { Textbox } from "../textbox";
 import { StageComponent } from "./component";
 
-enum Phase {
+export enum Phase {
 	Idle,
 	Selected,
 	Targeting,
@@ -60,13 +60,13 @@ export class StageInteraction extends StageComponent {
 
 		return false;
 	}
+
 	startTargeting(attacker: Entity) {
 		this.phase = { kind: Phase.Targeting, attacker };
 		this.stage.grid.highlight(
 			attacker.reach,
 			this.stage.grid.fromStageSpace(attacker.position),
 			this.p.color("orange"),
-			"attack",
 		);
 	}
 
