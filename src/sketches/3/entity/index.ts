@@ -62,6 +62,14 @@ export class Entity {
 		progress: number;
 	} | null = null;
 
+	/**
+	 * Si la entidad está reproduciendo una animación de movimiento en este
+	 * momento.
+	 */
+	get isMoving(): boolean {
+		return this.#positionAnimationState !== null;
+	}
+
 	protected tick() {
 		if (!this.#positionAnimationState) {
 			return;
@@ -188,6 +196,16 @@ export class Entity {
 
 	attackPower: number = 1;
 
+	/**
+	 * Opacidad con la que se dibuja la entidad (0 a 1). El escenario la reduce
+	 * cuando la entidad muere y la elimina al llegar a 0 (véase Stage.tick).
+	 */
+	opacity: number = 1;
+
+	get isDead(): boolean {
+		return this.health <= 0;
+	}
+
 	get reach() {
 		return 2;
 	}
@@ -279,7 +297,7 @@ export class Entity {
 			this.stage.toScreenSpace(this.#visiblePosition),
 			this.width * this.stage.scale,
 			this.height * this.stage.scale,
-			{ fit: this.fit },
+			{ fit: this.fit, opacity: this.opacity },
 		);
 
 		this.#drawHealthBar();
@@ -321,12 +339,16 @@ export class Entity {
 		this.p.noStroke();
 		this.p.rectMode(this.p.CORNER);
 
-		this.p.fill(40);
+		this.p.fill(40, this.opacity * 255);
 		this.p.rect(barX, barY, barWidth, barHeight);
 
-		this.p.fill(
-			this.p.lerpColor(this.p.color("red"), this.p.color("limegreen"), ratio),
+		const barColor = this.p.lerpColor(
+			this.p.color("red"),
+			this.p.color("limegreen"),
+			ratio,
 		);
+		barColor.setAlpha(this.opacity * 255);
+		this.p.fill(barColor);
 		this.p.rect(barX, barY, barWidth * ratio, barHeight);
 
 		this.p.pop();

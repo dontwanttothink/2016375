@@ -17,11 +17,31 @@ export class BatteryDisplay {
 
 	art: Art;
 
-	constructor(p: p5, art: Art, protagonist: ProtagonistEntity) {
+	/**
+	 * Si está en `true`, se reproduce la animación "reloading" en lugar de
+	 * mostrar el fotograma correspondiente al nivel de energía.
+	 */
+	#reloading: boolean;
+
+	constructor(
+		p: p5,
+		art: Art,
+		protagonist: ProtagonistEntity,
+		{ reloading = false }: { reloading?: boolean } = {},
+	) {
 		this.p = p;
 		this.entity = protagonist;
 		this.art = art;
 		this.displayedLevel = protagonist.energy;
+		this.#reloading = reloading;
+
+		if (reloading) {
+			// establecemos la base appearance a una batería cargada (porque eso
+			// es lo que debemos mostrar al final de la animación)
+			this.art.removeBaseAppearanceOverride(); // la forma canónica es una batería cargada jiji
+
+			this.art.animate("reloading");
+		}
 	}
 
 	tick() {
@@ -47,17 +67,25 @@ export class BatteryDisplay {
 		height: number,
 		opacity: number,
 	) {
-		const ratio = this.p.constrain(
-			this.displayedLevel / ProtagonistEntity.MAX_ENERGY,
-			0,
-			1,
-		);
-		const frame = Math.ceil(
-			ratio *
-				(expect(this.art.getAnimationProperties("draining")).frames.length - 1),
-		);
+		if (!this.#reloading) {
+			// detenemos cualquier animación previa (p. ej. un "reloading" anterior)
+			// para que el fotograma del nivel tenga efecto
+			this.art.immediatelyStopAnimating();
 
-		this.art.overrideBaseAppearance("draining", frame);
+			const ratio = this.p.constrain(
+				this.displayedLevel / ProtagonistEntity.MAX_ENERGY,
+				0,
+				1,
+			);
+			const frame = Math.ceil(
+				ratio *
+					(expect(this.art.getAnimationProperties("draining")).frames.length -
+						1),
+			);
+
+			this.art.overrideBaseAppearance("draining", frame);
+		}
+
 		this.art.draw(center, width, height, { fit: true, opacity });
 	}
 }

@@ -84,11 +84,16 @@ export class Textbox {
 		this.#isVisibleUntil = Infinity;
 	}
 
-	showEnergy(entity: ProtagonistEntity) {
+	showEnergy(
+		entity: ProtagonistEntity,
+		{ reloading = false }: { reloading?: boolean } = {},
+	) {
 		this.#lastActiveTextboxDisplay = {
 			kind: TextboxDisplayKind.Energy,
 			entity,
-			batteryDisplay: new BatteryDisplay(this.p, this.#batteryArt, entity),
+			batteryDisplay: new BatteryDisplay(this.p, this.#batteryArt, entity, {
+				reloading,
+			}),
 		};
 		this.#isVisibleUntil = Infinity;
 	}

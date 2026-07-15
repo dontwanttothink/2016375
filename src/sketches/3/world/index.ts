@@ -64,6 +64,8 @@ export class World {
 	}
 
 	draw() {
+		this.stage.interaction.tick(this.textbox);
+
 		this.stage.draw();
 
 		const origin = this.stage.screenOrigin();

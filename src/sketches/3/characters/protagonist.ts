@@ -5,10 +5,7 @@ import { Phase } from "../stage/interaction";
 import { expect } from "../utils";
 import type { World } from "../world";
 
-enum ProtagonistInteractions {
-	Example,
-	Example2,
-}
+// enum ProtagonistInteractions {}
 
 export class ProtagonistEntity extends Entity {
 	static MAX_ENERGY = 10;
@@ -30,9 +27,10 @@ export class ProtagonistEntity extends Entity {
 
 	isInteractive(): boolean {
 		return (
-			this.stage.interaction.phase.kind === Phase.Idle ||
-			(this.stage.interaction.phase.kind === Phase.Selected &&
-				this.stage.interaction.phase.entity === this)
+			!this.isDead &&
+			(this.stage.interaction.phase.kind === Phase.Idle ||
+				(this.stage.interaction.phase.kind === Phase.Selected &&
+					this.stage.interaction.phase.entity === this))
 		);
 	}
 	isPlayerControlled: boolean = true;
@@ -50,10 +48,7 @@ export class ProtagonistEntity extends Entity {
 	}
 
 	interactionOptions(): Map<number, string> {
-		return new Map([
-			[ProtagonistInteractions.Example, "Ejemplo"],
-			[ProtagonistInteractions.Example2, "Ejemplo 2"],
-		]);
+		return new Map();
 	}
 
 	onMovingDownward() {
