@@ -62,7 +62,9 @@ export class StageInteraction extends StageComponent {
 				this.p.color("red"),
 			);
 
-			textbox.show(entity.interactionOptions(), entity);
+			if (this.stage.isExhausting) {
+				textbox.showEnergy();
+			}
 
 			return;
 		}
