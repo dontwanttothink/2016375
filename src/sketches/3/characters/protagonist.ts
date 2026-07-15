@@ -11,6 +11,8 @@ enum ProtagonistInteractions {
 }
 
 export class ProtagonistEntity extends Entity {
+	static MAX_ENERGY = 10;
+
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
 		super(p, art, position);
 		this.name = "Protagonista";
@@ -20,7 +22,7 @@ export class ProtagonistEntity extends Entity {
 		};
 	}
 
-	energy: number = 10;
+	energy: number = ProtagonistEntity.MAX_ENERGY;
 
 	isInteractive(): boolean {
 		return (
