@@ -1,4 +1,5 @@
 import type p5 from "p5";
+import { Araña } from "../../characters/araña";
 import { Musgo } from "../../characters/musgo";
 import type { ProtagonistEntity } from "../../characters/protagonist";
 import { Stage } from "../../stage";
@@ -16,6 +17,12 @@ export function Mazmorra1(position: 0 | 1) {
 
 		const musgo = await Musgo(p, stage.grid.toStageSpace([6, 2]));
 		stage.addEntity(musgo);
+
+		const unaraña = await Araña(p, stage.grid.toStageSpace([2, 3]));
+		stage.addEntity(unaraña);
+
+		const unaraña2 = await Araña(p, stage.grid.toStageSpace([8, 6]));
+		stage.addEntity(unaraña2);
 
 		return stage;
 	};
