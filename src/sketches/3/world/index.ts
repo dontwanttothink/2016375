@@ -13,15 +13,15 @@ export class World {
 	static FADE_DURATION = 300;
 
 	p: p5;
-	stage: Stage;
+	stage: Stage | null;
 	textbox: Textbox;
 
 	protagonist: ProtagonistEntity;
 
 	#transitionState: {
 		step: TransitionStep;
-		nextStage: Stage;
-		opacity: number;
+		setNextStage: () => Promise<void>;
+		transparency: number;
 	} | null = null;
 
 	/**
@@ -51,11 +51,17 @@ export class World {
 		return new World(p, protagonist, stage, textbox);
 	}
 
-	transitionTo(newStage: Stage) {
+	transitionTo(
+		newStage: (p: p5, protagonist: ProtagonistEntity) => Promise<Stage>,
+		protagonist: ProtagonistEntity,
+	) {
 		this.#transitionState = {
 			step: TransitionStep.FadingOut,
-			nextStage: newStage,
-			opacity: 0,
+			setNextStage: async () => {
+				this.stage = null;
+				this.stage = await newStage(this.p, protagonist);
+			},
+			transparency: 0,
 		};
 	}
 
@@ -63,22 +69,30 @@ export class World {
 	 * Avanza la transición entre escenarios.
 	 */
 	#tickTransition() {
-		if (!this.#transitionState) {
+		if (!this.#transitionState || !this.stage) {
 			return;
 		}
 
 		const rate = this.p.deltaTime / World.FADE_DURATION;
 
 		if (this.#transitionState.step === TransitionStep.FadingOut) {
-			this.#transitionState.opacity += rate;
-			if (this.#transitionState.opacity >= 1) {
-				this.#transitionState.opacity = 1;
-				this.stage = this.#transitionState.nextStage;
+			this.#transitionState.transparency += rate;
+			if (this.#transitionState.transparency >= 1) {
+				this.#transitionState.transparency = 1;
+
+				// esto es asincrónico pero no debería haber problema, creo.
+				// debería ser relativamente instantáneo, especialmente con el caché
+
+				// el if de arriba hace que la transición no avance mientras que no
+				// haya stage todavía (nótese que setNextStage establece el stage
+				// actual a null)
+				this.#transitionState.setNextStage();
+
 				this.#transitionState.step = TransitionStep.FadingIn;
 			}
 		} else {
-			this.#transitionState.opacity -= rate;
-			if (this.#transitionState.opacity <= 0) {
+			this.#transitionState.transparency -= rate;
+			if (this.#transitionState.transparency <= 0) {
 				this.#transitionState = null;
 			}
 		}
@@ -90,6 +104,10 @@ export class World {
 	clickedAt(location: [number, number]) {
 		// durante una transición no se puede interactuar
 		if (this.#transitionState) {
+			return;
+		}
+
+		if (!this.stage) {
 			return;
 		}
 
@@ -108,6 +126,10 @@ export class World {
 			return false;
 		}
 
+		if (!this.stage) {
+			return;
+		}
+
 		return (
 			this.stage.interaction.enabledAt(this.stage.fromScreenSpace(location)) ||
 			this.textbox.interactiveAt(location)
@@ -120,21 +142,23 @@ export class World {
 		const ctx = this.p.drawingContext as CanvasRenderingContext2D;
 
 		if (this.#transitionState) {
-			ctx.globalAlpha = 1 - this.#transitionState.opacity;
+			ctx.globalAlpha = 1 - this.#transitionState.transparency;
 		}
 
-		this.stage.interaction.tick(this.textbox);
+		if (this.stage) {
+			this.stage.interaction.tick(this.textbox);
 
-		this.stage.draw();
+			this.stage.draw();
 
-		const origin = this.stage.screenOrigin();
-		const dimensions = this.stage.screenDimensions();
+			const origin = this.stage.screenOrigin();
+			const dimensions = this.stage.screenDimensions();
 
-		this.textbox.draw(
-			[origin[0], origin[1] + dimensions[1]],
-			dimensions[0],
-			this.stage.bottomMargin,
-		);
+			this.textbox.draw(
+				[origin[0], origin[1] + dimensions[1]],
+				dimensions[0],
+				this.stage.bottomMargin,
+			);
+		}
 
 		if (this.#transitionState) {
 			ctx.globalAlpha = 1;

@@ -70,7 +70,7 @@ export class ProtagonistEntity extends Entity {
 		this.art.animate("walk_backward", true);
 	}
 
-	async onStoppedMoving() {
+	onStoppedMoving() {
 		this.art.immediatelyStopAnimating();
 
 		const newStage = this.stage.grid.transitions.get(
@@ -82,7 +82,7 @@ export class ProtagonistEntity extends Entity {
 		// actual antes de ser teletransportado
 
 		if (newStage) {
-			this.world.transitionTo(await newStage(this.p, this));
+			this.world.transitionTo(newStage, this);
 		}
 	}
 }
