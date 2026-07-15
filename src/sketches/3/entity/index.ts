@@ -186,8 +186,10 @@ export class Entity {
 	maxHealth: number = 3;
 	health: number = 3;
 
+	attackPower: number = 1;
+
 	get reach() {
-		return 3;
+		return 2;
 	}
 
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
