@@ -82,6 +82,8 @@ export class Stage {
 
 	private p: p5;
 
+	isExhausting: boolean = true;
+
 	/**
 	 * Se usa solo para dar mejores mensajes diagnósticos.
 	 */

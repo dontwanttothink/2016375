@@ -12,6 +12,8 @@ export async function Entrada(
 	protagonist.teleport(stage.grid.toStageSpace([5, 6]));
 	stage.addEntity(protagonist);
 
+	stage.isExhausting = false;
+
 	stage.grid.transitions.set([11, 2], Mazmorra1(0));
 	stage.grid.transitions.set([11, 3], Mazmorra1(1));
 

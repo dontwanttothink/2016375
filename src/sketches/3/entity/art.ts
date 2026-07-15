@@ -12,6 +12,11 @@ interface EntityArtAnimationState {
 	identifier: string;
 }
 
+interface EntityArtOverrideState {
+	identifier: string;
+	frame: number;
+}
+
 export class EntityArt {
 	private static ENTITY_ART_URL = new URL(
 		"/art/entities/",
@@ -42,6 +47,7 @@ export class EntityArt {
 	private animations: Map<string, EntityArtAnimation> = new Map();
 
 	private animation: EntityArtAnimationState | null = null;
+	private override: EntityArtOverrideState | null = null;
 
 	get appearance(): p5.Image {
 		if (this.animation) {
@@ -58,6 +64,13 @@ export class EntityArt {
 
 			return frames[n % frames.length];
 		}
+
+		if (this.override) {
+			const { identifier, frame } = this.override;
+			const { frames } = expect(this.animations.get(identifier));
+			return frames[frame];
+		}
+
 		return this.canonical;
 	}
 
@@ -132,6 +145,17 @@ export class EntityArt {
 				since: this.p.millis(),
 			};
 		}
+	}
+
+	overrideBaseAppearance(withAnimationIdentifier: string, atFrame: number) {
+		this.override = {
+			identifier: withAnimationIdentifier,
+			frame: atFrame,
+		};
+	}
+
+	removeBaseAppearanceOverride() {
+		this.override = null;
 	}
 
 	/**
