@@ -1,8 +1,8 @@
 import { EnemyEntity } from "../characters/enemy";
 import { ProtagonistEntity } from "../characters/protagonist";
 import type { Textbox } from "../textbox";
+import { expect } from "../utils";
 import { StageComponent } from "./component";
-import { StageGrid } from "./grid";
 
 export enum Phase {
 	Idle,
@@ -34,11 +34,7 @@ export class StageInteraction extends StageComponent {
 
 		if (
 			this.phase.kind === Phase.Selected &&
-			this.stage.grid.reachable(
-				this.phase.entity.reach,
-				this.stage.grid.fromStageSpace(this.phase.entity.position),
-				this.stage.grid.fromStageSpace(location),
-			)
+			this.stage.grid.reachable(this.stage.grid.fromStageSpace(location))
 		) {
 			return true;
 		}
@@ -61,6 +57,7 @@ export class StageInteraction extends StageComponent {
 				entity.reach,
 				this.stage.grid.fromStageSpace(entity.position),
 				this.p.color("red"),
+				entity,
 			);
 
 			if (this.stage.isExhausting) {
@@ -83,16 +80,12 @@ export class StageInteraction extends StageComponent {
 		if (
 			this.phase.kind === Phase.Selected &&
 			!entity &&
-			this.stage.grid.reachable(
-				this.phase.entity.reach,
-				this.stage.grid.fromStageSpace(this.phase.entity.position),
-				this.stage.grid.fromStageSpace(location),
-			)
+			this.stage.grid.reachable(this.stage.grid.fromStageSpace(location))
 		) {
-			// la distancia recorrida se calcula antes de mover a la entidad
-			const distance = StageGrid.distance(
-				this.stage.grid.fromStageSpace(this.phase.entity.position),
-				this.stage.grid.fromStageSpace(location),
+			// la distancia recorrida (longitud de la ruta BFS) se lee antes de dejar
+			// de resaltar, que es lo que borra el campo de distancias
+			const distance = expect(
+				this.stage.grid.reachDistance(this.stage.grid.fromStageSpace(location)),
 			);
 
 			this.phase.entity.move(this.stage.grid.normalizeStageSpace(location));

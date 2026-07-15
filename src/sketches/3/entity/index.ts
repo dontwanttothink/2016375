@@ -1,5 +1,6 @@
 import type p5 from "p5";
 import type { Stage } from "../stage";
+import { StageGrid } from "../stage/grid";
 import type { Textbox } from "../textbox";
 import { expect, IntegerPairMap, shuffle } from "../utils";
 import type { EntityArt } from "./art";
@@ -206,12 +207,12 @@ export class Entity {
 	protected pathTo(position: [number, number]): [number, number][] | null {
 		// cambiar el orden aleatoriamente produce caminos más interesantes
 		const neighborsOf = (location: [number, number]) =>
-			shuffle([
-				[location[0] + 1, location[1]],
-				[location[0] - 1, location[1]],
-				[location[0], location[1] + 1],
-				[location[0], location[1] - 1],
-			] as [number, number][]);
+			shuffle(
+				StageGrid.NEIGHBOR_OFFSETS.map(([dx, dy]): [number, number] => [
+					location[0] + dx,
+					location[1] + dy,
+				]),
+			);
 
 		const root = this.#stage?.grid.fromStageSpace(this.#position);
 		if (!root) {
@@ -472,9 +473,8 @@ export class Entity {
 
 	attackable(by: Entity) {
 		return this.stage.grid.attackable(
-			by.reach,
-			this.stage.grid.fromStageSpace(by.position),
 			this.stage.grid.fromStageSpace(this.position),
+			by,
 		);
 	}
 }
