@@ -199,10 +199,13 @@ export class Art {
 
 		const { origin, w, h } = this.properties([x, y], width, height, { fit });
 
-		// tint() no funciona por un bug de p5, creo
+		// tint() no funciona por un bug de p5, creo. entonces usamos la api de
+		// canvas directamente :(
+
 		const ctx = this.p.drawingContext as CanvasRenderingContext2D;
 		const previousGlobalAlpha = ctx.globalAlpha;
-		ctx.globalAlpha = opacity;
+
+		ctx.globalAlpha = opacity * previousGlobalAlpha;
 		this.p.image(this.appearance, ...origin, w, h);
 		ctx.globalAlpha = previousGlobalAlpha;
 
