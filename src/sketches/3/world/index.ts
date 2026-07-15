@@ -14,13 +14,27 @@ export class World {
 	 * El escenario activo actual.
 	 */
 
-	constructor(p: p5, protagonist: ProtagonistEntity, stage: Stage) {
+	private constructor(
+		p: p5,
+		protagonist: ProtagonistEntity,
+		stage: Stage,
+		textbox: Textbox,
+	) {
 		this.p = p;
 		this.stage = stage;
-		this.textbox = new Textbox(p);
+		this.textbox = textbox;
 
 		protagonist.assignToWorld(this);
 		this.protagonist = protagonist;
+	}
+
+	public static async create(
+		p: p5,
+		protagonist: ProtagonistEntity,
+		stage: Stage,
+	): Promise<World> {
+		const textbox = await Textbox.create(p);
+		return new World(p, protagonist, stage, textbox);
 	}
 
 	transitionTo(newStage: Stage) {

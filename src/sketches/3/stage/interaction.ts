@@ -1,4 +1,5 @@
 import { EnemyEntity } from "../characters/enemy";
+import { ProtagonistEntity } from "../characters/protagonist";
 import type { Entity } from "../entity";
 import type { Textbox } from "../textbox";
 import { StageComponent } from "./component";
@@ -54,7 +55,7 @@ export class StageInteraction extends StageComponent {
 		const entity = this.stage.intersectsWithEntityAt(location);
 
 		// se seleccionó una entidad controlable, así que iniciamos la interacción
-		if (this.phase.kind === Phase.Idle && entity?.isPlayerControlled) {
+		if (this.phase.kind === Phase.Idle && entity instanceof ProtagonistEntity) {
 			this.phase = { kind: Phase.Selected, entity };
 			this.stage.grid.highlight(
 				entity.reach,
@@ -63,7 +64,7 @@ export class StageInteraction extends StageComponent {
 			);
 
 			if (this.stage.isExhausting) {
-				textbox.showEnergy();
+				textbox.showEnergy(entity);
 			}
 
 			return;

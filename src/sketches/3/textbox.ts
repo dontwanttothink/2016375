@@ -1,11 +1,31 @@
 import type p5 from "p5";
+import { Art } from "./art";
+import type { ProtagonistEntity } from "./characters/protagonist";
 import type { Entity } from "./entity";
+import { BatteryDisplay } from "./hud/battery";
 import { expect } from "./utils";
 
 export interface TextboxButton {
 	label: string;
 	id: number;
 }
+
+export enum TextboxDisplayKind {
+	Buttons,
+	Energy,
+}
+
+type TextboxDisplay =
+	| {
+			kind: TextboxDisplayKind.Buttons;
+			buttons: TextboxButton[];
+			entity: Entity;
+	  }
+	| {
+			kind: TextboxDisplayKind.Energy;
+			entity: Entity;
+			batteryDisplay: BatteryDisplay;
+	  };
 
 export class Textbox {
 	static MARGIN = 10;
@@ -16,10 +36,7 @@ export class Textbox {
 	p: p5;
 
 	#isVisible: boolean = false;
-	#lastActiveInteraction: {
-		buttons: TextboxButton[];
-		entity: Entity;
-	} | null = null;
+	#lastActiveTextboxDisplay: TextboxDisplay | null = null;
 
 	width?: number;
 	height?: number;
@@ -27,12 +44,24 @@ export class Textbox {
 
 	#opacity: number = 0;
 
-	constructor(p: p5) {
+	#batteryArt: Art;
+
+	public static async create(p: p5): Promise<Textbox> {
+		const batteryArt = await Art.fromName(p, "battery", "hud");
+		await batteryArt.loadAnimation("draining");
+		await batteryArt.loadAnimation("reloading");
+
+		return new Textbox(p, batteryArt);
+	}
+
+	private constructor(p: p5, batteryArt: Art) {
+		this.#batteryArt = batteryArt;
 		this.p = p;
 	}
 
-	show(buttons: Iterable<[number, string]>, onBehalfOf: Entity) {
-		this.#lastActiveInteraction = {
+	showButtons(buttons: Iterable<[number, string]>, onBehalfOf: Entity) {
+		this.#lastActiveTextboxDisplay = {
+			kind: TextboxDisplayKind.Buttons,
 			buttons: [...buttons].map(([id, label]) => ({
 				id,
 				label,
@@ -42,15 +71,22 @@ export class Textbox {
 		this.#isVisible = true;
 	}
 
+	showEnergy(entity: ProtagonistEntity) {
+		this.#lastActiveTextboxDisplay = {
+			kind: TextboxDisplayKind.Energy,
+			entity,
+			batteryDisplay: new BatteryDisplay(this.#batteryArt, entity),
+		};
+		this.#isVisible = true;
+	}
+
 	hide() {
 		this.#isVisible = false;
 	}
 
-	*#buttonRects(): Generator<
-		[number, { x: number; y: number; w: number; h: number }]
-	> {
-		const n = expect(this.#lastActiveInteraction).buttons.length;
-
+	*#buttonRects(
+		n: number,
+	): Generator<[number, { x: number; y: number; w: number; h: number }]> {
 		const totalGap = Textbox.GAP * (n - 1);
 		const availableWidth = expect(this.width) - totalGap - Textbox.PADDING * 2;
 		const availableHeight =
@@ -101,12 +137,14 @@ export class Textbox {
 		this.p.textFont("Pixelify Sans Variable");
 		this.p.textSize(16);
 
-		const activeInteraction = this.#lastActiveInteraction;
+		const activeInteraction = this.#lastActiveTextboxDisplay;
 
-		if (activeInteraction) {
+		if (activeInteraction?.kind === TextboxDisplayKind.Buttons) {
 			this.p.textAlign(this.p.CENTER, this.p.CENTER);
 
-			for (const [i, { x, y, w, h }] of this.#buttonRects()) {
+			for (const [i, { x, y, w, h }] of this.#buttonRects(
+				activeInteraction.buttons.length,
+			)) {
 				const hovering =
 					this.p.mouseX >= x &&
 					this.p.mouseX <= x + w &&
@@ -126,17 +164,40 @@ export class Textbox {
 				this.p.fill(255, this.#opacity * 255);
 				this.p.text(activeInteraction.buttons[i].label, x + w / 2, y + h / 2);
 			}
+		} else if (activeInteraction?.kind === TextboxDisplayKind.Energy) {
+			this.p.textAlign(this.p.LEFT, this.p.TOP);
+			this.p.fill(255, this.#opacity * 255);
+
+			const x = origin[0] + Textbox.PADDING;
+			const maxWidth = width - Textbox.PADDING * 2;
+			let y = origin[1] + Textbox.MARGIN + Textbox.PADDING;
+
+			const heading = "Estar en un lugar así puede ser agotador.";
+			this.p.textSize(20);
+			this.p.text(heading, x, y, maxWidth);
+			y += this.p.textBounds(heading, x, y, maxWidth).h + Textbox.GAP;
+
+			this.p.textSize(13);
+			this.p.text("Échale un vistazo a tu energía.", x, y, maxWidth);
 		}
 
 		this.p.pop();
 	}
 
 	#buttonAt([x, y]: [number, number]) {
-		if (!this.#isVisible || !this.#lastActiveInteraction) return null;
+		if (
+			!this.#isVisible ||
+			this.#lastActiveTextboxDisplay?.kind !== TextboxDisplayKind.Buttons
+		)
+			return null;
 
-		for (const [i, { x: rx, y: ry, w, h }] of this.#buttonRects()) {
+		const { buttons } = this.#lastActiveTextboxDisplay;
+
+		for (const [i, { x: rx, y: ry, w, h }] of this.#buttonRects(
+			buttons.length,
+		)) {
 			if (x >= rx && x <= rx + w && y >= ry && y <= ry + h) {
-				return expect(this.#lastActiveInteraction.buttons.at(i));
+				return expect(buttons.at(i));
 			}
 		}
 
@@ -148,11 +209,15 @@ export class Textbox {
 	}
 
 	clickedAt(location: [number, number]) {
-		if (!this.#isVisible || !this.#lastActiveInteraction) return null;
+		if (
+			!this.#isVisible ||
+			this.#lastActiveTextboxDisplay?.kind !== TextboxDisplayKind.Buttons
+		)
+			return null;
 
 		const target = this.#buttonAt(location);
 		if (target) {
-			this.#lastActiveInteraction.entity.onInteracted(target.id, this);
+			this.#lastActiveTextboxDisplay.entity.onInteracted(target.id, this);
 		}
 	}
 }

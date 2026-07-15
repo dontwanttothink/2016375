@@ -10,7 +10,11 @@ class GamePage extends Page {
 
 	async preload(p: p5) {
 		const protagonist = await Protagonist(p);
-		this.world = new World(p, protagonist, await Entrada(p, protagonist));
+		this.world = await World.create(
+			p,
+			protagonist,
+			await Entrada(p, protagonist),
+		);
 	}
 
 	setup(p: p5) {

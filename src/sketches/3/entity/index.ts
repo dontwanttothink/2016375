@@ -177,9 +177,8 @@ export class Entity {
 	}
 
 	isInteractive() {
-		return this.isPlayerControlled;
+		return false;
 	}
-	isPlayerControlled: boolean = false;
 
 	name: string = "Entidad";
 
