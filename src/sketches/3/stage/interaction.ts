@@ -1,3 +1,4 @@
+import { EnemyEntity } from "../characters/enemy";
 import type { Entity } from "../entity";
 import type { Textbox } from "../textbox";
 import { StageComponent } from "./component";
@@ -5,15 +6,15 @@ import { StageComponent } from "./component";
 export enum Phase {
 	Idle,
 	Selected,
-	Targeting,
+	Attacking,
+	BeingAttacked,
 }
 
 type PhaseState =
 	| {
 			kind: Phase.Idle;
 	  }
-	| { kind: Phase.Selected; entity: Entity }
-	| { kind: Phase.Targeting; attacker: Entity };
+	| { kind: Phase.Selected; entity: Entity };
 
 export class StageInteraction extends StageComponent {
 	phase: PhaseState = { kind: Phase.Idle };
@@ -25,23 +26,6 @@ export class StageInteraction extends StageComponent {
 	 */
 	enabledAt(location: [number, number]): boolean {
 		const entity = this.stage.intersectsWithEntityAt(location);
-
-		if (this.phase.kind === Phase.Targeting) {
-			if (entity === this.phase.attacker) return true;
-
-			if (entity) {
-				const attackerCell = this.stage.grid.fromStageSpace(
-					this.phase.attacker.position,
-				);
-				const targetCell = this.stage.grid.fromStageSpace(location);
-				return this.stage.grid.attackable(
-					this.phase.attacker.reach,
-					attackerCell,
-					targetCell,
-				);
-			}
-			return false;
-		}
 
 		if (entity) {
 			return entity.isInteractive();
@@ -61,54 +45,16 @@ export class StageInteraction extends StageComponent {
 		return false;
 	}
 
-	startTargeting(attacker: Entity) {
-		this.phase = { kind: Phase.Targeting, attacker };
-		this.stage.grid.highlight(
-			attacker.reach,
-			this.stage.grid.fromStageSpace(attacker.position),
-			this.p.color("orange"),
-		);
-	}
-
 	/**
+	 * Esta función se encarga de transicionar los estados de interacción.
+	 *
 	 * @param location en términos del espacio del escenario
 	 */
 	clickedAt(location: [number, number], textbox: Textbox) {
 		const entity = this.stage.intersectsWithEntityAt(location);
-		if (this.phase.kind === Phase.Targeting) {
-			const { attacker } = this.phase;
 
-			if (!entity || entity === attacker) {
-				// cancelamos el ataque
-				this.phase = { kind: Phase.Idle };
-				this.stage.grid.stopHighlighting();
-				textbox.hide();
-				return;
-			}
-
-			const attackerCell = this.stage.grid.fromStageSpace(attacker.position);
-			const targetCell = this.stage.grid.fromStageSpace(location);
-
-			if (
-				this.stage.grid.attackable(attacker.reach, attackerCell, targetCell)
-			) {
-				entity.health = (entity.health ?? 0) - 1;
-
-				this.phase = { kind: Phase.Idle };
-				this.stage.grid.stopHighlighting();
-
-				if (entity.health <= 0) {
-					entity.isMovable = false;
-					textbox.showMessage(`${entity.name} ha muerto.`);
-				} else {
-					textbox.hide();
-				}
-			}
-			return;
-		}
-
-		if (this.phase.kind === Phase.Idle && entity?.isMovable) {
-			// se seleccionó una entidad
+		// se seleccionó una entidad controlable, así que iniciamos la interacción
+		if (this.phase.kind === Phase.Idle && entity?.isPlayerControlled) {
 			this.phase = { kind: Phase.Selected, entity };
 			this.stage.grid.highlight(
 				entity.reach,
@@ -117,17 +63,20 @@ export class StageInteraction extends StageComponent {
 			);
 
 			textbox.show(entity.interactionOptions(), entity);
+
 			return;
 		}
 
+		// se hizo clic en la entidad activa, así que cancelamos la interacción
 		if (this.phase.kind === Phase.Selected && entity === this.phase.entity) {
-			// cancelamos la interacción
 			this.phase = { kind: Phase.Idle };
 			this.stage.grid.stopHighlighting();
 			textbox.hide();
 			return;
 		}
 
+		// se hizo clic en un espacio libre válido, así que movemos la entidad y
+		// acabamos la interacción
 		if (
 			this.phase.kind === Phase.Selected &&
 			!entity &&
@@ -137,12 +86,21 @@ export class StageInteraction extends StageComponent {
 				this.stage.grid.fromStageSpace(location),
 			)
 		) {
-			// movemos la entidad y acabamos la interacción
 			this.phase.entity.move(this.stage.grid.normalizeStageSpace(location));
 
 			this.phase = { kind: Phase.Idle };
 			this.stage.grid.stopHighlighting();
 			textbox.hide();
+			return;
+		}
+
+		// se hizo clic en una entidad enemiga y hay algún personaje seleccionado,
+		// así que efectuamos el ataque
+		if (
+			this.phase.kind === Phase.Selected &&
+			entity instanceof EnemyEntity &&
+			entity.attackable(this.phase.entity)
+		) {
 		}
 	}
 }

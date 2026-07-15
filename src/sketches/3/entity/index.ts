@@ -177,17 +177,17 @@ export class Entity {
 	}
 
 	isInteractive() {
-		return this.isMovable;
+		return this.isPlayerControlled;
 	}
-	isMovable: boolean = false;
+	isPlayerControlled: boolean = false;
 
 	name: string = "Entidad";
 
-	maxHealth: number = 1;
-	health: number = 1;
+	maxHealth: number = 3;
+	health: number = 3;
 
 	get reach() {
-		return 1;
+		return 3;
 	}
 
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
@@ -461,7 +461,9 @@ export class Entity {
 		return new Map();
 	}
 
-	onInteracted(_option: number, _textbox: Textbox) {}
+	onInteracted(option: number, textbox: Textbox) {
+		const _ = [option, textbox];
+	}
 
 	onMovingDownward() {}
 	onMovingUpward() {}

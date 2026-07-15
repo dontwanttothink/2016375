@@ -1,16 +1,16 @@
 import type p5 from "p5";
+import { Entity } from "../entity";
 import { EntityArt } from "../entity/art";
 import { Phase } from "../stage/interaction";
 import { expect } from "../utils";
 import type { World } from "../world";
-import { CombatantEntity } from "./combatant";
 
 enum ProtagonistInteractions {
 	Example,
 	Example2,
 }
 
-export class ProtagonistEntity extends CombatantEntity {
+export class ProtagonistEntity extends Entity {
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
 		super(p, art, position);
 		this.name = "Protagonista";
@@ -20,6 +20,8 @@ export class ProtagonistEntity extends CombatantEntity {
 		};
 	}
 
+	energy: number = 5;
+
 	isInteractive(): boolean {
 		return (
 			this.stage.interaction.phase.kind === Phase.Idle ||
@@ -27,7 +29,7 @@ export class ProtagonistEntity extends CombatantEntity {
 				this.stage.interaction.phase.entity === this)
 		);
 	}
-	isMovable: boolean = true;
+	isPlayerControlled: boolean = true;
 
 	#world?: World;
 	get world() {
