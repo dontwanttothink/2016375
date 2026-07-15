@@ -5,7 +5,7 @@ import { EnemyEntity } from "./enemy";
 export class MusgoEntity extends EnemyEntity {
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
 		super(p, art, position);
-		this.name = "Musgo";
+		this.name = "Musgonzalo";
 	}
 }
 
