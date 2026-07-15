@@ -120,12 +120,6 @@ export class Textbox {
 				origin[0] + width / 2,
 				origin[1] + Textbox.MARGIN + (height - Textbox.MARGIN) / 2,
 			);
-		} else if (activeInteraction) {
-			this.p.textAlign(this.p.CENTER, this.p.CENTER);
-
-			for (const [i, { x, y, w, h }] of this.#buttonRects()) {
-				// ... el resto de este bloque queda exactamente igual
-			}
 		}
 
 		this.p.pop();
