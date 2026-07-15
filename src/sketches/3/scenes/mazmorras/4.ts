@@ -9,6 +9,7 @@ export function Mazmorra4(position: 0 | 1 | 2 | 3) {
     return async (p: p5, protagonist: ProtagonistEntity) => {
         const stage = await Stage.fromName(p, "mazmorra4");
         stage.addEntity(protagonist);
+        protagonist.energy += 1;
 
         if (position === 0) {
             protagonist.teleport(stage.grid.toStageSpace([4, 4]));

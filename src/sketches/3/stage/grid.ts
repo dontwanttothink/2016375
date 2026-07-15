@@ -1,6 +1,7 @@
 import type p5 from "p5";
 import type { ProtagonistEntity } from "../characters/protagonist";
-import { expect, IntegerPairMap } from "../utils";
+import type { Entity } from "../entity";
+import { IntegerPairMap } from "../utils";
 import type { Stage } from ".";
 import { StageComponent } from "./component";
 
@@ -11,6 +12,18 @@ interface StageGridDescriptor {
 
 export class StageGrid extends StageComponent {
 	static HIGHLIGHT_ANIMATION_DURATION: number = 200;
+
+	/**
+	 * Los cuatro vecinos ortogonales de una celda. Compartido con
+	 * {@link Entity.pathTo} para que ambas búsquedas en anchura recorran el mismo
+	 * grafo.
+	 */
+	static NEIGHBOR_OFFSETS: [number, number][] = [
+		[1, 0],
+		[-1, 0],
+		[0, 1],
+		[0, -1],
+	];
 
 	static assertIsValidDescriptor(
 		descriptor: unknown,
@@ -51,6 +64,7 @@ export class StageGrid extends StageComponent {
 		radius: number;
 		from: [number, number];
 		color: p5.Color;
+		field: IntegerPairMap<number>;
 	} | null = null;
 
 	#highlightedCells: IntegerPairMap<{
@@ -103,13 +117,61 @@ export class StageGrid extends StageComponent {
 	}
 
 	/**
-	 * @param radius
-	 * @param from en términos del espacio de la cuadrícula
-	 * @param color
-	 * @param mode
+	 * Calcula, mediante una búsqueda en anchura, la distancia de la ruta más
+	 * corta desde `from` hasta cada celda alcanzable, hasta un máximo de
+	 * `maxDistance` pasos. Las paredes, los bordes y las demás entidades (salvo
+	 * `except`) bloquean el paso, igual que en {@link Entity.pathTo}, de modo que
+	 * el campo coincide con las celdas a las que la animación de movimiento puede
+	 * llegar y `field.get(cell) === pathTo(cell).length - 1`.
 	 */
-	highlight(radius: number, from: [number, number], color: p5.Color) {
-		this.#highlight = { radius, from, color };
+	distanceField(
+		from: [number, number],
+		{ maxDistance, except }: { maxDistance: number; except?: Entity },
+	): IntegerPairMap<number> {
+		const field = new IntegerPairMap<number>();
+		field.set(from, 0);
+
+		let frontier: [number, number][] = [from];
+		let distance = 0;
+
+		while (frontier.length > 0 && distance < maxDistance) {
+			distance += 1;
+			const next: [number, number][] = [];
+
+			for (const [x, y] of frontier) {
+				for (const [dx, dy] of StageGrid.NEIGHBOR_OFFSETS) {
+					const neighbor: [number, number] = [x + dx, y + dy];
+
+					if (field.has(neighbor)) {
+						continue;
+					}
+					if (!this.stage.emptyAt(this.toStageSpace(neighbor, true), except)) {
+						continue;
+					}
+
+					field.set(neighbor, distance);
+					next.push(neighbor);
+				}
+			}
+
+			frontier = next;
+		}
+
+		return field;
+	}
+
+	highlight(
+		radius: number,
+		from: [number, number],
+		color: p5.Color,
+		except?: Entity,
+	) {
+		this.#highlight = {
+			radius,
+			from,
+			color,
+			field: this.distanceField(from, { maxDistance: radius, except }),
+		};
 	}
 
 	stopHighlighting() {
@@ -121,60 +183,62 @@ export class StageGrid extends StageComponent {
 			return;
 		}
 
-		const [startX, startY] = this.fromStageSpace([0, 0]);
-		const [endX, endY] = this.fromStageSpace([
-			this.stage.width,
-			this.stage.height,
-		]);
-
 		this.p.push();
 		this.p.rectMode(this.p.CENTER);
-
 		this.p.noStroke();
 
-		// actualizar estado
+		// 1. avivar (o mantener) las celdas alcanzables del resaltado activo
+		if (this.#highlight) {
+			const { color, field } = this.#highlight;
 
-		for (let i = startX; i < endX; ++i) {
-			for (let j = startY; j < endY; ++j) {
-				if (this.#isHighlighting([i, j])) {
-					const { color } = expect(this.#highlight);
-					const cellState = this.#highlightedCells.getOrInsert([i, j], {
-						opacity: 0,
-						color,
-					});
-
-					cellState.opacity = Math.min(
-						cellState.opacity +
-							(200 / StageGrid.HIGHLIGHT_ANIMATION_DURATION) * this.p.deltaTime,
-						200,
-					);
-				} else {
-					const cellState = this.#highlightedCells.get([i, j]);
-					if (cellState) {
-						cellState.opacity = Math.max(
-							cellState.opacity -
-								(200 / (StageGrid.HIGHLIGHT_ANIMATION_DURATION / 2)) *
-									this.p.deltaTime,
-							0,
-						);
-
-						if (cellState.opacity === 0) {
-							this.#highlightedCells.delete([i, j]);
-						}
-					}
+			for (const [cell, distance] of field) {
+				if (distance === 0) {
+					continue; // la celda de origen no se resalta
 				}
+
+				const cellState = this.#highlightedCells.getOrInsert(cell, {
+					opacity: 0,
+					color,
+				});
+
+				cellState.opacity = Math.min(
+					cellState.opacity +
+						(200 / StageGrid.HIGHLIGHT_ANIMATION_DURATION) * this.p.deltaTime,
+					200,
+				);
 			}
 		}
 
-		// dibujar el estado actual
+		// 2. desvanecer las celdas que ya no son alcanzables
+		const faded: [number, number][] = [];
+		for (const [cell, cellState] of this.#highlightedCells) {
+			if (this.reachable(cell)) {
+				continue;
+			}
 
-		for (const [[i, j], cellState] of this.#highlightedCells) {
+			cellState.opacity = Math.max(
+				cellState.opacity -
+					(200 / (StageGrid.HIGHLIGHT_ANIMATION_DURATION / 2)) *
+						this.p.deltaTime,
+				0,
+			);
+
+			if (cellState.opacity === 0) {
+				faded.push(cell);
+			}
+		}
+		for (const cell of faded) {
+			this.#highlightedCells.delete(cell);
+		}
+
+		// 3. dibujar el estado actual
+		for (const [cell, cellState] of this.#highlightedCells) {
 			const currentColor = this.p.color(cellState.color);
 			currentColor.setAlpha(cellState.opacity);
 
 			this.p.fill(currentColor);
 			this.p.square(
-				...this.stage.toScreenSpace(this.toStageSpace([i, j])),
+				...this.stage.toScreenSpace(this.toStageSpace(cell)),
 				(this.cellSize - 3) * this.stage.scale,
 			);
 		}
@@ -183,55 +247,54 @@ export class StageGrid extends StageComponent {
 	}
 
 	/**
-	 * Distancia taxicab en términos del espacio de la cuadrícula.
+	 * La distancia de la ruta más corta hasta `cell` desde el origen del
+	 * resaltado activo, o `null` si no hay resaltado o la celda no es
+	 * alcanzable dentro del radio.
 	 */
-	static distance(location1: [number, number], location2: [number, number]) {
-		return (
-			Math.abs(location1[0] - location2[0]) +
-			Math.abs(location1[1] - location2[1])
-		);
-	}
-
-	/**
-	 * @param within radio taxicab, en términos del espacio de la cuadrícula
-	 * @param from en el espacio de la cuadrícula
-	 * @param cell en el espacio de la cuadrícula
-	 */
-	attackable(
-		within: number,
-		from: [number, number],
-		cell: [number, number],
-	): boolean {
-		const distance = StageGrid.distance(from, cell);
-		return distance <= within && distance !== 0;
-	}
-
-	/**
-	 * Si la entidad se puede mover a esta celda
-	 *
-	 * @param within radio taxicab, en términos del espacio de la cuadrícula
-	 * @param from en el espacio de la cuadrícula
-	 * @param cell en el espacio de la cuadrícula
-	 */
-	reachable(
-		within: number,
-		from: [number, number],
-		cell: [number, number],
-	): boolean {
-		return (
-			this.attackable(within, from, cell) &&
-			this.stage.emptyAt(this.toStageSpace(cell, true))
-		);
-	}
-
-	#isHighlighting(cell: [number, number]) {
-		if (this.#highlight) {
-			const { radius, from } = this.#highlight;
-			return this.reachable(radius, from, cell);
+	reachDistance(cell: [number, number]): number | null {
+		if (!this.#highlight) {
+			return null;
 		}
+		return this.#highlight.field.get(cell) ?? null;
+	}
+
+	/**
+	 * Si la entidad seleccionada se puede mover a esta celda: es alcanzable y no
+	 * es su propia celda de origen (distancia 0).
+	 */
+	reachable(cell: [number, number]): boolean {
+		const distance = this.reachDistance(cell);
+		return distance !== null && distance > 0;
+	}
+
+	/**
+	 * Si `by` puede atacar la celda (ocupada) `targetCell`: existe una celda
+	 * vecina, alcanzable dentro del alcance de `by`, desde la cual asestaría el
+	 * golpe. Reutiliza el campo de distancias del resaltado cuando corresponde al
+	 * atacante; de lo contrario lo calcula sobre la marcha.
+	 */
+	attackable(targetCell: [number, number], by: Entity): boolean {
+		const from = this.fromStageSpace(by.position);
+
+		const field =
+			this.#highlight &&
+			this.#highlight.from[0] === from[0] &&
+			this.#highlight.from[1] === from[1] &&
+			this.#highlight.radius >= by.reach
+				? this.#highlight.field
+				: this.distanceField(from, { maxDistance: by.reach, except: by });
+
+		for (const [dx, dy] of StageGrid.NEIGHBOR_OFFSETS) {
+			const distance = field.get([targetCell[0] + dx, targetCell[1] + dy]);
+			if (distance !== undefined && distance + 1 <= by.reach) {
+				return true;
+			}
+		}
+
 		return false;
 	}
+
 	isHighlighting(cell: [number, number]): boolean {
-		return this.#isHighlighting(cell);
+		return this.reachable(cell);
 	}
 }

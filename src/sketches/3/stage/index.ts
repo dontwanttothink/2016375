@@ -15,6 +15,9 @@ import { StageInteraction } from "./interaction";
 export class Stage {
 	static STAGE_ART_URL = new URL("/art/stages/", window.location.origin);
 
+	/** Duración del desvanecimiento de una entidad muerta, en milisegundos. */
+	static DEATH_FADE_DURATION = 400;
+
 	public static async fromName(p: p5, name: string): Promise<Stage> {
 		const stageURL = new URL(`${name}/`, Stage.STAGE_ART_URL);
 
@@ -95,6 +98,12 @@ export class Stage {
 	private collision: boolean[];
 
 	private entities: Entity[] = [];
+
+	public *getEntities() {
+		for (const entity of this.entities) {
+			yield entity;
+		}
+	}
 
 	/**
 	 * Espacio que reservar bajo el escenario, en pixeles del espacio de la pantalla.
@@ -268,7 +277,28 @@ export class Stage {
 		];
 	}
 
+	/**
+	 * Actualiza el estado por fotograma: desvanece las entidades muertas y
+	 * elimina las que ya se volvieron completamente transparentes.
+	 */
+	tick() {
+		for (const entity of this.entities) {
+			if (entity.isDead) {
+				entity.opacity = Math.max(
+					0,
+					entity.opacity - this.p.deltaTime / Stage.DEATH_FADE_DURATION,
+				);
+			}
+		}
+
+		this.entities = this.entities.filter(
+			(entity) => !(entity.isDead && entity.opacity === 0),
+		);
+	}
+
 	draw() {
+		this.tick();
+
 		this.p.push();
 		this.p.noSmooth();
 		this.p.image(

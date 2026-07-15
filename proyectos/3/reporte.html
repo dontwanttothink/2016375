@@ -14,125 +14,461 @@
 			<article>
 				<h2>Informe</h2>
 				<p>
-					Este documento corto documenta los objetivos del proyecto, las
+					Este documento corto describe los objetivos del proyecto, las
 					decisiones técnicas que se tomaron mientras se desarrolló, los
 					resultados (incluyendo sus limitaciones) y los materiales
 					referenciados.
 				</p>
-				<h2>Logica del juego</h2>
-				<h3>Partida:</h3>
-				<h4>Requisitos</h4>
+
+				<p>Los integrantes del equipo fueron:</p>
+
+				<ul class="preserve-case">
+					<li>Andrés Felipe Toscano Sierra</li>
+					<li>Belcar Santiago Cuentas Zavala Infante</li>
+					<li>Santiago Rodríguez Ortega</li>
+					<li>Sergio Andrés Acosta Rodríguez</li>
+				</ul>
+
+				<h3>Objetivos</h3>
+
+				<p>
+					Quisimos implementar un juego inspirado por los primeros juegos de
+					<a href="https://en.wikipedia.org/wiki/The_Legend_of_Zelda"
+						>La Leyenda de Zelda</a
+					>.
+				</p>
+
+				<p>
+					La implementación debía usar técnicas de la clase de programación
+					orientada a objetos y tener ciertas características funcionales. En
+					particular, nos propusimos:
+				</p>
+
 				<ul>
-					<li>Tablero</li>
+					<li>usar la librería <i>p5.js</i></li>
+					<li>
+						aprovechar la herencia, usando una jerarquía de clases para mejorar
+						la organización
+					</li>
+					<li>
+						ofrecer, al menos, una mazmorra hecha a mano y al menos dos enemigos
+					</li>
+					<li>basar el juego en una cuadrícula</li>
+					<li>tener un sistema de combate basado en turnos</li>
+					<li>tener un sistema de puntos de vida y</li>
+					<li>
+						tener un sistema de energía que determina la distancia a la que el
+						personaje se puede mover
+					</li>
+					<li>tener una presentación visual atractiva</li>
+				</ul>
+
+				<p>También tuvimos una visión completa mucho más ambiciosa:</p>
+
+				<ul>
+					<li>
+						Tablero
+						<ul>
+							<li>Depende de una matriz</li>
+							<li>
+								Los primeros se harán a mano, a medida que se avance de nivel se
+								irá aumentando la matriz del tablero
+							</li>
+							<li>Algunos niveles tendrán obstáculos</li>
+							<li>
+								Se irá cambiando el aspecto de los niveles con el fin de seguir
+								la historia base del juego
+							</li>
+							<li>Ésta se divide en casillas visibles para el jugador</li>
+						</ul>
+					</li>
 					<li>Personajes jugador</li>
 					<li>Personajes del bot</li>
 					<li>Dificultad</li>
 
 					<li>
 						Comienzan todos los personajes del jugador en la primera columna y
-						los personajes del bot en la ultima columna de la matriz
+						los personajes del bot en la última columna de la matriz
 					</li>
 					<li>
 						Se acaba la partida si todos los personajes de un equipo pierden
 						toda su vida
 					</li>
 					<li>
-						Si el jugador pierde se despliega otra pagina con el "perdiste",
-						boton para volver a intentar
+						Si el jugador pierde se despliega otra página con el "perdiste",
+						botón para volver a intentar
 					</li>
 					<li>
-						Si el jugador gana todos los personaje de este avanzan a la
-						siguiente sala, se busca el camino mas corto para ir a la salida, el
-						personaje principal ira primero y lo seguiran los demas a medida de
-						que el este mas adelante que ellos, avanzara para la salida, casilla
+						Si el jugador gana todos los personajes, estos avanzan a la
+						siguiente sala, se busca el camino más corto para ir a la salida, el
+						personaje principal irá primero y lo seguirán los demás a medida de
+						que él esté más adelante que ellos, avanzará para la salida, casilla
 						por casilla
 					</li>
 					<li>
-						La vida de los personajes se regenerara completamente al pasar de
+						La vida de los personajes se regenerará completamente al pasar de
 						nivel
 					</li>
 					<li>
 						A medida que avanzamos en los niveles, se aumenta la cantidad de
-						personajes de ambos equipos, la energia dada para cada
-						nivel(dependiendo de la matriz) y se mejora el algoritmo del bot
+						personajes de ambos equipos, la energía dada para cada nivel
+						(dependiendo de la matriz) y se mejora el algoritmo del bot
+					</li>
+					<li>
+						Acciones del juego
+						<ul>
+							<li>
+								Atacar
+								<ul>
+									<li>
+										gasta energía, tiene un daño que puede ser boosteado por
+										habilidades futuras
+									</li>
+									<li>
+										tiene un rango medido por casillas (Se necesita un enemigo)
+									</li>
+								</ul>
+							</li>
+							<li>
+								Mover
+								<ul>
+									<li>
+										gasta energía dependiendo de cuántas casillas se mueva (se
+										necesita la columna y fila de destino)
+									</li>
+								</ul>
+							</li>
+							<li>
+								Bloquear
+								<ul>
+									<li>gasta energía, no recibe el daño del siguiente ataque</li>
+								</ul>
+							</li>
+							<li>
+								Habilidad única
+								<ul>
+									<li>Gasta toda la energía del personaje</li>
+									<li>
+										se puede utilizar después, ciertos turnos (depende del
+										personaje)
+									</li>
+									<li>
+										Ésta también tiene un rango dependiendo del personaje (Se
+										necesita un enemigo)
+									</li>
+								</ul>
+							</li>
+						</ul>
+					</li>
+					<li>
+						Turnos
+						<ul>
+							<li>
+								Comenzará el jugador, seguido por el bot y así sucesivamente
+							</li>
+							<li>
+								Cada jugador tiene un máximo de energía que se llenará por cada
+								turno, con ella se realizarán todas las acciones
+							</li>
+							<li>
+								El turno se acaba si el jugador lo desea o si el jugador se
+								queda sin energía
+							</li>
+						</ul>
+					</li>
+					<li>
+						Personaje
+						<ul>
+							<li>
+								Estadísticas
+								<ul>
+									<li>Vida base : int</li>
+									<li>Daño base : int</li>
+									<li>Enfriamiento de la habilidad : int</li>
+									<li>rango : int</li>
+								</ul>
+							</li>
+							<li>
+								Interacción
+								<ul>
+									<li>
+										Al dar clic en el personaje se desplegará un menú con las 4
+										acciones de cada personaje, al volver a darle clic se retrae
+										este menú (se necesita la columna y fila, para ubicar el
+										menú)
+									</li>
+									<li>
+										Cada personaje tendrá sus propias animaciones y aspecto
+									</li>
+									<li>Se mostrará la barra de vida de cada personaje</li>
+								</ul>
+							</li>
+						</ul>
 					</li>
 				</ul>
 
-				<h3>Tablero:</h3>
-				<ul>
-					<li>Depende de una matriz</li>
-					<li>
-						Los primeros se haran a mano, a medida que se avanze de nivel se ira
-						aumentando la matriz del tablero
-					</li>
-					<li>Algunos niveles tendran obstaculos</li>
-					<li>
-						Se ira cambiando de aspecto los niveles con el fin de seguir la
-						historia base del juego
-					</li>
-					<li>Esta se divide en casillas visibles para el jugador</li>
+				<h3>Uso de modelos de lenguaje</h3>
+
+				<h4 class="preserve-case">Belcar Santiago</h4>
+
+				<h5>Herramientas usadas</h5>
+
+				<ul class="preserve-case">
+					<li>Asistente de <a href="https://kagi.com">Kagi</a></li>
+					<li>Claude Code, con Claude Opus 4.8 y Claude Sonnet 5</li>
 				</ul>
 
-				<h3>Personaje:</h3>
-				<h4>Stats:</h4>
+				<h5>Razón por la que se usó</h5>
+
+				<p>
+					Usé el asistente de Kagi para hacer preguntas abiertas sobre APIs Web,
+					de p5 y de JavaScript.
+				</p>
+
+				<p>
+					Usé a Claude Code para implementar algunos cambios más rápidamente.
+					Por ejemplo, me ayudó a conectar la BFS que había escrito con los
+					sistemas de ataque y movimiento del juego, cuando antes solo se usaba
+					la BFS para reproducir la animación del movimiento.
+				</p>
+
+				<p>
+					Claude Code me ayudó también a extender la máquina de estados de
+					interacción, y a escribir algo de código tedioso para la caja de
+					texto.
+				</p>
+
+				<h5>Alcance</h5>
+
+				<p>
+					Moderado. La mayoría del código fue escrito por mí, pero algunas
+					refactorizaciones y rutinas aisladas fueron producidas con ayuda del
+					modelo de lenguaje.
+				</p>
+
+				<h5>Validación</h5>
+
+				<p>
+					Cuando usé líneas de código generadas, las leí, entendí, modifiqué y
+					probé antes de incluirlas.
+				</p>
+
+				<h3>Decisiones arquitecturales o de diseño técnico</h3>
+
+				<h4 class="preserve-case">GitLab, Vite y el modo instancia</h4>
+
+				<p>
+					Como en el primer proyecto, seguimos utilizando GitLab para albergar
+					nuestro repositorio central. De nuevo, como se genera una página
+					estática con Vite, usamos el modo instancia de <i>p5.js</i> y no el
+					modo global. Por eso, nuestras funciones típicamente reciben un
+					parametro <code>p</code> que permite acceder a las rutinas de dibujo,
+					como <code>p.rect(...)</code> por ejemplo.
+				</p>
+
+				<h4>Movimiento y ataques</h4>
+
+				<p>
+					Una BFS simple determina qué tan lejos está alguna celda de otra y
+					produce caminos óptimos específicos, lo que se usa para disminuir la
+					batería y animar los movimientos.
+				</p>
+
+				<p>
+					La BFS explora las posibilidades aleatoriamente para producir
+					resultados más interesantes. Esto se hizo con ayuda de un algoritmo
+					diminuto llamado el <i>Fisher-Yates shuffle</i>. La fuente está
+					referenciada abajo.
+				</p>
+
+				<h4>Sistema de páginas</h4>
+
+				<p>
+					Se reutilizó el sistema de paginas del proyecto anterior. Cada página
+					define métodos para dibujar un fotograma y reaccionar a las
+					interacciones del usuario. El 'navegador' (<code>Navigator</code>)
+					recibe las llamadas de
+					<i>p5.js</i>
+					y las delega a la pagina activa.
+				</p>
+
+				<h4>Sistema de escenarios</h4>
+
+				<h5>Formato</h5>
+
+				<p>
+					Tenemos un formato específico para definir los distintos escenarios en
+					el juego, como cada parte de la mazmorra. Cada escenario es una
+					carpeta dentro de <code>art/scenes/</code>, y consiste de tres
+					archivos: <code>grid.json</code>, <code>background.png</code> y
+					<code>collision.png</code>.
+				</p>
+
+				<p>
+					<code>grid.json</code>
+					determina de qué tamaño debería ser cada celda de la cuadrícula, y en
+					qué parte del escenario empieza la cuadrícula.
+				</p>
+
+				<p>
+					<code>background.png</code>
+					es la apariencia en sí del escenario; es decir, el arte. Y
+					<code>collision.png</code>
+					es una imagen de las mismas dimensiones en blanco y negro. Un pixel
+					blanco indica un espacio permitido; es decir, un espacio sobre el que
+					el personaje puede estar. Un pixel negro indica un espacio inválido;
+					por ejemplo, un objeto decorativo en el escenario sobre el que el
+					protagonista no debería poder pararse.
+				</p>
+
+				<h5>El <code>Mundo</code></h5>
+
+				<p>
+					Para gestionar los distintos escenarios, existe una clase
+					<code>Mundo</code>. Funciona parecido a la clase de
+					<code>Navigator</code>
+					que usamos para gestionar páginas.
+				</p>
+
+				<h4>Sistema de entidades</h4>
+
+				<p>
+					Las entidades funcionan muy parecido a los escenarios. Cada entidad
+					tiene una apariencia canónica, <code>canon.png</code>. Y pueden tener
+					animaciones, dentro de la carpeta <code>animations</code>. Un archivo,
+					<code>meta.json</code>, da información sobre las animaciones,
+					incluyendo cuántos fotogramas tienen y a qué velocidad deberían
+					mostrarse.
+				</p>
+
+				<p>
+					Las entidades tienen comportamientos únicos en función del tipo de
+					entidad que son. Logramos esto a través de herencia.
+				</p>
+
+				<p>
+					Los enemigos eligen al azar entre moverse o atacar, si atacar es
+					posible. Atacar puede no ser posible si el protagonista está demasiado
+					lejos.
+				</p>
+
+				<h4>Interacción</h4>
+
+				<p>Usamos una máquina simple de estados. Transicionamos entre:</p>
+
 				<ul>
-					<li>Vida base : int</li>
-					<li>Daño base : int</li>
-					<li>Enfriamento de la habilidad : int</li>
-					<li>rango : int</li>
-				</ul>
-				<h4>Interaccion</h4>
-				<ul>
-					<li>
-						Al dar click en el personaje se despliegara un menu con las 4
-						acciones de cada personaje, al volver a darle click se retrae este
-						menu (se necesita para esto columna y fila, para ubicar el menu)
-					</li>
-					<li>Cada personaje tendra sus propias animaciones y aspecto</li>
-					<li>Se mostrara la barra de vida de cada personaje</li>
-				</ul>
-				<h3>Acciones:</h3>
-				<h4>Atacar:</h4>
-				<ul>
-					<li>
-						gasta energia, tiene un daño que puede ser boosteado por abilidades
-						futuras
-					</li>
-					<li>tiene un rango medido por casillas (Se necesita un enemigo )</li>
-				</ul>
-				<h4>Mover:</h4>
-				<ul>
-					<p>
-						gasta energia dependiendo de cuantas casillas se mueva (se necesita
-						la columna y fila de destino)
-					</p>
+					<li>En espera</li>
+					<li>Seleccionado</li>
+					<li>Atacando</li>
+					<li>Será atacado</li>
+					<li>Siendo atacado</li>
+					<li>Descansando</li>
 				</ul>
 
-				<h4>Bloquear:</h4>
-				<ul>
-					<p>gasta energia, no recibe el daño del siguiente ataque</p>
-				</ul>
-				<h4>Abilidad unica:</h4>
-				<ul>
-					<li>Gasta toda la energia del personaje</li>
+				<p>
+					La máquina reacciona a clics. También reacciona a otros eventos, como
+					el paso del tiempo, a través de un método, <code>tick()</code> que se
+					ejecuta cada fotograma.
+				</p>
+
+				<h4>Animaciones</h4>
+
+				<p>
+					En general, usamos animaciones con estados interrumpibles. Estas
+					animaciones funcionan casi idénticamente a las animaciones
+					interrumpibles de los otros proyectos. Sin embargo, en este proyecto,
+					no usamos animaciones basadas solo en un <i>timestamp</i>.
+				</p>
+
+				<h3>Resultados y líneas futuras de trabajo</h3>
+
+				<p>
+					El resultado es un juego funcional que satisface los requisitos
+					básicos, pero no la visión completa y ambiciosa.
+				</p>
+
+				<p>
+					En el futuro, podemos implementar el resto de las funciones que
+					estaban planeadas.
+				</p>
+
+				<h4>Accesibilidad</h4>
+
+				<p>
+					Similar a los proyectos anteriores, el juego no se acomoda a ninguna
+					preferencia visual expresada por el usuario, excepto por el tamaño de
+					la fuente (y, en esta ocasión, esa receptividad es más limitada que en
+					los otros proyectos.)
+				</p>
+
+				<p>
+					También similar a los proyectos anteriores, solo se puede interactuar
+					con el mouse, y no hay opciones de salida distintas a la visión. No se
+					puede usar un lector de voz.
+				</p>
+
+				<h4>Comportamientos incorrectos</h4>
+
+				<p>
+					Hemos identificado un bug en el que la animación de la batería deja de
+					mostrarse cuando no hay más enemigos. Es causado por un problema en
+					las transiciones de estados.
+				</p>
+
+				<h4>Calidad y jugabilidad</h4>
+
+				<p>
+					Cuando el personaje muere, no ocurre nada especial. El juego se
+					detiene sin ningún mensaje. Corregir esto ayudaría a entender mejor
+					qué ocurre y dar una mejor experiencia al jugador.
+				</p>
+
+				<h3>Materiales referenciados</h3>
+
+				<ul class="preserve-case">
 					<li>
-						se puede utilizar despues ciertos turnos(depende del personaje)
+						Charalambos, Jean Pierre. (2026).
+						<cite>Grid-Based Game Programming</cite>
+						[Materiales privados de clase].
 					</li>
 					<li>
-						esta tambien tiene un rango dependiendo del personaje (Se necesita
-						un enemigo)
-					</li>
-				</ul>
-				<h3>Turnos:</h3>
-				<ul>
-					<li>Comenzara el jugador, seguido por el bot y asi sucesivamente</li>
-					<li>
-						Cada jugador tiene un max de energia que se llenara por cada turno,
-						con esta se realizaran todas las acciones
+						Contribuidores de Wikipedia. (2026).
+						<cite
+							><a href="https://en.wikipedia.org/wiki/The_Legend_of_Zelda"
+								>The Legend of Zelda</a
+							></cite
+						>
+						[Enciclopedia].
 					</li>
 					<li>
-						El turno se acaba si el jugador lo desea o si el jugador se queda
-						sin energia
+						Contribuidores de Mozilla. (2026).
+						<cite
+							><a href="https://developer.mozilla.org/">MDN Web Docs</a></cite
+						>
+						[Documentación].
+					</li>
+					<li>
+						Contribuidores de Wikipedia. (2026).
+						<cite
+							><a href="https://en.wikipedia.org/wiki/Fisher–Yates_shuffle"
+								>Fisher-Yates shuffle</a
+							></cite
+						>
+						[Enciclopedia].
+					</li>
+					<li>
+						Contribuidores de p5.js. (2026).
+						<cite
+							><a href="https://beta.p5js.org/reference/"
+								>p5.js Reference</a
+							></cite
+						>
+						[Documentación].
+					</li>
+					<li>
+						Ricard, Robin. et al. (2025).
+						<cite><a href="https://github.com/tc39/proposal-record-tuple">JavaScript Records & Tuples Proposal</a></cite>
+						[Propuesta de estándar]
 					</li>
 				</ul>
 			</article>

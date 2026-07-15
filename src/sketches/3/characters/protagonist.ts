@@ -5,12 +5,11 @@ import { Phase } from "../stage/interaction";
 import { expect } from "../utils";
 import type { World } from "../world";
 
-enum ProtagonistInteractions {
-	Example,
-	Example2,
-}
+// enum ProtagonistInteractions {}
 
 export class ProtagonistEntity extends Entity {
+	static MAX_ENERGY = 10;
+
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
 		super(p, art, position);
 		this.name = "Protagonista";
@@ -20,13 +19,21 @@ export class ProtagonistEntity extends Entity {
 		};
 	}
 
-	energy: number = 5;
+	maxHealth: number = 7;
+	health = 7;
+
+	energy: number = ProtagonistEntity.MAX_ENERGY;
+
+	get reach(): number {
+		return Math.ceil(this.energy / 2);
+	}
 
 	isInteractive(): boolean {
 		return (
-			this.stage.interaction.phase.kind === Phase.Idle ||
-			(this.stage.interaction.phase.kind === Phase.Selected &&
-				this.stage.interaction.phase.entity === this)
+			!this.isDead &&
+			(this.stage.interaction.phase.kind === Phase.Idle ||
+				(this.stage.interaction.phase.kind === Phase.Selected &&
+					this.stage.interaction.phase.entity === this))
 		);
 	}
 	isPlayerControlled: boolean = true;
@@ -44,10 +51,7 @@ export class ProtagonistEntity extends Entity {
 	}
 
 	interactionOptions(): Map<number, string> {
-		return new Map([
-			[ProtagonistInteractions.Example, "Ejemplo"],
-			[ProtagonistInteractions.Example2, "Ejemplo 2"],
-		]);
+		return new Map();
 	}
 
 	onMovingDownward() {
@@ -66,7 +70,7 @@ export class ProtagonistEntity extends Entity {
 		this.art.animate("walk_backward", true);
 	}
 
-	async onStoppedMoving() {
+	onStoppedMoving() {
 		this.art.immediatelyStopAnimating();
 
 		const newStage = this.stage.grid.transitions.get(
@@ -78,7 +82,7 @@ export class ProtagonistEntity extends Entity {
 		// actual antes de ser teletransportado
 
 		if (newStage) {
-			this.world.transitionTo(await newStage(this.p, this));
+			this.world.transitionTo(newStage, this);
 		}
 	}
 }

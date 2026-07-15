@@ -82,7 +82,7 @@ export class Navigator {
 	#pages: Map<PageConstructor, Page<PageArgs>> = new Map();
 	#currentPage: Page<PageArgs>;
 
-	#preloadCompleted = false;
+	#preloadCompleted: boolean = false;
 
 	constructor(
 		InitialPage: PageConstructor,
@@ -172,11 +172,13 @@ export class Navigator {
 			};
 
 			p.draw = () => {
-				this.#currentPage.draw(p);
+				if (this.#preloadCompleted) this.#currentPage.draw(p);
 			};
 
 			p.keyPressed = (event) => {
-				this.#currentPage.keyPressed(p, expect(event));
+				if (this.#preloadCompleted) {
+					this.#currentPage.keyPressed(p, expect(event));
+				}
 			};
 
 			p.windowResized = () => {
@@ -185,19 +187,27 @@ export class Navigator {
 			};
 
 			p.mouseClicked = (event) => {
-				this.#currentPage.mouseClicked(p, expect(event));
+				if (this.#preloadCompleted) {
+					this.#currentPage.mouseClicked(p, expect(event));
+				}
 			};
 
 			p.mouseDragged = (event) => {
-				this.#currentPage.mouseDragged(p, expect(event));
+				if (this.#preloadCompleted) {
+					this.#currentPage.mouseDragged(p, expect(event));
+				}
 			};
 
 			p.mouseReleased = (event) => {
-				this.#currentPage.mouseReleased(p, expect(event));
+				if (this.#preloadCompleted) {
+					this.#currentPage.mouseReleased(p, expect(event));
+				}
 			};
 
 			p.mousePressed = (event) => {
-				this.#currentPage.mousePressed(p, expect(event));
+				if (this.#preloadCompleted) {
+					this.#currentPage.mousePressed(p, expect(event));
+				}
 			};
 		};
 	}

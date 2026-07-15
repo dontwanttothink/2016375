@@ -1,5 +1,6 @@
 import type p5 from "p5";
 import type { Stage } from "../stage";
+import { StageGrid } from "../stage/grid";
 import type { Textbox } from "../textbox";
 import { expect, IntegerPairMap, shuffle } from "../utils";
 import type { EntityArt } from "./art";
@@ -60,6 +61,14 @@ export class Entity {
 		path: [number, number][];
 		progress: number;
 	} | null = null;
+
+	/**
+	 * Si la entidad está reproduciendo una animación de movimiento en este
+	 * momento.
+	 */
+	get isMoving(): boolean {
+		return this.#positionAnimationState !== null;
+	}
 
 	protected tick() {
 		if (!this.#positionAnimationState) {
@@ -177,17 +186,28 @@ export class Entity {
 	}
 
 	isInteractive() {
-		return this.isPlayerControlled;
+		return false;
 	}
-	isPlayerControlled: boolean = false;
 
 	name: string = "Entidad";
 
 	maxHealth: number = 3;
 	health: number = 3;
 
+	attackPower: number = 1;
+
+	/**
+	 * Opacidad con la que se dibuja la entidad (0 a 1). El escenario la reduce
+	 * cuando la entidad muere y la elimina al llegar a 0 (véase Stage.tick).
+	 */
+	opacity: number = 1;
+
+	get isDead(): boolean {
+		return this.health <= 0;
+	}
+
 	get reach() {
-		return 3;
+		return 2;
 	}
 
 	constructor(p: p5, art: EntityArt, position: [number, number]) {
@@ -207,12 +227,12 @@ export class Entity {
 	protected pathTo(position: [number, number]): [number, number][] | null {
 		// cambiar el orden aleatoriamente produce caminos más interesantes
 		const neighborsOf = (location: [number, number]) =>
-			shuffle([
-				[location[0] + 1, location[1]],
-				[location[0] - 1, location[1]],
-				[location[0], location[1] + 1],
-				[location[0], location[1] - 1],
-			] as [number, number][]);
+			shuffle(
+				StageGrid.NEIGHBOR_OFFSETS.map(([dx, dy]): [number, number] => [
+					location[0] + dx,
+					location[1] + dy,
+				]),
+			);
 
 		const root = this.#stage?.grid.fromStageSpace(this.#position);
 		if (!root) {
@@ -277,7 +297,7 @@ export class Entity {
 			this.stage.toScreenSpace(this.#visiblePosition),
 			this.width * this.stage.scale,
 			this.height * this.stage.scale,
-			{ fit: this.fit },
+			{ fit: this.fit, opacity: this.opacity },
 		);
 
 		this.#drawHealthBar();
@@ -319,12 +339,16 @@ export class Entity {
 		this.p.noStroke();
 		this.p.rectMode(this.p.CORNER);
 
-		this.p.fill(40);
+		this.p.fill(40, this.opacity * 255);
 		this.p.rect(barX, barY, barWidth, barHeight);
 
-		this.p.fill(
-			this.p.lerpColor(this.p.color("red"), this.p.color("limegreen"), ratio),
+		const barColor = this.p.lerpColor(
+			this.p.color("red"),
+			this.p.color("limegreen"),
+			ratio,
 		);
+		barColor.setAlpha(this.opacity * 255);
+		this.p.fill(barColor);
 		this.p.rect(barX, barY, barWidth * ratio, barHeight);
 
 		this.p.pop();
@@ -473,9 +497,8 @@ export class Entity {
 
 	attackable(by: Entity) {
 		return this.stage.grid.attackable(
-			by.reach,
-			this.stage.grid.fromStageSpace(by.position),
 			this.stage.grid.fromStageSpace(this.position),
+			by,
 		);
 	}
 }
