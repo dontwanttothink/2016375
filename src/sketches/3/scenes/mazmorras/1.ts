@@ -4,7 +4,7 @@ import type { ProtagonistEntity } from "../../characters/protagonist";
 import { Stage } from "../../stage";
 import { Mazmorra2 } from "./2";
 
-export function Mazmorra1(position: 0 | 1) {
+export function Mazmorra1(position: 0 | 1 | 2 | 3 | 4 | 5 | 6) {
 	return async (p: p5, protagonist: ProtagonistEntity) => {
 		const stage = await Stage.fromName(p, "mazmorra1");
 		stage.addEntity(protagonist);

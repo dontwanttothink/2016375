@@ -5,7 +5,9 @@ import { Stage } from "../../stage";
 import { Mazmorra1 } from "./1";
 import { Mazmorra3 } from "./3";
 import { Mazmorra6 } from "./6";
+import { Entity } from "../../entity/index";
 
+let slimeDerrotado = false;
 export function Mazmorra2(position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
     return async (p: p5, protagonist: ProtagonistEntity) => {
         const stage = await Stage.fromName(p, "mazmorra2");
@@ -39,9 +41,19 @@ export function Mazmorra2(position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
         else {
             protagonist.teleport(stage.grid.toStageSpace([9, 2]));
         }
-
-        const slime1 = await slime(p, stage.grid.toStageSpace([5, 1]));
-        stage.addEntity(slime1);
+let slime1: Entity | undefined;
+if (!slimeDerrotado) {
+    slime1 = await slime(p, stage.grid.toStageSpace([6, 2]));
+    stage.addEntity(slime1);
+}
+if (slime1) {
+    const comprobar = setInterval(() => {
+        if (slime1.isDead) {
+            slimeDerrotado = true;
+            clearInterval(comprobar);
+        }
+    }, 100);
+}
 
         stage.grid.transitions.set([3, 6], Mazmorra1(0));
         stage.grid.transitions.set([4, 6], Mazmorra1(0));
