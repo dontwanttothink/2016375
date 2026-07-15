@@ -8,7 +8,7 @@ export class BatteryDisplay {
 	entity: ProtagonistEntity;
 	displayedLevel: number;
 
-	art?: Art;
+	art: Art;
 
 	constructor(art: Art, protagonist: ProtagonistEntity) {
 		this.entity = protagonist;
@@ -20,9 +20,5 @@ export class BatteryDisplay {
 		// deltaTime-based change to `displayedLevel`
 	}
 
-	draw() {
-		if (!this.art) {
-			return;
-		}
-	}
+	draw() {}
 }
