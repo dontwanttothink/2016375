@@ -25,7 +25,7 @@ export class ProtagonistEntity extends Entity {
 	energy: number = ProtagonistEntity.MAX_ENERGY;
 
 	get reach(): number {
-		return Math.round(this.energy / 2);
+		return Math.ceil(this.energy / 2);
 	}
 
 	isInteractive(): boolean {
