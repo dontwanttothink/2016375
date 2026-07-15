@@ -123,12 +123,14 @@ export class StageInteraction extends StageComponent {
 			protagonist.move(this.stage.grid.normalizeStageSpace(location));
 			this.stage.grid.stopHighlighting();
 
+			if (this.stage.isExhausting) {
+				protagonist.energy = Math.max(0, protagonist.energy - distance);
+			}
+
 			if (!this.stage.getEntities().some((e) => e instanceof EnemyEntity)) {
 				textbox.hide();
 				this.phase = { kind: Phase.Idle };
 			} else {
-				protagonist.energy = Math.max(0, protagonist.energy - distance);
-
 				// mantenemos la energía visible un segundo para mostrar la
 				// animación de descarga antes de que se desvanezca
 				textbox.hide(this.p.millis() + 1000);
