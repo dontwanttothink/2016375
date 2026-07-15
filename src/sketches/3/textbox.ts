@@ -230,6 +230,7 @@ export class Textbox {
 			this.p.textAlign(this.p.LEFT, this.p.TOP);
 			this.p.fill(255, this.#opacity * 255);
 
+			this.p.textSize(20);
 			this.p.text(
 				activeInteraction.message,
 				origin[0] + Textbox.PADDING,

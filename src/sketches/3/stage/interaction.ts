@@ -31,6 +31,8 @@ type PhaseState =
 			enemies: EnemyEntity[];
 			index: number;
 			moving: EnemyEntity | null;
+			// momento en que el enemigo actual atacó, mientras se muestra su mensaje
+			attacking: number | null;
 	  }
 	| {
 			kind: Phase.Resting;
@@ -129,7 +131,7 @@ export class StageInteraction extends StageComponent {
 
 			if (!this.stage.getEntities().some((e) => e instanceof EnemyEntity)) {
 				textbox.hide();
-				this.phase = { kind: Phase.Idle };
+				this.#endTurn(textbox, protagonist);
 			} else {
 				// mantenemos la energía visible un segundo para mostrar la
 				// animación de descarga antes de que se desvanezca
@@ -211,6 +213,7 @@ export class StageInteraction extends StageComponent {
 			enemies,
 			index: 0,
 			moving: null,
+			attacking: null,
 		};
 	}
 
@@ -231,16 +234,33 @@ export class StageInteraction extends StageComponent {
 			return;
 		}
 
+		// esperamos a que el mensaje de ataque del enemigo actual se vea un momento
+		if (phase.attacking !== null) {
+			if (
+				this.p.millis() - phase.attacking <
+				StageInteraction.ATTACK_DURATION
+			) {
+				return;
+			}
+			phase.attacking = null;
+			textbox.hide();
+			phase.index += 1;
+			return;
+		}
+
 		// terminaron todos los enemigos: se acaba el turno
 		if (phase.index >= phase.enemies.length) {
 			this.#endTurn(textbox, phase.protagonist);
 			return;
 		}
 
-		// el enemigo actúa; si inició un movimiento, esperamos a que termine
+		// el enemigo actúa; esperamos según lo que haya hecho (atacar o moverse)
 		const enemy = phase.enemies[phase.index];
-		if (this.#actEnemy(enemy)) {
+		const action = this.#actEnemy(enemy, textbox);
+		if (action === "moved") {
 			phase.moving = enemy;
+		} else if (action === "attacked") {
+			phase.attacking = this.p.millis();
 		} else {
 			phase.index += 1;
 		}
@@ -304,29 +324,34 @@ export class StageInteraction extends StageComponent {
 
 	/**
 	 * Hace que un enemigo actúe: con 50% de probabilidad ataca al protagonista si
-	 * lo tiene a su alcance; si no, se acerca (si le queda más de la mitad de la
-	 * vida) o huye. Devuelve si inició un movimiento animado que hay que esperar.
+	 * lo tiene a su alcance (mostrando un mensaje); si no, se acerca (si le queda
+	 * más de la mitad de la vida) o huye. Devuelve qué hizo, para que el turno
+	 * espere el mensaje de ataque o la animación de movimiento.
 	 */
-	#actEnemy(enemy: EnemyEntity): boolean {
+	#actEnemy(
+		enemy: EnemyEntity,
+		textbox: Textbox,
+	): "attacked" | "moved" | "idle" {
 		if (this.phase.kind !== Phase.BeingAttacked) {
-			return false;
+			return "idle";
 		}
 
 		const protagonist = this.phase.protagonist;
 
 		if (protagonist.attackable(enemy) && Math.random() < 0.5) {
 			protagonist.health = Math.max(0, protagonist.health - enemy.attackPower);
-			return false;
+			textbox.showMessage(`¡${enemy.name} te atacó!`);
+			return "attacked";
 		}
 
 		const approaching = enemy.health > enemy.maxHealth / 2;
 		const target = this.#chooseEnemyMove(enemy, approaching);
 		if (!target) {
-			return false;
+			return "idle";
 		}
 
 		enemy.move(this.stage.grid.toStageSpace(target));
-		return enemy.isMoving;
+		return enemy.isMoving ? "moved" : "idle";
 	}
 
 	/**
