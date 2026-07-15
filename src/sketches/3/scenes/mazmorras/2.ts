@@ -1,5 +1,5 @@
 import type p5 from "p5";
-import { Musgo } from "../../characters/musgo";
+import { slime } from "../../characters/slime";
 import type { ProtagonistEntity } from "../../characters/protagonist";
 import { Stage } from "../../stage";
 import { Mazmorra1 } from "./1";
@@ -10,6 +10,7 @@ export function Mazmorra2(position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
     return async (p: p5, protagonist: ProtagonistEntity) => {
         const stage = await Stage.fromName(p, "mazmorra2");
         stage.addEntity(protagonist);
+        protagonist.energy += 1;
 
         if (position === 0) {
             protagonist.teleport(stage.grid.toStageSpace([0, 0]));
@@ -39,8 +40,8 @@ export function Mazmorra2(position: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) {
             protagonist.teleport(stage.grid.toStageSpace([9, 2]));
         }
 
-        const musgo = await Musgo(p, stage.grid.toStageSpace([5, 1]));
-        stage.addEntity(musgo);
+        const slime1 = await slime(p, stage.grid.toStageSpace([5, 1]));
+        stage.addEntity(slime1);
 
         stage.grid.transitions.set([3, 6], Mazmorra1(0));
         stage.grid.transitions.set([4, 6], Mazmorra1(0));

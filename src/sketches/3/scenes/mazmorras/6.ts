@@ -17,18 +17,23 @@ export function Mazmorra6(position: 0 | 1 | 2 | 3 | 4 | 5 | 6) {
         }
         else if (position === 2) {
             protagonist.teleport(stage.grid.toStageSpace([9, 0]));
+                    protagonist.energy += 1;
         }
         else if (position === 3) {
             protagonist.teleport(stage.grid.toStageSpace([9, 1]));
+                    protagonist.energy += 1;
         }
         else if (position === 4) {
             protagonist.teleport(stage.grid.toStageSpace([9, 2]));
+                    protagonist.energy += 1;
         }
         else if (position === 5) {
             protagonist.teleport(stage.grid.toStageSpace([9, 3]));
+                    protagonist.energy += 1;
         }
         else {
             protagonist.teleport(stage.grid.toStageSpace([9, 4]));
+                    protagonist.energy += 1;
         }
 
         const slime1 = await slime(p, stage.grid.toStageSpace([6, 2]));
