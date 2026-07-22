@@ -1,0 +1,335 @@
+classDiagram
+    direction LR
+
+    %% ============================================================
+    %% Sistema de páginas
+    %% ============================================================
+    class Page {
+        <<abstract>>
+        +navigator: Navigator
+        +draw(p: p5)*
+        +preload(p: p5)
+        +receive(args)
+        +setup(p: p5)
+        +mouseClicked(p, event)
+        +mousePressed(p, event)
+        +mouseReleased(p, event)
+        +mouseDragged(p, event)
+        +keyPressed(p, event)
+    }
+
+    class Navigator {
+        -pages: Map
+        -currentPage: Page
+        -preloadCompleted: boolean
+        +switchPage(p, Constructor)
+        +currentPageName: string
+        +overridePage(name, args)
+    }
+
+    class GamePage {
+        +world: World
+        +preload(p)
+        +setup(p)
+        +draw(p)
+        +mouseClicked(p)
+        +updateCursor(p)
+    }
+
+    Page <|-- GamePage
+    Page o-- Navigator
+
+    %% ============================================================
+    %% Sistema de arte
+    %% ============================================================
+    class Art {
+        -p: p5
+        -location: URL
+        -canonical: p5.Image
+        -animations: Map
+        -animation: ArtAnimationState
+        -override: ArtOverrideState
+        +static ART_URL: URL
+        +static fromName(p, name, folder)
+        +get appearance: p5.Image
+        +getAnimationProperties(id)
+        +loadAnimation(name)
+        +animate(id, looping, restart)
+        +overrideBaseAppearance(id, frame)
+        +removeBaseAppearanceOverride()
+        +immediatelyStopAnimating()
+        +draw(xy, w, h, opts)
+        +properties(xy, w, h, opts)
+    }
+
+    class EntityArt {
+        +static fromName(p, name)
+    }
+
+    Art <|-- EntityArt
+
+    %% ============================================================
+    %% Sistema de entidades (personajes)
+    %% ============================================================
+    class Entity {
+        +p: p5
+        #stage: Stage
+        #art: EntityArt
+        -position: pair
+        -positionAnimationState: object
+        +width: number
+        +height: number
+        +hitbox: object
+        +fit: boolean
+        +name: string
+        +maxHealth: number
+        +health: number
+        +attackPower: number
+        +opacity: number
+        +get isDead: boolean
+        +get reach: number
+        +get stage: Stage
+        +get isMoving: boolean
+        +get position: pair
+        +move(to)
+        +teleport(to)
+        +displace(delta)
+        +draw()
+        +intersects(location)
+        +attackable(by)
+        +isInteractive()
+        +interactionOptions()
+        +onInteracted(option, textbox)
+        +onMovingDownward()
+        +onMovingUpward()
+        +onMovingLeft()
+        +onMovingRight()
+        +onStoppedMoving()
+        +assignToStage(stage)
+    }
+
+    class EnemyEntity {
+        +isInteractive()
+    }
+
+    class ProtagonistEntity {
+        +static MAX_ENERGY = 10
+        +maxHealth: number
+        +health: number
+        +energy: number
+        +get reach: number
+        +isPlayerControlled: boolean
+        -world: World
+        +isInteractive()
+        +interactionOptions()
+        +assignToWorld(world)
+        +onMovingDownward()
+        +onMovingUpward()
+        +onMovingLeft()
+        +onMovingRight()
+        +onStoppedMoving()
+    }
+
+    class ArañaEntity_Spider {
+        <<araña>>
+        +name = "UNaraña"
+    }
+
+    class MusgoEntity {
+        <<musgo>>
+        +name = "Musgonzalo"
+    }
+
+    class ArañaEntity_Slime {
+        <<slime (mal nombrada como ArañaEntity)>>
+        +name = "slime"
+    }
+
+    Entity <|-- ProtagonistEntity
+    Entity <|-- EnemyEntity
+    EnemyEntity <|-- ArañaEntity_Spider
+    EnemyEntity <|-- MusgoEntity
+    EnemyEntity <|-- ArañaEntity_Slime
+
+    %% ============================================================
+    %% Sistema de escenario
+    %% ============================================================
+    class StageComponent {
+        <<abstract>>
+        -p: p5
+        -stage: Stage
+        +static UNASSIGNED_ERROR
+        +static ALREADY_ASSIGNED_ERROR
+        +get p: p5
+        +get stage: Stage
+        +assignToStage(p, stage)
+    }
+
+    class StageGrid {
+        +static HIGHLIGHT_ANIMATION_DURATION
+        +static NEIGHBOR_OFFSETS
+        +static assertIsValidDescriptor(d, src)
+        +origin: pair
+        +cellSize: number
+        +transitions: IntegerPairMap
+        +normalizeStageSpace(loc)
+        +fromStageSpace(loc)
+        +toStageSpace(loc, whole)
+        +distanceField(from, opts)
+        +highlight(radius, from, color, except)
+        +stopHighlighting()
+        +drawHighlights()
+        +reachDistance(cell)
+        +reachable(cell)
+        +attackable(targetCell, by)
+        +isHighlighting(cell)
+    }
+
+    class StageInteraction {
+        +static ATTACK_DURATION
+        +static REST_MESSAGE_DURATION
+        +static REST_RELOADING_DURATION
+        +phase: PhaseState
+        +enabledAt(location)
+        +clickedAt(location, textbox)
+        +tick(textbox)
+    }
+
+    StageComponent <|-- StageGrid
+    StageComponent <|-- StageInteraction
+
+    class StageDebug {
+        +static HIGHLIGHT_DURATION
+        +p: p5
+        +stage: Stage
+        +highlights: Set
+        +highlight(location)
+        +drawHighlights()
+        +drawGrid()
+        +drawCollision(collision)
+        +drawPerformance()
+        +drawPositions()
+    }
+
+    class Stage {
+        +static STAGE_ART_URL: URL
+        +static DEATH_FADE_DURATION
+        +isExhausting: boolean
+        +name: string
+        +debug: StageDebug
+        +bottomMargin: number
+        +grid: StageGrid
+        +interaction: StageInteraction
+        +static fromName(p, name)
+        +getEntities()
+        +collidesAt(position)
+        +emptyAt(position, except)
+        +intersectsWithEntityAt(position, except)
+        +addEntity(entity)
+        +screenDimensions()
+        +screenOrigin()
+        +get scale: number
+        +fromScreenSpace(location)
+        +toScreenSpace(stageLocation)
+        +tick()
+        +draw()
+    }
+
+    Stage *-- StageGrid
+    Stage *-- StageInteraction
+    Stage *-- StageDebug
+
+    %% ============================================================
+    %% Mundo
+    %% ============================================================
+    class World {
+        +static FADE_DURATION
+        +p: p5
+        +stage: Stage
+        +textbox: Textbox
+        +protagonist: ProtagonistEntity
+        -transitionState: object
+        +static create(p, protagonist, stage)
+        +transitionTo(newStage, protagonist)
+        +clickedAt(location)
+        +interactiveAt(location)
+        +draw()
+    }
+
+    %% ============================================================
+    %% HUD
+    %% ============================================================
+    class BatteryDisplay {
+        +static EASING_RATE
+        +p: p5
+        +entity: ProtagonistEntity
+        +displayedLevel: number
+        +art: Art
+        -reloading: boolean
+        +constructor(p, art, protagonist, opts)
+        +tick()
+        +draw(center, w, h, opacity)
+    }
+
+    %% ============================================================
+    %% Caja de texto
+    %% ============================================================
+    class Textbox {
+        <<enumerations>>
+        +static MARGIN
+        +static PADDING
+        +static GAP
+        +static EXHAUSTING_HEADING
+        +static EXHAUSTING_SUBHEADING
+        +p: p5
+        -isVisibleUntil: number
+        -lastActiveTextboxDisplay: TextboxDisplay
+        -opacity: number
+        -batteryArt: Art
+        +static create(p)
+        +showButtons(buttons, entity)
+        +showEnergy(entity, opts)
+        +showMessage(message)
+        +hide(at)
+        +draw(origin, w, h)
+        +interactiveAt(location)
+        +clickedAt(location)
+    }
+
+    %% ============================================================
+    %% Utilidades
+    %% ============================================================
+    class IntegerPairMap~T~ {
+        -data: Map
+        +static intoKey(pair)
+        +static intoPair(key)
+        +get size: number
+        +get(key)
+        +has(key)
+        +set(key, value)
+        +delete(key)
+        +getOrInsert(key, or)
+        +entries()
+    }
+
+    %% ============================================================
+    %% Relaciones entre subsistemas
+    %% ============================================================
+    StageGrid --> IntegerPairMap
+    Entity --> Art
+    Entity --> Stage
+    ProtagonistEntity --> World : assignToWorld
+    GamePage --> World
+    World --> Stage
+    World --> Textbox
+    World --> ProtagonistEntity
+    Textbox --> BatteryDisplay
+    Textbox --> Art
+    BatteryDisplay --> Art
+    BatteryDisplay --> ProtagonistEntity
+    StageInteraction --> ProtagonistEntity
+    StageInteraction --> EnemyEntity
+    ArañaEntity_Spider ..> EntityArt
+    MusgoEntity ..> EntityArt
+    ArañaEntity_Slime ..> EntityArt
+    ProtagonistEntity ..> EntityArt

@@ -1,5 +1,5 @@
-import "../../displayErrors";
 import p5 from "p5";
+import "../../displayErrors";
 import { Navigator, Page } from "../../pages";
 import { Protagonist } from "./characters/protagonist";
 import { Entrada } from "./scenes/entrada";

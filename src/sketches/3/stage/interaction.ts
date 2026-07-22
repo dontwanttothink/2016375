@@ -345,7 +345,7 @@ export class StageInteraction extends StageComponent {
 		if (protagonist.attackable(enemy) && Math.random() < 0.5) {
 			protagonist.health = Math.max(0, protagonist.health - enemy.attackPower);
 
-			// un ataque desde más de una celda de distancia es «telepático»
+			// un ataque desde más de una celda de distancia es 'telepático'
 			const distance = StageInteraction.#taxicab(
 				this.stage.grid.fromStageSpace(enemy.position),
 				this.stage.grid.fromStageSpace(protagonist.position),
