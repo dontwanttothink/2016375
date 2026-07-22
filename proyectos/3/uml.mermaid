@@ -130,7 +130,7 @@ classDiagram
         +onStoppedMoving()
     }
 
-    class ArañaEntity_Spider {
+    class ArañaEntity {
         <<araña>>
         +name = "UNaraña"
     }
@@ -140,16 +140,16 @@ classDiagram
         +name = "Musgonzalo"
     }
 
-    class ArañaEntity_Slime {
-        <<slime (mal nombrada como ArañaEntity)>>
-        +name = "slime"
+    class SlimeEntity {
+        <<slime>>
+        +name = "Slime"
     }
 
     Entity <|-- ProtagonistEntity
     Entity <|-- EnemyEntity
-    EnemyEntity <|-- ArañaEntity_Spider
+    EnemyEntity <|-- ArañaEntity
     EnemyEntity <|-- MusgoEntity
-    EnemyEntity <|-- ArañaEntity_Slime
+    EnemyEntity <|-- SlimeEntity
 
     %% ============================================================
     %% Sistema de escenario
@@ -329,7 +329,7 @@ classDiagram
     BatteryDisplay --> ProtagonistEntity
     StageInteraction --> ProtagonistEntity
     StageInteraction --> EnemyEntity
-    ArañaEntity_Spider ..> EntityArt
+    ArañaEntity ..> EntityArt
     MusgoEntity ..> EntityArt
-    ArañaEntity_Slime ..> EntityArt
+    SlimeEntity ..> EntityArt
     ProtagonistEntity ..> EntityArt
