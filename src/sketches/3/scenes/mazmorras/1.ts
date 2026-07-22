@@ -8,27 +8,26 @@ export function Mazmorra1(position: 0 | 1 | 2 | 3 | 4 | 5 | 6) {
 	return async (p: p5, protagonist: ProtagonistEntity) => {
 		const stage = await Stage.fromName(p, "mazmorra1");
 		stage.addEntity(protagonist);
-		protagonist.energy += 1;
 
+		// esto no interactúa bien con la máquina de estados de interacción,
+		// y de todas formas el personaje se recarga automáticamente cuando
+		// su batería se acaba:
+		// protagonist.energy += 1;
+
+		// TODO?
 		if (position === 0) {
 			protagonist.teleport(stage.grid.toStageSpace([5, 0]));
-		}
-		else if (position === 1) {
+		} else if (position === 1) {
 			protagonist.teleport(stage.grid.toStageSpace([6, 0]));
-		}
-		else if (position === 2) {
+		} else if (position === 2) {
 			protagonist.teleport(stage.grid.toStageSpace([6, 0]));
-		}
-		else if (position === 3) {
+		} else if (position === 3) {
 			protagonist.teleport(stage.grid.toStageSpace([6, 0]));
-		}
-		else if (position === 4) {
+		} else if (position === 4) {
 			protagonist.teleport(stage.grid.toStageSpace([6, 0]));
-		}
-		else if (position === 5) {
+		} else if (position === 5) {
 			protagonist.teleport(stage.grid.toStageSpace([6, 0]));
-		}
-		else {
+		} else {
 			protagonist.teleport(stage.grid.toStageSpace([6, 0]));
 		}
 
